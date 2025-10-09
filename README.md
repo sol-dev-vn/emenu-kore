@@ -1,8 +1,6 @@
 # SOL.com.vn - Sense of Life
 
-![SOL Logo](https://www.sol.com.vn/assets/images/logo-sol.png)
-
-> **Nơi bạn có thể gặp gỡ hạnh phúc của chính mình** - Where you can find happiness in yourself
+[<img src="https://www.sol.com.vn/logo/main_logo_sol.png" height="200px">](https://www.sol.com.vn/logo/main_logo_sol.png)
 
 ## 🏢 About Company
 
