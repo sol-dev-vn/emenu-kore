@@ -2,7 +2,7 @@
 
 Access at https://sol-ide.alphabits.team/ (via Cloudflare Tunnel)
 
-This is running on Mac Mini M4 with PM2 & Docker processes.
+![code-server IDE with AI Screenshot](img/code_server_ide_1.png)
 
 ## Online IDE based on [code-server](https://github.com/coder/code-server)
 
