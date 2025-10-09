@@ -68,10 +68,42 @@ Tips for using this current online IDE.
 - Use Git sidebar tab to stage changes, commit changes, and push.
 - Store tech notes, specs in `docs/specs` folder.
 
-### AI Tips
+### Basic AI Usage Tips
 
 - Use `/init` command to scan through the project and create the initial document.
 - Review README.md then acknowledge before I proceed with the task request.
-- Don't tail logs for too long, always watch with a timeout.
 - Explain the full plan in details with command lines before execution.
 - Once done, commit changes and push all git branches, tags to origin.
+
+### Project Understanding
+- Use `/help` to see available commands and their descriptions
+- Ask the AI to explain complex code by referencing specific files and line numbers
+- Request code reviews before committing major changes
+- Use the AI to generate comprehensive commit messages that follow the project's style
+
+### Productivity Boosters
+- Use tab completion for file paths and commands
+- Create custom slash commands for frequently used workflows
+- Ask the AI to refactor code using best practices and design patterns
+- Use the AI to write unit tests for existing functions
+- Generate documentation for your code automatically
+- Ask AI to not wait (tail) the logs for too long, always watch log or process with a timeout.
+
+### Code Quality & Best Practices
+- Ask the AI to perform security reviews of your code
+- Use the AI to identify potential performance bottlenecks
+- Request code style consistency checks and fixes
+- Ask for explanations of complex algorithms or design patterns
+- Use the AI to suggest modern JavaScript/TypeScript equivalents for legacy code
+
+### Troubleshooting & Debugging
+- Ask the AI to explain error messages and suggest solutions
+- Use the AI to debug complex issues by providing relevant code snippets
+- Request help with environment setup and configuration issues
+- Ask the AI to analyze logs and identify patterns or issues
+
+### Workflow Automation
+- Create custom git hooks with AI assistance
+- Automate repetitive code generation tasks
+- Use the AI to generate boilerplate code for new features
+- Ask for help setting up CI/CD pipelines and deployment scripts
