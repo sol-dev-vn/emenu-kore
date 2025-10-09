@@ -1,0 +1,54 @@
+name: the-kore
+services:
+  directus:
+    cpu_shares: 90
+    command: []
+    container_name: the-kore
+    deploy:
+      resources:
+        limits:
+          memory: 31962M
+    environment:
+      - ADMIN_EMAIL=sol.dev.vn@gmail.com
+      - ADMIN_PASSWORD=sol.dev.kore.password!
+      - DB_CLIENT=sqlite3
+      - DB_FILENAME=/directus/database/data.db
+      - PUBLIC_URL=https://sol-id.alphabits.team
+      - SECRET=481nas0dnaodf7yugjh24oi4u97yiqghrwfsuywirh41
+      - WEBSOCKETS_ENABLED=true
+    hostname: the-kore
+    image: directus/directus:latest
+    labels:
+      icon: https://cdn-icons-png.flaticon.com/128/1925/1925161.png
+    ports:
+      - target: 8055
+        published: "11111"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/dev/casa/DATA/AppData/kore/database
+        target: /directus/database
+      - type: bind
+        source: /Users/dev/casa/DATA/AppData/kore/data/uploads
+        target: /directus/uploads
+      - type: bind
+        source: /Users/dev/casa/DATA/AppData/kore/data/extensions
+        target: /directus/extensions
+    devices: []
+    cap_add: []
+    network_mode: bridge
+    privileged: false
+x-casaos:
+  author: self
+  category: self
+  hostname: sol-kore.alphabits.team
+  icon: https://cdn-icons-png.flaticon.com/128/1925/1925161.png
+  index: /
+  is_uncontrolled: false
+  port_map: ""
+  scheme: https
+  store_app_id: passionate_rocco
+  title:
+    custom: SOL Kore (API+DB)
+    en_us: the-kore

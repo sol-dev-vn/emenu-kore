@@ -1,0 +1,48 @@
+name: great_bobbie
+services:
+  synapse:
+    cpu_shares: 90
+    command: []
+    container_name: sol-komm
+    deploy:
+      resources:
+        limits:
+          memory: 7837M
+    environment:
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_SERVER_NAME=sol-komm.alphabits.team
+    hostname: sol-komm
+    image: matrixdotorg/synapse:latest
+    labels:
+      casaos.description: SOL Communication Server
+      casaos.homepage: https://sol-komm.alphabits.team
+      casaos.icon: server
+      casaos.label: SOL Komm
+      icon: https://cdn-icons-png.flaticon.com/128/7036/7036406.png
+    ports:
+      - target: 8008
+        published: "7111"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/dev/casa/DATA/AppData/sol-komm
+        target: /data
+    devices: []
+    cap_add: []
+    network_mode: bridge
+    privileged: false
+x-casaos:
+  author: self
+  category: self
+  hostname: sol-komm.alphabits.team
+  icon: https://cdn-icons-png.flaticon.com/128/7036/7036406.png
+  index: /
+  is_uncontrolled: false
+  port_map: ""
+  scheme: https
+  store_app_id: great_bobbie
+  title:
+    custom: SOL Komm
+    en_us: synapse
