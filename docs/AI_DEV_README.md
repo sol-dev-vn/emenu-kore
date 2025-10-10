@@ -66,6 +66,7 @@ git push origin main        # Push to remote
 - Use PM2 for process management
 - Monitor logs for errors: `pm2 logs`
 - Check API health endpoints before and after deployments
+- Never touch `code-server` PM2 process. Do not stop or restart it.
 
 ## 📡 Environment Variables
 
