@@ -1,0 +1,106 @@
+// PM2 Ecosystem Configuration for SOL eMenu Web Application
+// Production and development environment configuration
+
+module.exports = {
+  apps: [
+    {
+      name: 'sol-emenu-web',
+      script: 'npm',
+      args: 'start',
+      cwd: '/Users/dev/code/emenu-kore/sol-emenu-web',
+
+      // Environment Configuration
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3000,
+        NEXT_PUBLIC_DIRECTUS_URL: 'https://sol-kore.alphabits.team',
+        DIRECTUS_URL: 'https://sol-kore.alphabits.team',
+        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN || 'your_directus_token_here',
+        NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
+        NEXT_PUBLIC_APP_VERSION: '1.0.0',
+        NEXT_PUBLIC_API_BASE_URL: 'https://sol-kore.alphabits.team'
+      },
+
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+        NEXT_PUBLIC_DIRECTUS_URL: 'https://kore.sol.com.vn',
+        DIRECTUS_URL: 'https://kore.sol.com.vn',
+        DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN,
+        NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
+        NEXT_PUBLIC_APP_VERSION: '1.0.0',
+        NEXT_PUBLIC_API_BASE_URL: 'https://kore.sol.com.vn'
+      },
+
+      // Process Configuration
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '1G',
+
+      // Logging Configuration
+      log_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web.log',
+      out_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web-out.log',
+      error_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web-error.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+
+      // Application Configuration
+      kill_timeout: 5000,
+      restart_delay: 5000,
+      max_restarts: 10,
+      min_uptime: '10s',
+
+      // Monitoring
+      monitoring: false,
+
+      // Node Configuration
+      node_args: '--max-old-space-size=1024',
+
+      // Environment Variables for Next.js
+      env_file: '.env.local',
+
+      // Health Check
+      health_check_grace_period: 3000,
+
+      // Advanced Configuration
+      wait_ready: true,
+      listen_timeout: 3000,
+
+      // PM2 Plus Configuration (if available)
+      pmx: true,
+
+      // Development Specific
+      dev: {
+        watch: ['src', 'public', '.env.local'],
+        ignore_watch: ['node_modules', '.next', 'logs'],
+        env: {
+          NODE_ENV: 'development',
+          PORT: 3000
+        }
+      }
+    }
+  ],
+
+  // Deployment Configuration
+  deploy: {
+    production: {
+      user: 'deploy',
+      host: ['your-server.com'],
+      ref: 'origin/main',
+      repo: 'git@github.com:sol-dev-vn/emenu-kore.git',
+      path: '/var/www/sol-emenu-web',
+      'pre-deploy-local': '',
+      'post-deploy': 'cd /var/www/sol-emenu-web/sol-emenu-web && npm install && npm run build && pm2 reload ecosystem.config.js --env production',
+      'pre-setup': ''
+    },
+
+    staging: {
+      user: 'deploy',
+      host: ['staging-server.com'],
+      ref: 'origin/develop',
+      repo: 'git@github.com:sol-dev-vn/emenu-kore.git',
+      path: '/var/www/sol-emenu-web-staging',
+      'post-deploy': 'cd /var/www/sol-emenu-web-staging/sol-emenu-web && npm install && npm run build && pm2 reload ecosystem.config.js --env staging'
+    }
+  }
+};
