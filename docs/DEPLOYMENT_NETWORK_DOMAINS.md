@@ -64,21 +64,6 @@ Recommened apps
 
 docker-compose config file at `docker/sol-chatwoot-crm.yaml`
 
-# 🔗 CloudFlare Tunnel and Port Mappings
-
-Link to [CloudFlare Tunnel Mappings](https://one.dash.cloudflare.com/57250ea15f33175e8632e49a141ebf05/networks/tunnels/cfd_tunnel/971fe67e-e9da-4c1f-b2b9-14b2a5bd288c/edit?tab=publicHostname) (admin permission)
-
-- sol-server.alphabits.team → http://localhost:8080
-- sol-monitor.alphabits.team → http://localhost:8090
-- sol-crm.alphabits.team → http://localhost:13000
-- sol-kore.alphabits.team → http://localhost:11111
-- sol-dashboard.alphabits.team → http://localhost:1887
-- sol-wp.alphabits.team → http://localhost:8081
-- sol-stats.alphabits.team → http://localhost:19999
-- sol-menu.alphabits.team → http://localhost:3520
-- sol-komm.alphabits.team → http://localhost:7111
-- sol-ide.alphabits.team → http://localhost:8443
-
 # 🛠️ Private Network (Zero Tier)
 
 Require manual approval by admin to join. [Link to ZeroTier Admin](https://my.zerotier.com/network/45b6e887e2ad1f74)

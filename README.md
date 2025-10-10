@@ -25,10 +25,8 @@ This monorepo contains all digital infrastructure for SOL.com.vn's restaurant op
 ## 📋 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+
-- Docker & Docker Compose (optional)
-- Git
+- Node.js 22+
+- PostgreSQL 16+
 
 ### Installation
 
