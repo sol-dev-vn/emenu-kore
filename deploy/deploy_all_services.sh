@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 ECOSYSTEM_FILE="/Users/dev/code/emenu-kore/deploy/ecosystem.config.js"
 LOG_DIR="/Users/dev/code/emenu-kore/logs"
-EMENU_WEB_DIR="/Users/dev/code/emenu-kore/sol-emenu-web"
+EMENU_WEB_DIR="/Users/dev/code/emenu-kore/web-emenu"
 
 # Environment
 ENVIRONMENT=${1:-development}

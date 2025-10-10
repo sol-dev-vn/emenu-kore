@@ -8,7 +8,7 @@ module.exports = {
       name: 'sol-kore-api',
       script: 'npx',
       args: 'directus start',
-      cwd: '/Users/dev/code/emenu-kore/sol-emenu-web',
+      cwd: '/Users/dev/code/emenu-kore/web-emenu',
 
       // Environment Configuration
       env: {
@@ -77,10 +77,10 @@ module.exports = {
 
     // SOL eMenu Web Application
     {
-      name: 'sol-emenu-web',
+      name: 'web-emenu',
       script: 'npm',
       args: 'start',
-      cwd: '/Users/dev/code/emenu-kore/sol-emenu-web',
+      cwd: '/Users/dev/code/emenu-kore/web-emenu',
 
       // Environment Configuration
       env: {
@@ -192,7 +192,7 @@ module.exports = {
       'post-deploy': `
         cd /var/www/sol-emenu &&
         git pull origin main &&
-        cd sol-emenu-web && npm install && npm run build &&
+        cd web-emenu && npm install && npm run build &&
         cd .. &&
         pm2 reload ecosystem.config.js --env production &&
         pm2 save
@@ -209,7 +209,7 @@ module.exports = {
       'post-deploy': `
         cd /var/www/sol-emenu-staging &&
         git pull origin develop &&
-        cd sol-emenu-web && npm install && npm run build &&
+        cd web-emenu && npm install && npm run build &&
         cd .. &&
         pm2 reload ecosystem.config.js --env staging
       `

@@ -4,10 +4,10 @@
 module.exports = {
   apps: [
     {
-      name: 'sol-emenu-web',
+      name: 'web-emenu',
       script: 'npm',
       args: 'start',
-      cwd: '/Users/dev/code/emenu-kore/sol-emenu-web',
+      cwd: '/Users/dev/code/emenu-kore/web-emenu',
 
       // Environment Configuration
       env: {
@@ -39,9 +39,9 @@ module.exports = {
       max_memory_restart: '1G',
 
       // Logging Configuration
-      log_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web.log',
-      out_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web-out.log',
-      error_file: '/Users/dev/code/emenu-kore/logs/sol-emenu-web-error.log',
+      log_file: '/Users/dev/code/emenu-kore/logs/web-emenu.log',
+      out_file: '/Users/dev/code/emenu-kore/logs/web-emenu-out.log',
+      error_file: '/Users/dev/code/emenu-kore/logs/web-emenu-error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
 
       // Application Configuration
@@ -88,9 +88,9 @@ module.exports = {
       host: ['your-server.com'],
       ref: 'origin/main',
       repo: 'git@github.com:sol-dev-vn/emenu-kore.git',
-      path: '/var/www/sol-emenu-web',
+      path: '/var/www/web-emenu',
       'pre-deploy-local': '',
-      'post-deploy': 'cd /var/www/sol-emenu-web/sol-emenu-web && npm install && npm run build && pm2 reload ecosystem.config.js --env production',
+      'post-deploy': 'cd /var/www/web-emenu/web-emenu && npm install && npm run build && pm2 reload ecosystem.config.js --env production',
       'pre-setup': ''
     },
 
@@ -99,8 +99,8 @@ module.exports = {
       host: ['staging-server.com'],
       ref: 'origin/develop',
       repo: 'git@github.com:sol-dev-vn/emenu-kore.git',
-      path: '/var/www/sol-emenu-web-staging',
-      'post-deploy': 'cd /var/www/sol-emenu-web-staging/sol-emenu-web && npm install && npm run build && pm2 reload ecosystem.config.js --env staging'
+      path: '/var/www/web-emenu-staging',
+      'post-deploy': 'cd /var/www/web-emenu-staging/web-emenu && npm install && npm run build && pm2 reload ecosystem.config.js --env staging'
     }
   }
 };

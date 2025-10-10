@@ -33,7 +33,7 @@ A modern NextJS single-page application for restaurant branch management with re
 
 ```bash
 # Navigate to the project directory
-cd sol-emenu-web
+cd web-emenu
 
 # Install dependencies
 npm install
@@ -111,7 +111,7 @@ pm2 reload ecosystem.config.js --env production
 ## 📊 Application Structure
 
 ```
-sol-emenu-web/
+web-emenu/
 ├── src/
 │   ├── app/                 # Next.js App Router
 │   │   ├── api/            # API routes
