@@ -162,6 +162,8 @@ class CukCukSync {
 
       // Process branches
       let processed = 0;
+      const branchMap = new Map(); // Will store external_id -> primary_key mapping
+
       for (const branchData of mappingResult.results) {
         try {
           this.updateStats(syncType, 'processed');
@@ -171,16 +173,24 @@ class CukCukSync {
             external_id: { _eq: branchData.external_id }
           }, 1);
 
+          let branchId;
           if (existing.data && existing.data.length > 0) {
             // Update existing branch
-            await this.apiClient.updateDirectusItem('branches', existing.data[0].id, branchData);
+            const result = await this.apiClient.updateDirectusItem('branches', existing.data[0].id, branchData);
+            branchId = existing.data[0].id;
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated branch: ${branchData.name}`);
           } else {
             // Create new branch
-            await this.apiClient.createDirectusItem('branches', branchData);
+            const result = await this.apiClient.createDirectusItem('branches', branchData);
+            branchId = result.data.id;
             this.updateStats(syncType, 'created');
             logger.debug(`Created branch: ${branchData.name}`);
+          }
+
+          // Store mapping for other sync operations
+          if (branchData.external_id) {
+            branchMap.set(branchData.external_id, branchId);
           }
 
           processed++;
@@ -196,6 +206,7 @@ class CukCukSync {
 
       typeStats.endTime = new Date();
       const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
 
       logger.syncSuccess('Branches', typeStats);
       logger.info(`Branch sync completed in ${Math.round(duration / 1000)}s`);
@@ -203,8 +214,14 @@ class CukCukSync {
       // Create sync log
       await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
 
+      // Return branch map for other sync operations
+      return branchMap;
+
     } catch (error) {
       typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
       await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
       logger.syncError('Branches', error);
       throw error;
@@ -214,7 +231,7 @@ class CukCukSync {
   /**
    * Synchronize categories from CukCuk to Directus
    */
-  async syncCategories() {
+  async syncCategories(branchMap = new Map()) {
     const syncType = 'categories';
     const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
@@ -238,8 +255,8 @@ class CukCukSync {
         return;
       }
 
-      // Map data
-      const mappingResult = this.dataMapper.mapBatch(cukcukCategories, 'category');
+      // Map data with branch mapping
+      const mappingResult = this.dataMapper.mapBatch(cukcukCategories, 'category', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} categories successfully`);
 
       // Process categories
@@ -278,6 +295,7 @@ class CukCukSync {
 
       typeStats.endTime = new Date();
       const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
 
       logger.syncSuccess('Categories', typeStats);
       logger.info(`Category sync completed in ${Math.round(duration / 1000)}s`);
@@ -287,6 +305,9 @@ class CukCukSync {
 
     } catch (error) {
       typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
       await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
       logger.syncError('Categories', error);
       throw error;
@@ -298,6 +319,7 @@ class CukCukSync {
    */
   async syncMenuItems() {
     const syncType = 'menu_items';
+    const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
 
     if (!this.config.get('syncTypes').includes(syncType)) {
@@ -309,14 +331,76 @@ class CukCukSync {
     typeStats.startTime = new Date();
 
     try {
-      logger.warn('Menu items sync not yet implemented - CukCuk API method needs to be added');
-      logger.info('Skipping menu items sync for now');
+      // Fetch menu items from CukCuk
+      const cukcukMenuItems = await this.apiClient.getCukCukMenuItems(false);
+      logger.info(`Found ${cukcukMenuItems.length} menu items in CukCuk`);
+
+      if (cukcukMenuItems.length === 0) {
+        logger.warn('No menu items found to sync');
+        await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        return;
+      }
+
+      // Map data
+      const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item');
+      logger.info(`Mapped ${mappingResult.successCount} menu items successfully`);
+
+      if (mappingResult.errorCount > 0) {
+        logger.warn(`${mappingResult.errorCount} menu items failed to map`);
+        mappingResult.errors.forEach(error => {
+          logger.error(`Mapping error: ${JSON.stringify(error)}`);
+        });
+      }
+
+      // Process menu items
+      let processed = 0;
+      for (const menuItemData of mappingResult.results) {
+        try {
+          this.updateStats(syncType, 'processed');
+
+          // Check if menu item already exists
+          const existing = await this.apiClient.getDirectusItems('menu_items', {
+            external_id: { _eq: menuItemData.external_id }
+          }, 1);
+
+          if (existing.data && existing.data.length > 0) {
+            // Update existing menu item
+            await this.apiClient.updateDirectusItem('menu_items', existing.data[0].id, menuItemData);
+            this.updateStats(syncType, 'updated');
+            logger.debug(`Updated menu item: ${menuItemData.name}`);
+          } else {
+            // Create new menu item
+            await this.apiClient.createDirectusItem('menu_items', menuItemData);
+            this.updateStats(syncType, 'created');
+            logger.debug(`Created menu item: ${menuItemData.name}`);
+          }
+
+          processed++;
+          if (syncConfig.enableProgressLogging && processed % syncConfig.progressLogInterval === 0) {
+            logger.syncProgress('Menu Item', processed, mappingResult.results.length);
+          }
+
+        } catch (error) {
+          this.updateStats(syncType, 'failed');
+          logger.error(`Failed to sync menu item "${menuItemData.name}": ${error.message}`);
+        }
+      }
 
       typeStats.endTime = new Date();
-      await this.apiClient.createSyncLog(syncType, 'skipped', { created: 0, updated: 0, failed: 0 });
+      const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
+
+      logger.syncSuccess('Menu Items', typeStats);
+      logger.info(`Menu items sync completed in ${Math.round(duration / 1000)}s`);
+
+      // Create sync log
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
 
     } catch (error) {
       typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
       await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
       logger.syncError('Menu Items', error);
       throw error;
@@ -328,6 +412,7 @@ class CukCukSync {
    */
   async syncTables() {
     const syncType = 'tables';
+    const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
 
     if (!this.config.get('syncTypes').includes(syncType)) {
@@ -339,16 +424,171 @@ class CukCukSync {
     typeStats.startTime = new Date();
 
     try {
-      logger.warn('Tables sync not yet implemented - CukCuk API method needs to be added');
-      logger.info('Skipping tables sync for now');
+      // Fetch tables from CukCuk (get all tables from all branches)
+      const cukcukTables = await this.apiClient.getCukCukAllTables(false);
+      logger.info(`Found ${cukcukTables.length} tables in CukCuk`);
+
+      if (cukcukTables.length === 0) {
+        logger.warn('No tables found to sync');
+        await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        return;
+      }
+
+      // Map data
+      const mappingResult = this.dataMapper.mapBatch(cukcukTables, 'table');
+      logger.info(`Mapped ${mappingResult.successCount} tables successfully`);
+
+      if (mappingResult.errorCount > 0) {
+        logger.warn(`${mappingResult.errorCount} tables failed to map`);
+        mappingResult.errors.forEach(error => {
+          logger.error(`Mapping error: ${JSON.stringify(error)}`);
+        });
+      }
+
+      // Process tables
+      let processed = 0;
+      for (const tableData of mappingResult.results) {
+        try {
+          this.updateStats(syncType, 'processed');
+
+          // Check if table already exists
+          const existing = await this.apiClient.getDirectusItems('tables', {
+            external_id: { _eq: tableData.external_id }
+          }, 1);
+
+          if (existing.data && existing.data.length > 0) {
+            // Update existing table
+            await this.apiClient.updateDirectusItem('tables', existing.data[0].id, tableData);
+            this.updateStats(syncType, 'updated');
+            logger.debug(`Updated table: ${tableData.name}`);
+          } else {
+            // Create new table
+            await this.apiClient.createDirectusItem('tables', tableData);
+            this.updateStats(syncType, 'created');
+            logger.debug(`Created table: ${tableData.name}`);
+          }
+
+          processed++;
+          if (syncConfig.enableProgressLogging && processed % syncConfig.progressLogInterval === 0) {
+            logger.syncProgress('Table', processed, mappingResult.results.length);
+          }
+
+        } catch (error) {
+          this.updateStats(syncType, 'failed');
+          logger.error(`Failed to sync table "${tableData.name}": ${error.message}`);
+        }
+      }
 
       typeStats.endTime = new Date();
-      await this.apiClient.createSyncLog(syncType, 'skipped', { created: 0, updated: 0, failed: 0 });
+      const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
+
+      logger.syncSuccess('Tables', typeStats);
+      logger.info(`Tables sync completed in ${Math.round(duration / 1000)}s`);
+
+      // Create sync log
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
 
     } catch (error) {
       typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
       await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
       logger.syncError('Tables', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Synchronize layouts from CukCuk to Directus
+   */
+  async syncLayouts() {
+    const syncType = 'layouts';
+    const syncConfig = this.config.getSyncConfig(syncType);
+    const typeStats = this.getTypeStats(syncType);
+
+    if (!this.config.get('syncTypes').includes(syncType)) {
+      logger.info('Layouts sync disabled, skipping...');
+      return;
+    }
+
+    logger.syncStart('Layouts');
+    typeStats.startTime = new Date();
+
+    try {
+      // Fetch layouts from CukCuk
+      const cukcukLayouts = await this.apiClient.getCukCukLayouts(false);
+      logger.info(`Found ${cukcukLayouts.length} layouts in CukCuk`);
+
+      if (cukcukLayouts.length === 0) {
+        logger.warn('No layouts found to sync');
+        await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        return;
+      }
+
+      // Map data
+      const mappingResult = this.dataMapper.mapBatch(cukcukLayouts, 'layout');
+      logger.info(`Mapped ${mappingResult.successCount} layouts successfully`);
+
+      if (mappingResult.errorCount > 0) {
+        logger.warn(`${mappingResult.errorCount} layouts failed to map`);
+        mappingResult.errors.forEach(error => {
+          logger.error(`Mapping error: ${JSON.stringify(error)}`);
+        });
+      }
+
+      // Process layouts
+      let processed = 0;
+      for (const layoutData of mappingResult.results) {
+        try {
+          this.updateStats(syncType, 'processed');
+
+          // Check if layout already exists
+          const existing = await this.apiClient.getDirectusItems('layouts', {
+            external_id: { _eq: layoutData.external_id }
+          }, 1);
+
+          if (existing.data && existing.data.length > 0) {
+            // Update existing layout
+            await this.apiClient.updateDirectusItem('layouts', existing.data[0].id, layoutData);
+            this.updateStats(syncType, 'updated');
+            logger.debug(`Updated layout: ${layoutData.name}`);
+          } else {
+            // Create new layout
+            await this.apiClient.createDirectusItem('layouts', layoutData);
+            this.updateStats(syncType, 'created');
+            logger.debug(`Created layout: ${layoutData.name}`);
+          }
+
+          processed++;
+          if (syncConfig.enableProgressLogging && processed % syncConfig.progressLogInterval === 0) {
+            logger.syncProgress('Layout', processed, mappingResult.results.length);
+          }
+
+        } catch (error) {
+          this.updateStats(syncType, 'failed');
+          logger.error(`Failed to sync layout "${layoutData.name}": ${error.message}`);
+        }
+      }
+
+      typeStats.endTime = new Date();
+      const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
+
+      logger.syncSuccess('Layouts', typeStats);
+      logger.info(`Layouts sync completed in ${Math.round(duration / 1000)}s`);
+
+      // Create sync log
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+
+    } catch (error) {
+      typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      logger.syncError('Layouts', error);
       throw error;
     }
   }
@@ -362,11 +602,12 @@ class CukCukSync {
     try {
       await this.initialize();
 
-      // Run sync operations in order
-      await this.syncBranches();
-      await this.syncCategories();
-      await this.syncMenuItems();
-      await this.syncTables();
+      // Run sync operations in order, passing branch map
+      const branchMap = await this.syncBranches();
+      await this.syncCategories(branchMap);
+      await this.syncMenuItems(branchMap);
+      await this.syncTables(branchMap);
+      await this.syncLayouts(branchMap);
 
       // Finalize
       this.stats.endTime = new Date();

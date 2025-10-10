@@ -138,21 +138,188 @@ class ApiClient {
     });
   }
 
-  async getCukCukMenuItems() {
+  async getCukCukMenuItems(includeInactive = false, categoryId = null) {
     return this.withRetry(async () => {
       const client = await this.initializeCukCukClient();
-      // Note: This method would need to be implemented based on the actual CukCuk menu items API
-      logger.warn('Menu items API not yet implemented in CukCuk client');
-      return [];
+
+      // Use the correct inventory items paging API
+      let menuItems = [];
+
+      try {
+        // Get all branches first to fetch menu items for all branches
+        const branchesResult = await client.branches.getAll({ includeInactive });
+        const branches = branchesResult.Data || [];
+
+        if (branches.length === 0) {
+          logger.warn('No branches found to fetch menu items from');
+          return [];
+        }
+
+        logger.info(`Fetching menu items from ${branches.length} branches`);
+
+        // Fetch menu items from each branch
+        for (const branch of branches) {
+          try {
+            // Use the inventory items paging API
+            const requestParams = {
+              Page: 1,
+              Limit: 100, // Maximum per page
+              BranchId: branch.Id,
+              CategoryId: categoryId || '',
+              KeySearch: '',
+              IncludeInactive: includeInactive
+            };
+
+            // Try direct API call to inventory items paging endpoint
+            const response = await client.client.post('/inventoryitems/paging', requestParams);
+
+            if (response && response.Data && Array.isArray(response.Data)) {
+              // Add branch context to each menu item
+              const branchMenuItems = response.Data.map(item => ({
+                ...item,
+                BranchId: branch.Id,
+                BranchName: branch.Name
+              }));
+              menuItems = menuItems.concat(branchMenuItems);
+            }
+
+            // Check if there are more pages
+            if (response && response.Total && response.Total > 100) {
+              const totalPages = Math.ceil(response.Total / 100);
+              for (let page = 2; page <= totalPages; page++) {
+                const paginatedParams = { ...requestParams, Page: page };
+                const pageResponse = await client.client.post('/inventoryitems/paging', paginatedParams);
+
+                if (pageResponse && pageResponse.Data && Array.isArray(pageResponse.Data)) {
+                  const branchMenuItems = pageResponse.Data.map(item => ({
+                    ...item,
+                    BranchId: branch.Id,
+                    BranchName: branch.Name
+                  }));
+                  menuItems = menuItems.concat(branchMenuItems);
+                }
+              }
+            }
+          } catch (error) {
+            logger.warn(`Failed to fetch menu items for branch ${branch.Name} (${branch.Id}): ${error.message}`);
+          }
+        }
+
+        const count = Array.isArray(menuItems) ? menuItems.length : 0;
+        logger.success(`Retrieved ${count} menu items from CukCuk`);
+        return menuItems;
+
+      } catch (error) {
+        logger.error(`Failed to fetch menu items: ${error.message}`);
+
+        // Fallback: try different approaches
+        if (client.products && typeof client.products.getList === 'function') {
+          const result = await client.products.getList({
+            includeInactive,
+            categoryId
+          });
+          menuItems = result.Data || result.data || result;
+        }
+        else if (client.inventoryItems && typeof client.inventoryItems.getList === 'function') {
+          const result = await client.inventoryItems.getList({
+            includeInactive,
+            categoryId
+          });
+          menuItems = result.Data || result.data || result;
+        }
+
+        const count = Array.isArray(menuItems) ? menuItems.length : 0;
+        logger.success(`Retrieved ${count} menu items from CukCuk (fallback method)`);
+        return menuItems;
+      }
     });
   }
 
-  async getCukCukTables() {
+  async getCukCukTables(branchId = null, includeInactive = false) {
     return this.withRetry(async () => {
       const client = await this.initializeCukCukClient();
-      // Note: This method would need to be implemented based on the actual CukCuk tables API
-      logger.warn('Tables API not yet implemented in CukCuk client');
-      return [];
+
+      if (!branchId) {
+        logger.warn('Tables API requires a branchId parameter');
+        return [];
+      }
+
+      // Use the correct API method: tables.getByBranch(branchId)
+      if (client.tables && typeof client.tables.getByBranch === 'function') {
+        const result = await client.tables.getByBranch(branchId);
+        const tables = result.Data?.ListTable || [];
+        const count = Array.isArray(tables) ? tables.length : 0;
+
+        logger.success(`Retrieved ${count} tables from CukCuk for branch ${branchId}`);
+
+        // Add branch context to each table
+        return tables.map(table => ({
+          ...table,
+          BranchId: branchId
+        }));
+      } else {
+        logger.warn('Tables getByBranch method not available');
+        return [];
+      }
+    });
+  }
+
+  async getCukCukAllTables(includeInactive = false) {
+    return this.withRetry(async () => {
+      const client = await this.initializeCukCukClient();
+
+      // First get all branches
+      const branchesResult = await client.branches.getAll({ includeInactive });
+      const branches = branchesResult.Data || [];
+
+      if (branches.length === 0) {
+        logger.warn('No branches found to fetch tables from');
+        return [];
+      }
+
+      logger.info(`Fetching tables from ${branches.length} branches`);
+      let allTables = [];
+
+      // Fetch tables for each branch
+      for (const branch of branches) {
+        try {
+          const branchTables = await this.getCukCukTables(branch.Id, includeInactive);
+          allTables = allTables.concat(branchTables);
+        } catch (error) {
+          logger.warn(`Failed to fetch tables for branch ${branch.Name} (${branch.Id}): ${error.message}`);
+        }
+      }
+
+      logger.success(`Retrieved ${allTables.length} total tables from CukCuk`);
+      return allTables;
+    });
+  }
+
+  async getCukCukLayouts(includeInactive = false) {
+    return this.withRetry(async () => {
+      const client = await this.initializeCukCukClient();
+
+      // Try different approaches to get layouts
+      let layouts = [];
+
+      // Try 1: Check if layouts method exists
+      if (client.layouts && typeof client.layouts.getList === 'function') {
+        const result = await client.layouts.getList({ includeInactive });
+        layouts = result.Data || result.data || result;
+      }
+      // Try 2: Check if there are other layout-related methods
+      else if (client.layouts && typeof client.layouts.getAll === 'function') {
+        const result = await client.layouts.getAll({ includeInactive });
+        layouts = result.Data || result.data || result;
+      }
+      // Try 3: Check if layouts are under a different service
+      else {
+        logger.warn('Layouts API not directly available - would need direct API call');
+      }
+
+      const count = Array.isArray(layouts) ? layouts.length : 0;
+      logger.success(`Retrieved ${count} layouts from CukCuk`);
+      return layouts;
     });
   }
 
@@ -215,26 +382,68 @@ class ApiClient {
     });
   }
 
-  async createSyncLog(syncType, status, stats, errorDetails = null) {
+  async createSyncLog(syncType, status, stats, errorDetails = null, options = {}) {
+    const now = new Date().toISOString();
     const syncLog = {
       sync_type: syncType,
       source: 'cukcuk',
       status: status,
       records_processed: stats.created + stats.updated + stats.failed,
-      records_created: stats.created,
-      records_updated: stats.updated,
-      records_failed: stats.failed,
-      error_details: errorDetails
+      records_created: stats.created || 0,
+      records_updated: stats.updated || 0,
+      records_failed: stats.failed || 0,
+      // Enhanced timestamp fields
+      sync_started_at: stats.startTime ? new Date(stats.startTime).toISOString() : now,
+      sync_completed_at: (status === 'completed' || status === 'failed') ? now : null,
+      duration_seconds: stats.duration || null,
+      // Enhanced tracking fields
+      triggered_by: options.triggeredBy || 'manual',
+      batch_id: options.batchId || this.generateBatchId(syncType),
+      api_endpoint: options.apiEndpoint || this.getApiEndpoint(syncType),
+      branch_id: options.branchId || null,
+      data_checksum: options.dataChecksum || null,
+      retry_count: options.retryCount || 0,
+      last_error_message: errorDetails || null,
+      performance_metrics: options.performanceMetrics || {
+        api_calls: stats.apiCalls || 0,
+        avg_response_time: stats.avgResponseTime || 0,
+        memory_usage: process.memoryUsage()
+      },
+      warning_count: stats.warnings || 0
     };
 
     try {
       const result = await this.createDirectusItem('sync_logs', syncLog);
-      logger.debug(`Sync log created: ${syncType} - ${status}`);
+      logger.debug(`Enhanced sync log created: ${syncType} - ${status} (${syncLog.batch_id})`);
       return result;
     } catch (error) {
       logger.error(`Failed to create sync log: ${error.message}`);
       throw error;
     }
+  }
+
+  /**
+   * Generate a unique batch ID for sync operations
+   */
+  generateBatchId(syncType) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${syncType}-${timestamp}-${random}`;
+  }
+
+  /**
+   * Get the API endpoint for a sync type
+   */
+  getApiEndpoint(syncType) {
+    const endpoints = {
+      'branches': '/branches',
+      'categories': '/categories',
+      'menu_items': '/inventoryitems/paging',
+      'tables': '/tables',
+      'layouts': '/layouts',
+      'full': '/multiple'
+    };
+    return endpoints[syncType] || '/unknown';
   }
 
   /**

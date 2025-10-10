@@ -11,7 +11,7 @@ class SyncConfig {
   constructor() {
     this.defaultConfig = {
       // Sync settings
-      syncTypes: ['branches', 'categories', 'menu_items', 'tables'],
+      syncTypes: ['branches', 'categories', 'menu_items', 'tables', 'layouts'],
       batchSize: 100,
       maxRetries: 3,
       retryDelay: 1000,
@@ -78,6 +78,7 @@ class SyncConfig {
       'SYNC_ENABLE_CATEGORIES': 'categories',
       'SYNC_ENABLE_MENU_ITEMS': 'menu_items',
       'SYNC_ENABLE_TABLES': 'tables',
+      'SYNC_ENABLE_LAYOUTS': 'layouts',
       'SYNC_ENABLE_PROMOTIONS': 'promotions',
       'SYNC_ENABLE_ORDERS': 'orders'
     };
@@ -205,6 +206,10 @@ class SyncConfig {
         batchSize: 150,
         enableParallelProcessing: true,
         maxConcurrentItems: 8
+      },
+      layouts: {
+        batchSize: 50,
+        enableParallelProcessing: false
       }
     };
 
@@ -251,7 +256,7 @@ class SyncConfig {
     }
 
     // Sync types validation
-    const validSyncTypes = ['branches', 'categories', 'menu_items', 'tables', 'promotions', 'orders'];
+    const validSyncTypes = ['branches', 'categories', 'menu_items', 'tables', 'layouts', 'promotions', 'orders'];
     for (const syncType of this.config.syncTypes) {
       if (!validSyncTypes.includes(syncType)) {
         errors.push(`Invalid sync type: ${syncType}`);
