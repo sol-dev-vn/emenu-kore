@@ -1,0 +1,28 @@
+{
+  "name": "sol-cukcuk-data-sync",
+  "version": "1.0.0",
+  "description": "CukCuk POS data synchronization for SOL eMenu platform",
+  "main": "sync.js",
+  "scripts": {
+    "start": "node sync.js",
+    "dev": "node sync.js",
+    "test": "node examples/test-connection.js"
+  },
+  "keywords": [
+    "cukcuk",
+    "pos",
+    "data-sync",
+    "sol",
+    "emenu"
+  ],
+  "author": "SOL Development Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@luutronghieu/cukcuk-api-client": "^1.2.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
