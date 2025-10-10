@@ -4,7 +4,14 @@
       "mcp__ide__getDiagnostics",
       "Bash(node:*)",
       "Bash(curl:*)",
-      "Bash(git add:*)"
+      "Bash(ls:*)",
+      "Bash(docker:*)",
+      "Bash(pm2:*)",
+      "Bash(nvm:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(cat:*)",
+      "Bash(git:*)"
     ],
     "deny": [],
     "ask": []
