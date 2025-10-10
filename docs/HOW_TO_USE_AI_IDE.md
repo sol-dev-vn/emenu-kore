@@ -1,109 +1,197 @@
-# SOL - IDE & AI Coder
+# SOL eMenu - IDE & AI Coder Guide
 
-Access at https://sol-ide.alphabits.team/ (via Cloudflare Tunnel)
+## 🌐 Online IDE Access
+
+**IDE URL:** https://sol-ide.alphabits.team/ (via Cloudflare Tunnel)
 
 ![code-server IDE with AI Screenshot](img/code_server_ide_1.png)
 
-## Online IDE based on [code-server](https://github.com/coder/code-server)
+### Infrastructure Details
 
-`code-server` was installed with [Homebrew](https://brew.sh/) on Mac.
+**code-server** installed via [Homebrew](https://brew.sh/) on macOS:
+- **Binary:** `/opt/homebrew/opt/code-server/bin/code-server`
+- **Config:** `~/.config/code-server/config.yaml`
+- **Managed by:** PM2 (port 8443)
 
-Binary at `/opt/homebrew/opt/code-server/bin/code-server`.
+## 🤖 AI Assistant Integration
 
-Config file at `~/.config/code-server/config.yaml` on `dev` account.
-```
-bind-addr: 127.0.0.1:8443
-auth: password
-hashed-password: $argon2i$v=19$m=4096,t=3,p=1$a29uZHVjdG9y$HMiYs69vMELY/hcRK/Fk7dUgvD0ANXIQs0OeC1BTkl4
-cert: false
-```
+### Supported AI Platforms
+- **Claude Code** - GLM 4.6 LLM model (z.ai Lite Coding Plan)
+- **Trae IDE** - Directus MCP integration
+- **GLM z.ai** - Alternative AI assistant
+- **Warpdev** - Additional AI support
 
-Managed by **PM2** run at port 8443.
+### Claude Code Setup
+```bash
+# Enter Claude Code environment
+claude
 
-
-## Claude Code AI Agent
-
-**Claude Code CLI** with custom settings for GLM 4.6 LLM model ([Lite Coding Plan](https://docs.z.ai/devpack/overview) from [z.ai docs](https://docs.z.ai/scenario-example/develop-tools/claude))
-
-Run `claude` in Terminal to enter the Claude Code environment.
-
-To turn on auto-approve mode, run 
-
-```sh
+# Auto-approve mode (use with caution)
 claude --dangerously-skip-permission
+
+# Toggle modes: Planning → Manual → Auto
+# Use Shift-Tab to switch between modes
 ```
 
-Use *Shift-Tab* to toggle between *Planning / Manual Approve / Auto Modes*.
-Highly recommend starting with Planning mode when starting a new major task.
+**Recommendation:** Always start in **Planning mode** for major tasks.
 
-# 💡 Code IDE Usage & AI Tips
+## 🚀 Quick Start for AI Assistants
 
-## Basic Terminal Commands
+**📋 Required Reading (First Steps):**
+1. `docs/AI_DEV_README.md` - Complete project overview for AI developers
+2. `docs/DEPLOYMENT_NETWORK_DOMAINS.md` - Technical architecture
+3. `README.md` - Project structure and components
 
-Toggle the Terminal console with Hotkey `⌘ J`
+## 🎯 IDE Usage & AI Best Practices
 
-### PM2 commands 
-```sh
-pm2 list
-pm2 restart sol-emenu
-pm2 stop sol-emenu # stop the process
-pm2 stop 1 # by ID
-pm2 save # Save after changes
+### 🖥️ Essential Terminal Commands
+
+**Terminal Toggle:** `⌘ J`
+
+**Process Management:**
+```bash
+# PM2 Operations
+pm2 list                    # View all processes
+pm2 restart web-emenu       # Restart web application
+pm2 restart sol-kore-api    # Restart Directus API
+pm2 logs web-emenu          # View application logs
+pm2 save                    # Save PM2 configuration
+
+# Docker Operations
+docker ps                   # List running containers
+docker restart the-kore     # Restart Directus container
+docker stop the-kore        # Stop Directus container
 ```
 
-### Docker commands
-```sh
-docker ps
-docker restart sol-komm
-docker stop sol-komm
+**Monitoring:**
+```bash
+btop                       # Advanced system monitor
+htop                       # Basic process monitor
+pm2 monit                  # PM2 monitoring dashboard
 ```
 
-### Realtime monitoring
+### 🤖 AI Assistant Guidelines
 
-- `btop` or `htop` for realtime load monitoring.
+**When Starting Tasks:**
+1. **Always read** `docs/AI_DEV_README.md` first
+2. **Review** `docs/DEPLOYMENT_NETWORK_DOMAINS.md` for technical context
+3. **Explain plan** before execution with specific commands
+4. **Use conventional commits** (feat:, fix:, docs:, refactor:, test:)
 
-### IDE Tips
+**Effective AI Prompts:**
+- `Review the project structure and suggest improvements`
+- `Explain this code: src/components/BranchTable.tsx:15-30`
+- `Help me debug this error in the PM2 logs`
+- `Generate comprehensive tests for the Directus API client`
+- `Refactor this component following React best practices`
 
-Tips for using this current online IDE.
-- Use Git sidebar tab to stage changes, commit changes, and push.
-- Store tech notes, specs in `docs/specs` folder.
+### 🔧 Development Workflow
 
-### Basic AI Usage Tips
+**Git Integration:**
+- Use Git sidebar for staging, committing, and pushing
+- Store technical notes in `docs/specs/` folder
+- Create feature branches for complex changes
 
-- Use `/init` command to scan through the project and create the initial document.
-- Review README.md then acknowledge before I proceed with the task request.
-- Explain the full plan in details with command lines before execution.
-- Once done, commit changes and push all git branches, tags to origin.
+**Code Quality:**
+- TypeScript with strict typing enabled
+- ESLint + Prettier for code formatting
+- Tailwind CSS for styling consistency
+- Follow existing naming conventions
 
-### Project Understanding
-- Use `/help` to see available commands and their descriptions
-- Ask the AI to explain complex code by referencing specific files and line numbers
-- Request code reviews before committing major changes
-- Use the AI to generate comprehensive commit messages that follow the project's style
+### ⚡ Productivity Tips
 
-### Productivity Boosters
-- Use tab completion for file paths and commands
-- Create custom slash commands for frequently used workflows
-- Ask the AI to refactor code using best practices and design patterns
-- Use the AI to write unit tests for existing functions
-- Generate documentation for your code automatically
-- Ask AI to not wait (tail) the logs for too long, always watch log or process with a timeout.
+**AI Collaboration:**
+- Use tab completion for commands and file paths
+- Request code reviews before major commits
+- Ask AI to generate documentation automatically
+- Use AI for security reviews and performance analysis
 
-### Code Quality & Best Practices
-- Ask the AI to perform security reviews of your code
-- Use the AI to identify potential performance bottlenecks
-- Request code style consistency checks and fixes
-- Ask for explanations of complex algorithms or design patterns
-- Use the AI to suggest modern JavaScript/TypeScript equivalents for legacy code
+**Debugging Assistance:**
+- Provide relevant code snippets with line numbers
+- Share error messages and log outputs
+- Ask for step-by-step troubleshooting guides
+- Request environment configuration help
 
-### Troubleshooting & Debugging
-- Ask the AI to explain error messages and suggest solutions
-- Use the AI to debug complex issues by providing relevant code snippets
-- Request help with environment setup and configuration issues
-- Ask the AI to analyze logs and identify patterns or issues
+### 🔄 Deployment Best Practices
 
-### Workflow Automation
-- Create custom git hooks with AI assistance
-- Automate repetitive code generation tasks
-- Use the AI to generate boilerplate code for new features
-- Ask for help setting up CI/CD pipelines and deployment scripts
+**Before Deploying:**
+1. Test in development environment first
+2. Check API health endpoints
+3. Monitor PM2 logs for errors
+4. Verify environment variables
+
+**Deployment Commands:**
+```bash
+# Build and deploy web application
+cd web-emenu
+npm run build
+pm2 restart web-emenu
+
+# Restart API services
+pm2 restart sol-kore-api
+pm2 save
+```
+
+### 📊 Monitoring & Troubleshooting
+
+**Log Locations:**
+- Web app: `/Users/dev/code/emenu-kore/logs/web-emenu*.log`
+- API: `/Users/dev/code/emenu-kore/logs/sol-kore-api*.log`
+- PM2: `pm2 logs --lines 100`
+
+**Health Checks:**
+- Web app: http://localhost:3520/api/health
+- Directus API: https://sol-kore.alphabits.team/health
+
+**Common Issues:**
+```bash
+# Clear Next.js cache
+rm -rf .next
+
+# Reinstall dependencies
+npm ci
+
+# Reset PM2 processes
+pm2 delete all
+pm2 restart ecosystem.config.js
+```
+
+### 🔗 Project Integration Points
+
+**API Endpoints:**
+- Directus Admin: https://sol-kore.alphabits.team/admin
+- MCP Integration: https://sol-kore.alphabits.team/mcp
+- Web Application: http://localhost:3520
+
+**Data Sync:**
+- CukCuk API sync runs hourly via PM2
+- Manual trigger: `pm2 restart cukcuk-sync`
+- Sync script: `data/collectors/cukcuk/sync.js`
+
+### 🎨 IDE Customization
+
+**Recommended Extensions:**
+- TypeScript support
+- ESLint integration
+- GitLens for Git history
+- Live Server for development
+- Docker integration
+
+**Workspace Settings:**
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative"
+}
+```
+
+## 🚨 Important Notes
+
+- **Never commit** `.env.local` files or API tokens
+- **Always test** deployment scripts before committing
+- **Use HTTPS** in production environments
+- **Monitor logs** regularly for unusual activity
+- **Back up important configurations** before major changes
