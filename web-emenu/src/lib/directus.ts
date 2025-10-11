@@ -206,6 +206,118 @@ class DirectusClient {
     const qs = params.length ? `?${params.join('&')}` : '';
     return this.request<{ data: unknown[] }>(`/items/${collection}${qs}`);
   }
+
+  // Sync Logs methods
+  async getSyncLogs(options?: {
+    page?: number;
+    limit?: number;
+    sort?: string[];
+    filter?: Record<string, unknown>;
+    fields?: string[];
+  }): Promise<{ data: unknown[]; meta: { total_count: number; filter_count: number } }> {
+    const params: string[] = [];
+    if (options?.page) params.push(`page=${options.page}`);
+    if (options?.limit) params.push(`limit=${options.limit}`);
+    if (options?.sort && options.sort.length) params.push(`sort=${encodeURIComponent(options.sort.join(','))}`);
+    if (options?.fields && options.fields.length) params.push(`fields=${encodeURIComponent(options.fields.join(','))}`);
+    if (options?.filter) {
+      Object.entries(options.filter).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          Object.entries(value).forEach(([operator, val]) => {
+            params.push(`filter[${key}][${operator}]=${encodeURIComponent(String(val))}`);
+          });
+        } else {
+          params.push(`filter[${key}][_eq]=${encodeURIComponent(String(value))}`);
+        }
+      });
+    }
+    const qs = params.length ? `?${params.join('&')}` : '';
+    return this.request<{ data: unknown[]; meta: { total_count: number; filter_count: number } }>(`/items/sync_logs${qs}`);
+  }
+
+  async getSyncLog(id: string): Promise<{ data: unknown }> {
+    return this.request<{ data: unknown }>(`/items/sync_logs/${id}`);
+  }
+
+  async createSyncLog(syncLog: {
+    sync_type: string;
+    status: 'pending' | 'in_progress' | 'completed' | 'failed';
+    records_processed?: number;
+    records_created?: number;
+    records_updated?: number;
+    records_failed?: number;
+    duration_seconds?: number;
+    last_error_message?: string;
+    performance_metrics?: Record<string, unknown>;
+    session_log?: string;
+    log_file_path?: string;
+  }): Promise<{ data: unknown }> {
+    return this.request<{ data: unknown }>('/items/sync_logs', {
+      method: 'POST',
+      body: JSON.stringify(syncLog),
+    });
+  }
+
+  async updateSyncLog(id: string, updates: Partial<{
+    status: 'pending' | 'in_progress' | 'completed' | 'failed';
+    records_processed: number;
+    records_created: number;
+    records_updated: number;
+    records_failed: number;
+    duration_seconds: number;
+    last_error_message: string;
+    performance_metrics: Record<string, unknown>;
+    session_log: string;
+    log_file_path: string;
+    completed_at: string;
+    date_updated: string;
+  }>): Promise<{ data: unknown }> {
+    return this.request<{ data: unknown }>(`/items/sync_logs/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async deleteSyncLog(id: string): Promise<void> {
+    await this.request(`/items/sync_logs/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getSyncLogStats(): Promise<{
+    total: number;
+    completed: number;
+    failed: number;
+    in_progress: number;
+    pending: number;
+  }> {
+    try {
+      const [totalResult, completedResult, failedResult, inProgressResult, pendingResult] = await Promise.all([
+        this.request('/items/sync_logs?aggregate[count]=*'),
+        this.request('/items/sync_logs?aggregate[count]=*&&filter[status][_eq]=completed'),
+        this.request('/items/sync_logs?aggregate[count]=*&&filter[status][_eq]=failed'),
+        this.request('/items/sync_logs?aggregate[count]=*&&filter[status][_eq]=in_progress'),
+        this.request('/items/sync_logs?aggregate[count]=*&&filter[status][_eq]=pending'),
+      ]);
+
+      return {
+        total: (totalResult as any).data?.[0]?.count || 0,
+        completed: (completedResult as any).data?.[0]?.count || 0,
+        failed: (failedResult as any).data?.[0]?.count || 0,
+        in_progress: (inProgressResult as any).data?.[0]?.count || 0,
+        pending: (pendingResult as any).data?.[0]?.count || 0,
+      };
+    } catch (error) {
+      console.error('Failed to get sync log stats:', error);
+      return {
+        total: 0,
+        completed: 0,
+        failed: 0,
+        in_progress: 0,
+        pending: 0,
+      };
+    }
+  }
 }
 
 // Create singleton instance

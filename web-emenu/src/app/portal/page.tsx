@@ -8,6 +8,13 @@ interface DashboardStats {
   tables: number;
   menu_items: number;
   categories: number;
+  sync_stats?: {
+    total: number;
+    completed: number;
+    failed: number;
+    in_progress: number;
+    pending: number;
+  };
   last_sync?: { id: string; status: string; started_at: string; finished_at?: string } | null;
 }
 
@@ -74,7 +81,7 @@ export default function PortalDashboard() {
         </Card>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-4">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Last Sync</CardTitle>
@@ -100,11 +107,41 @@ export default function PortalDashboard() {
         </Card>
         <Card>
           <CardHeader>
+            <CardTitle>Sync Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats?.sync_stats ? (
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Total:</span>
+                  <span className="font-semibold">{stats.sync_stats.total}</span>
+                </div>
+                <div className="flex justify-between text-green-600">
+                  <span>Completed:</span>
+                  <span>{stats.sync_stats.completed}</span>
+                </div>
+                <div className="flex justify-between text-red-600">
+                  <span>Failed:</span>
+                  <span>{stats.sync_stats.failed}</span>
+                </div>
+                <div className="flex justify-between text-blue-600">
+                  <span>In Progress:</span>
+                  <span>{stats.sync_stats.in_progress}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">No sync data available</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardTitle>Quick Links</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2 text-sm">
               <a href="/portal/master/brands-branches" className="text-blue-600 hover:underline">Manage Brands & Branches</a>
+              <a href="/portal/sync-logs" className="text-blue-600 hover:underline">View Sync Logs</a>
               <a href="/portal/menu-combo" className="text-blue-600 hover:underline">Manage Menu & Combos</a>
               <a href="/portal/promotions" className="text-blue-600 hover:underline">Manage Promotions</a>
             </div>

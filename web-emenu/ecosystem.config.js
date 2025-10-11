@@ -74,6 +74,52 @@ module.exports = {
           PORT: 3520
         }
       }
+    },
+    {
+      name: 'cukcuk-sync',
+      script: 'node',
+      args: 'data/collectors/cukcuk/sync.js',
+      cwd: '/Users/dev/code/emenu-kore',
+
+      // Environment Configuration
+      env: {
+        NODE_ENV: 'development',
+        DIRECTUS_URL: 'https://sol-kore.alphabits.team',
+        DIRECTUS_TOKEN: '39Omtm9x8eE3dOYxsI1iXk3MPZ9L235y'
+      },
+
+      env_production: {
+        NODE_ENV: 'production',
+        DIRECTUS_URL: 'https://kore.sol.com.vn',
+        DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN
+      },
+
+      // Process Configuration
+      instances: 1,
+      autorestart: false, // Don't auto-restart sync process
+      watch: false,
+      max_memory_restart: '256M',
+
+      // Logging Configuration
+      log_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync.log',
+      out_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync-out.log',
+      error_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync-error.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+
+      // Application Configuration
+      kill_timeout: 10000,
+      restart_delay: 10000,
+      max_restarts: 3,
+      min_uptime: '30s',
+
+      // Node Configuration
+      node_args: '--max-old-space-size=256',
+
+      // Schedule - Run every hour
+      cron_restart: '0 * * * *',
+
+      // Health Check
+      health_check_grace_period: 30000
     }
   ],
 

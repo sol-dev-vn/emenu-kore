@@ -20,21 +20,27 @@ export async function GET(request: NextRequest) {
       ]);
 
       let lastSync: SyncLog | null = null;
+      let syncStats = null;
       try {
-        const syncRes = await directusClient.getItems('sync_logs', {
-          sort: ['-date_created'],
-          limit: 1,
-          // Minimal set to avoid permission errors (exclude `message`)
-          fields: ['id', 'status', 'date_created'],
-        });
+        const [syncRes, statsRes] = await Promise.all([
+          directusClient.getItems('sync_logs', {
+            sort: ['-date_created'],
+            limit: 1,
+            // Minimal set to avoid permission errors (exclude `message`)
+            fields: ['id', 'status', 'date_created'],
+          }),
+          directusClient.getSyncLogStats().catch(() => null)
+        ]);
+
         const list = Array.isArray(syncRes?.data) ? (syncRes.data as SyncLog[]) : [];
         const item = list[0];
         if (item) lastSync = item;
+        if (statsRes) syncStats = statsRes;
       } catch (e) {
         // ignore sync logs error
       }
 
-      return { branchesCount, tablesCount, menuItemsCount, categoriesCount, lastSync };
+      return { branchesCount, tablesCount, menuItemsCount, categoriesCount, lastSync, syncStats };
     };
 
     let data;
@@ -71,12 +77,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: {
-        counts: {
-          branches: data.branchesCount,
-          tables: data.tablesCount,
-          menu_items: data.menuItemsCount,
-          categories: data.categoriesCount,
-        },
+        branches: data.branchesCount,
+        tables: data.tablesCount,
+        menu_items: data.menuItemsCount,
+        categories: data.categoriesCount,
+        sync_stats: data.syncStats,
         last_sync: data.lastSync,
       },
     });
