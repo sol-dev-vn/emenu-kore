@@ -173,14 +173,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900 transition-colors">
-      <aside className="w-72 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 border-r border-purple-500/30 hidden md:flex flex-col fixed h-full shadow-xl">
+      <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:flex flex-col fixed h-full shadow-sm">
         {/* Header */}
-        <div className="p-6 border-b border-purple-500/30">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <img src="/logo_trim.png" alt="SOL eMenu" className="h-10 w-auto" />
             <div>
-              <div className="text-xl font-bold tracking-tight text-white">SOL eMenu</div>
-              <div className="text-xs text-purple-200">Restaurant Portal</div>
+              <div className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">SOL eMenu</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Restaurant Portal</div>
             </div>
           </div>
         </div>
@@ -199,10 +199,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 rounded-lg px-4 py-3 font-semibold transition-all transform hover:scale-105 ${
+                    className={`flex items-center gap-3 rounded-lg px-4 py-3 font-semibold transition-all transform hover:scale-[1.02] ${
                       isActive
-                        ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg ring-2 ring-amber-400/50 ring-offset-2 ring-offset-purple-700'
-                        : 'bg-gradient-to-r from-amber-400/20 to-orange-500/20 text-amber-100 hover:from-amber-400/30 hover:to-orange-500/30 hover:text-white border border-amber-400/30'
+                        ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-gray-800'
+                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800'
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -222,8 +222,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   href={item.href}
                   className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
                     isActive
-                      ? 'bg-white/20 text-white shadow-md backdrop-blur-sm border border-white/20'
-                      : 'text-purple-100 hover:bg-white/10 hover:text-white'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -235,7 +235,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
           {/* Master Settings */}
           <div className="mb-6">
-            <div className="text-xs uppercase text-purple-300 mb-2 font-semibold">Master Settings</div>
+            <div className="text-xs uppercase text-gray-400 dark:text-gray-500 mb-2 font-semibold">Master Settings</div>
             <nav className="flex flex-col gap-1 text-sm">
               {masterSettingsItems.map((item) => {
                 const Icon = item.icon;
@@ -246,8 +246,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                     href={item.href}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
                       isActive
-                        ? 'bg-white/20 text-white shadow-md backdrop-blur-sm border border-white/20'
-                        : 'text-purple-100 hover:bg-white/10 hover:text-white'
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -260,7 +260,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
           {/* Support Section */}
           <div className="mb-6">
-            <div className="text-xs uppercase text-purple-300 mb-2 font-semibold">Support</div>
+            <div className="text-xs uppercase text-gray-400 dark:text-gray-500 mb-2 font-semibold">Support</div>
             <nav className="flex flex-col gap-1 text-sm">
               {supportItems.map((item) => {
                 const Icon = item.icon;
@@ -268,7 +268,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   <a
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-purple-100 hover:bg-white/10 hover:text-white transition-colors"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                   >
                     <Icon className="h-4 w-4" />
@@ -281,25 +281,25 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* User Profile Section */}
-        <div className="p-4 border-t border-purple-500/30 bg-purple-900/20 backdrop-blur-sm">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           {/* Compact branch selector widget */}
-          <div className="mb-4 bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+          <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="h-6 w-6 rounded bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center">
+                <div className="h-6 w-6 rounded bg-blue-600 dark:bg-blue-500 text-white flex items-center justify-center">
                   <Building2 className="h-3 w-3" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-purple-200">Branch</div>
-                  <div className="text-xs font-medium text-white truncate">{selectedBranchName}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Branch</div>
+                  <div className="text-xs font-medium text-gray-900 dark:text-white truncate">{selectedBranchName}</div>
                 </div>
               </div>
               <button
                 onClick={() => setShowBranchDialog(true)}
-                className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                 title="Change Branch"
               >
-                <ChevronDown className="h-3 w-3 text-purple-200" />
+                <ChevronDown className="h-3 w-3 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
           </div>
@@ -307,7 +307,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           {/* User info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 text-white flex items-center justify-center shadow-lg">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center shadow-sm">
                 {currentUser?.first_name ? (
                   <span className="text-sm font-semibold">
                     {currentUser.first_name[0]}{currentUser.last_name?.[0] || ''}
@@ -317,12 +317,12 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 )}
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-white truncate">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                   {currentUser?.first_name && currentUser?.last_name
                     ? `${currentUser.first_name} ${currentUser.last_name}`
                     : currentUser?.email || 'Loading...'}
                 </div>
-                <div className="text-xs text-purple-200 truncate">
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {currentUser?.role?.name || 'Staff'}
                 </div>
               </div>
@@ -331,20 +331,20 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             <div className="flex items-center gap-1">
               <button
                 onClick={handleThemeToggle}
-                className="p-2 text-purple-200 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                 title={`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`}
               >
                 {getThemeIcon()}
               </button>
               <button
-                className="p-2 text-purple-200 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                 title="Settings"
               >
                 <Settings className="h-4 w-4" />
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 text-purple-200 hover:text-red-400 hover:bg-red-500/20 rounded-md transition-colors"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                 title="Logout"
               >
                 <LogOut className="h-4 w-4" />
