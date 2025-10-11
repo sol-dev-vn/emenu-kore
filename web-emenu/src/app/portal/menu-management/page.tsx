@@ -56,6 +56,7 @@ export default function MenuManagementPage() {
   const [activeFilter, setActiveFilter] = useState<string>('');
   const [view, setView] = useState<'list' | 'groups'>('groups');
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const toggleGroupExpansion = (groupName: string) => {
     setExpandedGroups(prev =>
@@ -207,20 +208,27 @@ export default function MenuManagementPage() {
         items: [],
         itemCount: 0,
         activeCount: 0
-      },
-      {
-        name: 'Other Categories',
-        categories: cats.filter(c => {
-          const inOtherGroup = groups.some(group =>
-            group.categories.some(gc => gc.id === c.id)
-          );
-          return !inOtherGroup;
-        }),
-        items: [],
-        itemCount: 0,
-        activeCount: 0
       }
     ];
+
+    // Create Other Categories group
+    const processedCategories = new Set();
+    groups.forEach(group => {
+      group.categories.forEach(c => processedCategories.add(c.id));
+    });
+
+    const otherCategoriesGroup: CategoryGroup = {
+      name: 'Other Categories',
+      categories: cats.filter(c => !processedCategories.has(c.id)),
+      items: [],
+      itemCount: 0,
+      activeCount: 0
+    };
+
+    // Add other categories group if it has items
+    if (otherCategoriesGroup.categories.length > 0) {
+      groups.push(otherCategoriesGroup);
+    }
 
     // Assign items to groups and calculate counts
     groups.forEach(group => {

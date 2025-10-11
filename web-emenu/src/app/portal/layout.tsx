@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown } from 'lucide-react';
+import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -14,6 +14,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedBranchName, setSelectedBranchName] = useState<string>('None');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showBranchDialog, setShowBranchDialog] = useState(false);
   const pathname = usePathname();
 
   async function handleLogout() {
@@ -207,43 +208,25 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
         {/* User Profile Section */}
         <div className="p-4 border-t border-gray-200 bg-white/50">
-          {/* Branch selector widget */}
-          <div className="mb-4 rounded-xl border border-gray-200 bg-white/80 p-3 shadow-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-rose-500 text-white flex items-center justify-center">
-                <Building2 className="h-4 w-4" />
+          {/* Compact branch selector widget */}
+          <div className="mb-4 bg-white/50 rounded-lg p-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="h-6 w-6 rounded bg-gradient-to-br from-orange-400 to-rose-500 text-white flex items-center justify-center">
+                  <Building2 className="h-3 w-3" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500">Branch</div>
+                  <div className="text-xs font-medium text-gray-900 truncate">{selectedBranchName}</div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs text-gray-500">Current Branch</div>
-                <div className="text-sm font-semibold text-gray-900 truncate">{selectedBranchName}</div>
-              </div>
-            </div>
-            <div className="mt-2">
-              <Select value={selectedBranchId || 'none'} onValueChange={handleBranchSelect}>
-                <SelectTrigger className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-inner focus:outline-none focus:ring-2 focus:ring-rose-400">
-                  <SelectValue>
-                    <div className="flex items-center gap-1">
-                      <Building2 className="h-3 w-3 text-rose-500" />
-                      <span className="text-xs font-medium truncate">{selectedBranchName}</span>
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="none" className="cursor-pointer hover:bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">None (All)</span>
-                    </div>
-                  </SelectItem>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.id} className="cursor-pointer hover:bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{b.display_name || b.name}</span>
-                        <span className="text-[10px] rounded bg-gray-100 px-2 py-0.5 text-gray-600">#{b.code}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <button
+                onClick={() => setShowBranchDialog(true)}
+                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                title="Change Branch"
+              >
+                <ChevronDown className="h-3 w-3 text-gray-600" />
+              </button>
             </div>
           </div>
 
@@ -294,6 +277,96 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       <div className="flex-1 md:ml-72">
         {children}
       </div>
+
+      {/* Branch Selection Dialog */}
+      {showBranchDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Select Branch</h3>
+              <button
+                onClick={() => setShowBranchDialog(false)}
+                className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    handleBranchSelect('none');
+                    setShowBranchDialog(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                    selectedBranchId === 'none' || selectedBranchId === null
+                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-medium">All Branches</div>
+                        <div className="text-xs text-gray-500">View data from all locations</div>
+                      </div>
+                    </div>
+                    {selectedBranchId === 'none' || selectedBranchId === null ? (
+                      <CheckCircle className="w-4 h-4 text-orange-600" />
+                    ) : null}
+                  </div>
+                </button>
+
+                {/* Group branches by brand if brand info is available */}
+                {branches.length > 0 && (
+                  <div className="space-y-3">
+                    {branches.map((branch) => (
+                      <button
+                        key={branch.id}
+                        onClick={() => {
+                          handleBranchSelect(branch.id);
+                          setShowBranchDialog(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                          selectedBranchId === branch.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-rose-500 text-white flex items-center justify-center">
+                              <Building2 className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium truncate">{branch.display_name || branch.name}</div>
+                              <div className="text-xs text-gray-500">#{branch.code}</div>
+                              {branch.code && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <span className="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">
+                                    {branch.code}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {selectedBranchId === branch.id ? (
+                            <CheckCircle className="w-4 h-4 text-blue-600" />
+                          ) : null}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
