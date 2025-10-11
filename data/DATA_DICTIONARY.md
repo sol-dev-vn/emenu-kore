@@ -34,6 +34,12 @@ CREATE TABLE branches (
   is_chain_branch BOOLEAN DEFAULT false,
   settings JSON, -- Additional branch-specific settings
   sort INTEGER DEFAULT 0,
+
+  -- Enhanced sync tracking fields
+  sync_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'in_progress', 'synced', 'failed'
+  last_sync_at TIMESTAMP, -- Last synchronization attempt
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_created UUID REFERENCES users(id),
@@ -43,6 +49,8 @@ CREATE TABLE branches (
 CREATE INDEX idx_branches_external_id ON branches(external_id);
 CREATE INDEX idx_branches_code ON branches(code);
 CREATE INDEX idx_branches_active ON branches(is_active);
+CREATE INDEX idx_branches_sync_status ON branches(sync_status);
+CREATE INDEX idx_branches_last_sync ON branches(last_sync_at);
 ```
 
 ### zones
@@ -88,6 +96,12 @@ CREATE TABLE tables (
   last_order_time TIMESTAMP,
   settings JSON, -- Table-specific settings
   sort INTEGER DEFAULT 0,
+
+  -- Enhanced sync tracking fields
+  sync_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'in_progress', 'synced', 'failed'
+  last_sync_at TIMESTAMP, -- Last synchronization attempt
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_created UUID REFERENCES users(id),
@@ -99,6 +113,8 @@ CREATE INDEX idx_tables_zone_id ON tables(zone_id);
 CREATE INDEX idx_tables_code ON tables(table_code);
 CREATE INDEX idx_tables_status ON tables(status);
 CREATE INDEX idx_tables_active ON tables(is_active);
+CREATE INDEX idx_tables_sync_status ON tables(sync_status);
+CREATE INDEX idx_tables_last_sync ON tables(last_sync_at);
 ```
 
 ### categories
@@ -116,6 +132,12 @@ CREATE TABLE categories (
   icon VARCHAR(255), -- Icon or image URL
   color VARCHAR(7), -- Hex color code
   sort INTEGER DEFAULT 0,
+
+  -- Enhanced sync tracking fields
+  sync_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'in_progress', 'synced', 'failed'
+  last_sync_at TIMESTAMP, -- Last synchronization attempt
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_created UUID REFERENCES users(id),
@@ -125,6 +147,8 @@ CREATE TABLE categories (
 CREATE INDEX idx_categories_parent_id ON categories(parent_id);
 CREATE INDEX idx_categories_external_id ON categories(external_id);
 CREATE INDEX idx_categories_active ON categories(is_active);
+CREATE INDEX idx_categories_sync_status ON categories(sync_status);
+CREATE INDEX idx_categories_last_sync ON categories(last_sync_at);
 ```
 
 ### menu_items
@@ -157,6 +181,12 @@ CREATE TABLE menu_items (
   meta JSON, -- Additional metadata from CukCuk
   featured_tag VARCHAR(50), -- 'best-seller', 'popular', 'new', 'seasonal'
   sort INTEGER DEFAULT 0,
+
+  -- Enhanced sync tracking fields
+  sync_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'in_progress', 'synced', 'failed'
+  last_sync_at TIMESTAMP, -- Last synchronization attempt
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_created UUID REFERENCES users(id),
@@ -169,6 +199,8 @@ CREATE INDEX idx_menu_items_branch_id ON menu_items(branch_id);
 CREATE INDEX idx_menu_items_active ON menu_items(is_active);
 CREATE INDEX idx_menu_items_available ON menu_items(is_available);
 CREATE INDEX idx_menu_items_featured ON menu_items(featured_tag);
+CREATE INDEX idx_menu_items_sync_status ON menu_items(sync_status);
+CREATE INDEX idx_menu_items_last_sync ON menu_items(last_sync_at);
 ```
 
 ### combos
@@ -556,7 +588,7 @@ Record of all CukCuk API synchronization activities
 ```sql
 CREATE TABLE sync_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sync_type VARCHAR(50) NOT NULL, -- 'branches', 'menu_items', 'categories', 'promotions'
+  sync_type VARCHAR(50) NOT NULL, -- 'branches', 'menu_items', 'categories', 'promotions', 'tables'
   source VARCHAR(50) DEFAULT 'cukcuk',
   status VARCHAR(20) NOT NULL, -- 'running', 'completed', 'failed', 'partial'
   started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -564,10 +596,16 @@ CREATE TABLE sync_logs (
   records_processed INTEGER DEFAULT 0,
   records_created INTEGER DEFAULT 0,
   records_updated INTEGER DEFAULT 0,
+  records_skipped INTEGER DEFAULT 0, -- Records skipped due to resume functionality
   records_failed INTEGER DEFAULT 0,
   error_details JSON,
   last_sync_timestamp TIMESTAMP, -- Last timestamp from source system
   next_sync_at TIMESTAMP,
+
+  -- Enhanced session logging
+  session_log TEXT, -- Full session log in rich text format
+  session_stats JSON, -- Session statistics (duration, entry counts, etc.)
+
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_created UUID REFERENCES users(id)
 );
@@ -968,6 +1006,71 @@ CREATE TABLE customers (
 CREATE INDEX idx_customers_phone ON customers(phone);
 CREATE INDEX idx_customers_email ON customers(email);
 CREATE INDEX idx_customers_loyalty_tier ON customers(loyalty_tier);
+```
+
+---
+
+## Sync Status Tracking & Resume Functionality
+
+### Standard Sync Status Fields
+All CukCuk-integrated collections include the following enhanced sync tracking fields:
+
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| `sync_status` | VARCHAR(20) | Current synchronization status | 'pending' |
+| `last_sync_at` | TIMESTAMP | Last synchronization attempt timestamp | NULL |
+| `created_at` | TIMESTAMP | Record creation timestamp | CURRENT_TIMESTAMP |
+| `updated_at` | TIMESTAMP | Record modification timestamp | CURRENT_TIMESTAMP |
+
+### Sync Status Values
+- **`pending`** - Awaiting synchronization
+- **`in_progress`** - Currently being synchronized
+- **`synced`** - Successfully synchronized
+- **`failed`** - Synchronization failed, will be retried
+
+### Resume Logic Implementation
+The sync system supports intelligent resume functionality:
+
+```javascript
+// Find records that need synchronization
+const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+const itemsToSync = await this.apiClient.getDirectusItems('menu_items', {
+  sync_status: { _in: ['pending', 'in_progress', 'failed'] },
+  external_source: 'cukcuk',
+  _or: [
+    { last_sync_at: { _null: true } },
+    { last_sync_at: { _lt: oneHourAgo } }
+  ]
+}, null, { sort: ['last_sync_at'] });
+```
+
+### Session Logger Integration
+Comprehensive session logging captures all sync operations:
+
+**Features:**
+- Real-time console output capture
+- Dual storage (filesystem + Directus)
+- Session statistics and metrics
+- Automatic log cleanup
+
+**Storage Structure:**
+- **File System**: `logs/data/cukcuk/YYYY-MM-DD_session-id.log`
+- **Directus**: `sync_logs.session_log` (rich text format)
+- **Directus**: `sync_logs.session_stats` (JSON metadata)
+
+### Enhanced Indexes for Performance
+New indexes added for sync optimization:
+
+```sql
+-- Sync status tracking indexes
+CREATE INDEX idx_branches_sync_status ON branches(sync_status);
+CREATE INDEX idx_branches_last_sync ON branches(last_sync_at);
+CREATE INDEX idx_categories_sync_status ON categories(sync_status);
+CREATE INDEX idx_categories_last_sync ON categories(last_sync_at);
+CREATE INDEX idx_menu_items_sync_status ON menu_items(sync_status);
+CREATE INDEX idx_menu_items_last_sync ON menu_items(last_sync_at);
+CREATE INDEX idx_tables_sync_status ON tables(sync_status);
+CREATE INDEX idx_tables_last_sync ON tables(last_sync_at);
 ```
 
 ---

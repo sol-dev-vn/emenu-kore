@@ -12,31 +12,27 @@ module.exports = {
       // Environment Configuration
       env: {
         NODE_ENV: 'development',
-        PORT: 3000,
+        PORT: 3520,
         NEXT_PUBLIC_DIRECTUS_URL: 'https://sol-kore.alphabits.team',
-        DIRECTUS_URL: 'https://sol-kore.alphabits.team',
-        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN || 'your_directus_token_here',
+        DIRECTUS_TOKEN: '39Omtm9x8eE3dOYxsI1iXk3MPZ9L235y',
         NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
-        NEXT_PUBLIC_APP_VERSION: '1.0.0',
-        NEXT_PUBLIC_API_BASE_URL: 'https://sol-kore.alphabits.team'
+        NEXT_PUBLIC_APP_VERSION: '1.0.0'
       },
 
       env_production: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: 3520,
         NEXT_PUBLIC_DIRECTUS_URL: 'https://kore.sol.com.vn',
-        DIRECTUS_URL: 'https://kore.sol.com.vn',
         DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN,
         NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
-        NEXT_PUBLIC_APP_VERSION: '1.0.0',
-        NEXT_PUBLIC_API_BASE_URL: 'https://kore.sol.com.vn'
+        NEXT_PUBLIC_APP_VERSION: '1.0.0'
       },
 
       // Process Configuration
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '1G',
+      max_memory_restart: '512M',
 
       // Logging Configuration
       log_file: '/Users/dev/code/emenu-kore/logs/web-emenu.log',
