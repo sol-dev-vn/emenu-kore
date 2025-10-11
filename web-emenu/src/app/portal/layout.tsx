@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle } from 'lucide-react';
+import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle, Sun, Moon, Monitor } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -15,6 +15,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const [selectedBranchName, setSelectedBranchName] = useState<string>('None');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showBranchDialog, setShowBranchDialog] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto');
   const pathname = usePathname();
 
   async function handleLogout() {
@@ -37,6 +38,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     async function loadData() {
       try {
+        // Load theme
+        loadTheme();
+
         // Load current user
         const userRes = await fetch('/api/auth/me');
         if (userRes.ok) {
@@ -63,6 +67,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, []);
+
+  // Apply theme when it changes
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   async function handleBranchSelect(branchId: string) {
     try {
@@ -99,13 +108,54 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     }
   }
 
+  // Theme management functions
+  const loadTheme = () => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  };
+
+  const applyTheme = (themeValue: 'light' | 'dark' | 'auto') => {
+    const root = document.documentElement;
+
+    if (themeValue === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', prefersDark);
+    } else {
+      root.classList.toggle('dark', themeValue === 'dark');
+    }
+
+    localStorage.setItem('theme', themeValue);
+  };
+
+  const handleThemeToggle = () => {
+    const themes: Array<'light' | 'dark' | 'auto'> = ['light', 'dark', 'auto'];
+    const currentIndex = themes.indexOf(theme);
+    const nextTheme = themes[(currentIndex + 1) % themes.length];
+
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  };
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light':
+        return <Sun className="h-4 w-4" />;
+      case 'dark':
+        return <Moon className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
+    }
+  };
+
   const navItems = [
     { href: '/portal', icon: Home, label: 'Dashboard' },
     { href: '/portal/sync-logs', icon: History, label: 'Sync Logs' },
     { href: '/portal/menu-management', icon: Utensils, label: 'Menu Management' },
     { href: '/portal/master/brands-branches', icon: Building2, label: 'Branches' },
     { href: '/portal/tables-zones', icon: TableIcon, label: 'Table List' },
-    { href: '/portal/visual-tables', icon: TableIcon, label: 'Visual Tables' },
+    { href: '/portal/visual-tables', icon: TableIcon, label: 'Live Dashboard', isProminent: true },
     { href: '/portal/promotions', icon: Megaphone, label: 'Promotions' },
     { href: '/portal/orders', icon: TableIcon, label: 'Orders' },
     { href: '/portal/reports', icon: Settings, label: 'Reports' },
@@ -122,15 +172,15 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   ];
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-72 bg-gradient-to-b from-orange-50 to-rose-50 border-r border-gray-200 hidden md:flex flex-col fixed h-full">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900 transition-colors">
+      <aside className="w-72 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 border-r border-purple-500/30 hidden md:flex flex-col fixed h-full shadow-xl">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-purple-500/30">
           <div className="flex items-center gap-3">
             <img src="/logo_trim.png" alt="SOL eMenu" className="h-10 w-auto" />
             <div>
-              <div className="text-xl font-bold tracking-tight text-gray-900">SOL eMenu</div>
-              <div className="text-xs text-gray-500">Restaurant Portal</div>
+              <div className="text-xl font-bold tracking-tight text-white">SOL eMenu</div>
+              <div className="text-xs text-purple-200">Restaurant Portal</div>
             </div>
           </div>
         </div>
@@ -138,18 +188,42 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto p-4">
           {/* Primary sections */}
-          <nav className="flex flex-col gap-1 text-sm mb-6">
+          <nav className="flex flex-col gap-2 text-sm mb-6">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const isProminent = item.isProminent;
+
+              if (isProminent) {
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-4 py-3 font-semibold transition-all transform hover:scale-105 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg ring-2 ring-amber-400/50 ring-offset-2 ring-offset-purple-700'
+                        : 'bg-gradient-to-r from-amber-400/20 to-orange-500/20 text-amber-100 hover:from-amber-400/30 hover:to-orange-500/30 hover:text-white border border-amber-400/30'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-base">{item.label}</span>
+                    {isActive && (
+                      <div className="ml-auto">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      </div>
+                    )}
+                  </Link>
+                );
+              }
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
                     isActive
-                      ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
-                      : 'text-gray-700 hover:bg-white/60 hover:text-black'
+                      ? 'bg-white/20 text-white shadow-md backdrop-blur-sm border border-white/20'
+                      : 'text-purple-100 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -161,7 +235,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
           {/* Master Settings */}
           <div className="mb-6">
-            <div className="text-xs uppercase text-gray-400 mb-2">Master Settings</div>
+            <div className="text-xs uppercase text-purple-300 mb-2 font-semibold">Master Settings</div>
             <nav className="flex flex-col gap-1 text-sm">
               {masterSettingsItems.map((item) => {
                 const Icon = item.icon;
@@ -172,8 +246,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                     href={item.href}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
                       isActive
-                        ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
-                        : 'text-gray-700 hover:bg-white/60 hover:text-black'
+                        ? 'bg-white/20 text-white shadow-md backdrop-blur-sm border border-white/20'
+                        : 'text-purple-100 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -186,7 +260,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
           {/* Support Section */}
           <div className="mb-6">
-            <div className="text-xs uppercase text-gray-400 mb-2">Support</div>
+            <div className="text-xs uppercase text-purple-300 mb-2 font-semibold">Support</div>
             <nav className="flex flex-col gap-1 text-sm">
               {supportItems.map((item) => {
                 const Icon = item.icon;
@@ -194,7 +268,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   <a
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black transition-colors"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-purple-100 hover:bg-white/10 hover:text-white transition-colors"
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                   >
                     <Icon className="h-4 w-4" />
@@ -207,25 +281,25 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* User Profile Section */}
-        <div className="p-4 border-t border-gray-200 bg-white/50">
+        <div className="p-4 border-t border-purple-500/30 bg-purple-900/20 backdrop-blur-sm">
           {/* Compact branch selector widget */}
-          <div className="mb-4 bg-white/50 rounded-lg p-2">
+          <div className="mb-4 bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="h-6 w-6 rounded bg-gradient-to-br from-orange-400 to-rose-500 text-white flex items-center justify-center">
+                <div className="h-6 w-6 rounded bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center">
                   <Building2 className="h-3 w-3" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-500">Branch</div>
-                  <div className="text-xs font-medium text-gray-900 truncate">{selectedBranchName}</div>
+                  <div className="text-xs text-purple-200">Branch</div>
+                  <div className="text-xs font-medium text-white truncate">{selectedBranchName}</div>
                 </div>
               </div>
               <button
                 onClick={() => setShowBranchDialog(true)}
-                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
                 title="Change Branch"
               >
-                <ChevronDown className="h-3 w-3 text-gray-600" />
+                <ChevronDown className="h-3 w-3 text-purple-200" />
               </button>
             </div>
           </div>
@@ -233,7 +307,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           {/* User info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 text-white flex items-center justify-center shadow-lg">
                 {currentUser?.first_name ? (
                   <span className="text-sm font-semibold">
                     {currentUser.first_name[0]}{currentUser.last_name?.[0] || ''}
@@ -243,12 +317,12 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 )}
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-gray-900 truncate">
+                <div className="text-sm font-semibold text-white truncate">
                   {currentUser?.first_name && currentUser?.last_name
                     ? `${currentUser.first_name} ${currentUser.last_name}`
                     : currentUser?.email || 'Loading...'}
                 </div>
-                <div className="text-xs text-gray-500 truncate">
+                <div className="text-xs text-purple-200 truncate">
                   {currentUser?.role?.name || 'Staff'}
                 </div>
               </div>
@@ -256,14 +330,21 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
             <div className="flex items-center gap-1">
               <button
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                onClick={handleThemeToggle}
+                className="p-2 text-purple-200 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                title={`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`}
+              >
+                {getThemeIcon()}
+              </button>
+              <button
+                className="p-2 text-purple-200 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                 title="Settings"
               >
                 <Settings className="h-4 w-4" />
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                className="p-2 text-purple-200 hover:text-red-400 hover:bg-red-500/20 rounded-md transition-colors"
                 title="Logout"
               >
                 <LogOut className="h-4 w-4" />
