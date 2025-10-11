@@ -11,6 +11,7 @@ interface Branch {
   name: string;
   code: string;
   description?: string;
+  display_name?: string;
   external_id?: string;
   is_active: boolean;
   address?: string;
@@ -40,6 +41,11 @@ class DirectusClient {
     if (!this.config.token) {
       console.warn('Directus token not configured. Please set DIRECTUS_TOKEN in environment variables.');
     }
+  }
+
+  // Allow setting access token dynamically (e.g., from cookies in API routes)
+  public setAccessToken(token: string) {
+    this.config.token = token;
   }
 
   private getHeaders(): Record<string, string> {
@@ -156,6 +162,23 @@ class DirectusClient {
   // Get server info
   async getServerInfo(): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>('/server/info');
+  }
+
+  // Generic items count using aggregate
+  async count(collection: string): Promise<number> {
+    const res = await this.request<{ data: Array<{ count: number }> }>(`/items/${collection}?aggregate[count]=*`);
+    const first = res.data?.[0];
+    return typeof first?.count === 'number' ? first.count : 0;
+  }
+
+  // Generic items read with simple query params
+  async getItems(collection: string, options?: { sort?: string[]; limit?: number; fields?: string[] }): Promise<{ data: unknown[] }> {
+    const params: string[] = [];
+    if (options?.sort && options.sort.length) params.push(`sort=${encodeURIComponent(options.sort.join(','))}`);
+    if (typeof options?.limit === 'number') params.push(`limit=${options.limit}`);
+    if (options?.fields && options.fields.length) params.push(`fields=${encodeURIComponent(options.fields.join(','))}`);
+    const qs = params.length ? `?${params.join('&')}` : '';
+    return this.request<{ data: unknown[] }>(`/items/${collection}${qs}`);
   }
 }
 
