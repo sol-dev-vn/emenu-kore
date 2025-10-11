@@ -100,6 +100,27 @@ class DirectusClient {
     );
   }
 
+  // List configured OAuth providers
+  async listAuthProviders(): Promise<{ data: string[] }> {
+    return this.request<{ data: string[] }>("/auth/oauth");
+  }
+
+  // Request password reset email
+  async requestPasswordReset(email: string, reset_url?: string): Promise<void> {
+    await this.request('/auth/password/request', {
+      method: 'POST',
+      body: JSON.stringify({ email, ...(reset_url ? { reset_url } : {}) }),
+    });
+  }
+
+  // Reset password using token
+  async resetPassword(token: string, password: string): Promise<void> {
+    await this.request('/auth/password/reset', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  }
+
   async logout(refresh_token: string): Promise<void> {
     await this.request('/auth/logout', {
       method: 'POST',

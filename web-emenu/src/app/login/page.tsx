@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [providers, setProviders] = useState<string[]>([]);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  useEffect(() => {
+    // Load available OAuth providers
+    fetch('/api/auth/providers')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.providers)) setProviders(data.providers);
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +49,30 @@ export default function LoginPage() {
       toast.error(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      return toast.error('Please enter your email to reset password');
+    }
+    setResetLoading(true);
+    try {
+      const reset_url = `${window.location.origin}/reset-password`;
+      const res = await fetch('/api/auth/password/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, reset_url }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to send reset email');
+      }
+      toast.success('Password reset email sent. Check your inbox.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send reset email');
+    } finally {
+      setResetLoading(false);
     }
   }
 
@@ -85,10 +121,31 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
+              <div className="flex items-center justify-between">
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </div>
             </form>
+
+            <div className="mt-4 flex items-center justify-between">
+              <Button variant="link" type="button" onClick={handleForgotPassword} disabled={resetLoading}>
+                {resetLoading ? 'Sending...' : 'Forgot Password?'}
+              </Button>
+            </div>
+
+            {providers.length > 0 && (
+              <div className="mt-6">
+                <div className="text-sm text-gray-600 mb-2">Or sign in with</div>
+                <div className="flex flex-wrap gap-2">
+                  {providers.map((p) => (
+                    <Button key={p} variant="outline" type="button" onClick={() => router.push(`/api/auth/oauth/${p}`)}>
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>

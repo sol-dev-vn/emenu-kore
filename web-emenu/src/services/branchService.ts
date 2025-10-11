@@ -21,8 +21,11 @@ class BranchService {
    */
   async getAllBranches(): Promise<Branch[]> {
     try {
-      const response = await directusClient.getBranches();
-      return response.data.flat(); // Handle nested array structure
+      // Fetch via Next.js API to leverage server-side Directus auth and cookies
+      const res = await fetch('/api/branches');
+      const json = await res.json();
+      const branches: Branch[] = Array.isArray(json?.data) ? json.data : [];
+      return branches;
     } catch (error) {
       console.error('Failed to fetch branches:', error);
       throw new Error('Unable to load branches. Please try again later.');

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Branch } from '@/lib/directus';
 import { branchService, BranchStats } from '@/services/branchService';
+import Link from 'next/link';
 
 export default function BranchTable() {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -22,7 +23,13 @@ export default function BranchTable() {
       setBranches(branchesData);
       setStats(branchService.calculateStats(branchesData));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load branches');
+      const msg = err instanceof Error ? err.message : String(err);
+      // Provide a clearer message for auth errors
+      if (/401|Unauthorized|permission|forbidden/i.test(msg)) {
+        setError('You are not authorized to view branches. Please log in and try again.');
+      } else {
+        setError(msg || 'Failed to load branches');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,6 +51,7 @@ export default function BranchTable() {
   }
 
   if (error) {
+    const isAuthError = /not authorized|unauthorized|login/i.test(error);
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="text-center py-8">
@@ -54,12 +62,22 @@ export default function BranchTable() {
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to Load Branches</h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={refreshData}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-          >
-            Try Again
-          </button>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={refreshData}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            {isAuthError && (
+              <Link
+                href="/login"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-lg border border-gray-300 transition-colors"
+              >
+                Go to Login
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     );

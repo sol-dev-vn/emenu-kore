@@ -18,14 +18,15 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true });
     const secure = process.env.NODE_ENV === 'production';
-    const maxAge = typeof expires === 'number' ? expires : 60 * 60; // default 1 hour
+    // Force session to last 1 day regardless of access token expires
+    const oneDay = 60 * 60 * 24;
 
     response.cookies.set('directus_access_token', access_token, {
       httpOnly: true,
       secure,
       sameSite: 'lax',
       path: '/',
-      maxAge,
+      maxAge: oneDay,
     });
 
     response.cookies.set('directus_refresh_token', refresh_token, {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       secure,
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: oneDay,
     });
 
     return response;
