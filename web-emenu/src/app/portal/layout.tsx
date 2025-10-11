@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle } from 'lucide-react';
 
 interface BranchItem { id: string; name: string; code: string; }
@@ -51,8 +51,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     return () => window.removeEventListener('focus', onFocus);
   }, []);
 
-  async function handleBranchChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const branchId = e.target.value || '';
+  async function handleBranchSelect(branchId: string) {
     try {
       await fetch('/api/auth/impersonate', {
         method: 'POST',
@@ -79,18 +78,43 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
 
-          {/* Impersonation section */}
-          <div className="mb-6 rounded-lg bg-white/70 border border-gray-200 p-3">
-            <div className="text-xs uppercase text-gray-400">Impersonation</div>
-            <div className="mt-2 text-sm">Current Branch:</div>
-            <div className="mt-1 text-sm font-medium">{selectedBranchName}</div>
-            <div className="mt-2">
-              <select className="w-full border rounded px-2 py-1 text-sm" value={selectedBranchId || ''} onChange={handleBranchChange}>
-                <option value="">None (All)</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
-                ))}
-              </select>
+          {/* Branch selector widget */}
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white/80 p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-400 to-rose-500 text-white flex items-center justify-center">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="text-xs text-gray-500">Current Branch</div>
+                <div className="text-sm font-semibold text-gray-900">{selectedBranchName}</div>
+              </div>
+            </div>
+            <div className="mt-3">
+              <Select value={selectedBranchId || ''} onValueChange={handleBranchSelect}>
+                <SelectTrigger className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-inner focus:outline-none focus:ring-2 focus:ring-rose-400">
+                  <SelectValue>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-rose-500" />
+                      <span className="text-sm font-medium">{selectedBranchName}</span>
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                  <SelectItem value="" className="cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">None (All)</span>
+                    </div>
+                  </SelectItem>
+                  {branches.map((b) => (
+                    <SelectItem key={b.id} value={b.id} className="cursor-pointer hover:bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{b.name}</span>
+                        <span className="text-[10px] rounded bg-gray-100 px-2 py-0.5 text-gray-600">#{b.code}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
