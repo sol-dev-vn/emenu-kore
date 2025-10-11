@@ -67,7 +67,8 @@ class DirectusClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        interface DirectusErrorResponse { errors?: Array<{ message?: string }> }
+        const errorData: DirectusErrorResponse = await response.json().catch(() => ({} as DirectusErrorResponse));
         throw new Error(
           `Directus API Error: ${response.status} ${response.statusText} - ${
             errorData.errors?.[0]?.message || 'Unknown error'
@@ -80,6 +81,34 @@ class DirectusClient {
       console.error('Directus API request failed:', error);
       throw error;
     }
+  }
+
+  // Authentication methods
+  async login(email: string, password: string): Promise<{ data: { access_token: string; refresh_token: string; expires: number } }> {
+    return this.request<{ data: { access_token: string; refresh_token: string; expires: number } }>(
+      '/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      }
+    );
+  }
+
+  async logout(refresh_token: string): Promise<void> {
+    await this.request('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token }),
+    });
+  }
+
+  async refresh(refresh_token: string): Promise<{ data: { access_token: string; expires: number } }> {
+    return this.request<{ data: { access_token: string; expires: number } }>(
+      '/auth/refresh',
+      {
+        method: 'POST',
+        body: JSON.stringify({ refresh_token }),
+      }
+    );
   }
 
   // Branch management methods
