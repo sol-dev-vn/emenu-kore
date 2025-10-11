@@ -14,8 +14,8 @@ export default function CustomerLandingPage() {
 
   const translations = {
     en: {
-      welcome: 'Welcome to SOL eMenu',
-      tagline: 'Scan the QR code on your table to browse our menu and place your order',
+      welcome: 'SOL eMenu',
+      tagline: 'Scan to browse & order',
       scanQR: 'Scan QR Code',
       loading: 'Loading...',
       website: 'Website',
@@ -25,8 +25,8 @@ export default function CustomerLandingPage() {
       language: 'Language'
     },
     vi: {
-      welcome: 'Chào mừng đến SOL eMenu',
-      tagline: 'Quét mã QR trên bàn của bạn để xem thực đơn và đặt món',
+      welcome: 'SOL eMenu',
+      tagline: 'Quét để xem menu & đặt món',
       scanQR: 'Quét Mã QR',
       loading: 'Đang tải...',
       website: 'Website',
@@ -36,8 +36,8 @@ export default function CustomerLandingPage() {
       language: 'Ngôn ngữ'
     },
     ja: {
-      welcome: 'SOL eMenuへようこそ',
-      tagline: 'テーブルのQRコードをスキャンしてメニューをご覧ください',
+      welcome: 'SOL eMenu',
+      tagline: 'QRでメニューを閲覧・注文',
       scanQR: 'QRコードをスキャン',
       loading: '読み込み中...',
       website: 'ウェブサイト',
@@ -47,8 +47,8 @@ export default function CustomerLandingPage() {
       language: '言語'
     },
     ko: {
-      welcome: 'SOL eMenu에 오신 것을 환영합니다',
-      tagline: '테이블의 QR 코드를 스캔하여 메뉴를 보고 주문하세요',
+      welcome: 'SOL eMenu',
+      tagline: '스캔하여 메뉴 확인 및 주문',
       scanQR: 'QR 코드 스캔',
       loading: '로딩 중...',
       website: '웹사이트',
@@ -58,8 +58,8 @@ export default function CustomerLandingPage() {
       language: '언어'
     },
     zh: {
-      welcome: '欢迎使用SOL电子菜单',
-      tagline: '扫描桌上的二维码浏览菜单并下单',
+      welcome: 'SOL eMenu',
+      tagline: '扫码浏览与下单',
       scanQR: '扫描二维码',
       loading: '加载中...',
       website: '网站',
@@ -69,8 +69,8 @@ export default function CustomerLandingPage() {
       language: '语言'
     },
     ru: {
-      welcome: 'Добро пожаловать в SOL eMenu',
-      tagline: 'Отсканируйте QR-код на вашем столе, чтобы просмотреть меню и сделать заказ',
+      welcome: 'SOL eMenu',
+      tagline: 'Сканируйте, чтобы просматривать и заказывать',
       scanQR: 'Сканировать QR-код',
       loading: 'Загрузка...',
       website: 'Веб-сайт',
@@ -148,7 +148,7 @@ export default function CustomerLandingPage() {
       {isLoading && <LoadingSpinner message={t.loading} />}
 
       {/* Video Background for Desktop */}
-      <div className="hidden md:block absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0">
         {/* Bright fallback gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-orange-300 via-amber-200 to-orange-400" />
 
@@ -185,9 +185,9 @@ export default function CustomerLandingPage() {
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-grow flex flex-col items-center justify-center px-4">
+      <main className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 pb-24 md:pb-28">
         {/* Desktop View - Video background with centered QR and title */}
-        <div className="hidden md:flex flex-col items-center justify-center w-full h-screen space-y-8">
+        <div className="hidden">
           {/* SOL Logo */}
           <div className="animate-fade-in">
             <img
@@ -196,10 +196,10 @@ export default function CustomerLandingPage() {
               className="w-64 h-auto lg:w-80"
             />
           </div>
-
+        
           {/* Centered QR Code */}
           <div className="animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 backdrop-blur-sm bg-opacity-95">
+            <div className="bg-white/84 rounded-2xl shadow-2xl p-6 backdrop-blur-sm">
               <div className="text-center mb-4">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {qrT.title}
@@ -218,9 +218,9 @@ export default function CustomerLandingPage() {
             </div>
           </div>
         </div>
-
+        
         {/* Mobile View - Current design */}
-        <div className="md:hidden w-full max-w-md animate-fade-in space-y-6">
+        <div className="hidden">
           {/* SOL Logo */}
           <div className="text-center mb-8 animate-fade-in">
             <img
@@ -229,7 +229,7 @@ export default function CustomerLandingPage() {
               className="w-48 h-auto mx-auto"
             />
           </div>
-
+        
           {/* Welcome Text */}
           <div className="text-center mb-12 animate-slide-up">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -239,7 +239,7 @@ export default function CustomerLandingPage() {
               {t.tagline}
             </p>
           </div>
-
+        
           {/* Mobile QR Scanner */}
           {!showQRScanner ? (
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -248,7 +248,7 @@ export default function CustomerLandingPage() {
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-3"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h-2a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
                 {t.scanQR}
               </button>
@@ -262,11 +262,69 @@ export default function CustomerLandingPage() {
             </div>
           )}
         </div>
+        <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl animate-fade-in">
+          <div className="rounded-3xl bg-black/10 backdrop-blur-xl border border-white/25 shadow-2xl px-6 py-8 md:px-10 md:py-10 text-center">
+            {/* Logo in panel */}
+            <img
+              src="/logo_trim.png"
+              alt="SOL eMenu"
+              className="mx-auto w-40 md:w-48 lg:w-56 mb-4"
+            />
+            
+            {/* Headings */}
+            <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
+              {t.welcome}
+            </h1>
+            <p className="mt-2 text-base md:text-lg text-white/85  lg:hidden">
+              {t.tagline}
+            </p>
+            
+            {/* Primary Button */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowQRScanner(true)}
+                className="inline-flex lg:hidden items-center justify-center gap-2 w-full md:w-auto px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg transition-all duration-200 hover:scale-105"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+                {t.scanQR}
+              </button>
+            </div>
+            
+            {/* Desktop QR hint inside the panel */}
+            <div className="hidden lg:block mt-8">
+              <div className="rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl p-4 mx-auto max-w-xs">
+                <div className="text-gray-800">
+                  <h3 className="text-lg font-semibold">{qrT.title}</h3>
+                  <p className="text-sm text-gray-600">{qrT.instruction}</p>
+                </div>
+                <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+                  <img
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=192x192&data=https://sol-menu.alphabits.team/"
+                    alt="QR Code"
+                    className="w-48 h-48 mx-auto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* QR Scanner below the panel when activated (primarily mobile) */}
+          {showQRScanner && (
+            <div className="mt-6 rounded-2xl bg-black/30 backdrop-blur-md border border-white/20 p-2">
+              <QRScanner
+                onScan={handleQRScan}
+                onClose={() => setShowQRScanner(false)}
+              />
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Semi-translucent blurry footer */}
-      <footer className="relative z-10 bg-white bg-opacity-20 backdrop-blur-md border-t border-white border-opacity-20">
-        <div className="max-w-6xl mx-auto py-6 px-4">
+      <footer className="fixed bottom-0 left-0 right-0 z-30 bg-black/20 backdrop-blur-lg border-t border-white border-opacity-10">
+        <div className="max-w-6xl mx-auto my-4 mx-4 pb-[env(safe-area-inset-bottom)]">
           <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-white">
             {/* Website */}
             <a
@@ -316,9 +374,7 @@ export default function CustomerLandingPage() {
               <span>{t.email}</span>
             </a>
           </div>
-          <div className="text-center mt-4 text-sm text-white drop-shadow-md">
-            © 2025 SOL.com.vn - Sense of Life
-          </div>
+          
         </div>
       </footer>
 
