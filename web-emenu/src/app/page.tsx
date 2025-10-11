@@ -149,19 +149,23 @@ export default function CustomerLandingPage() {
 
       {/* Video Background for Desktop */}
       <div className="hidden md:block absolute inset-0 z-0">
+        {/* Bright fallback gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-300 via-amber-200 to-orange-400" />
+
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-80"
+          preload="auto"
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(254%2C215%2C170);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(251%2C146%2C60);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23grad)' /%3E%3C/svg%3E"
         >
-          <source src="/background-video.mp4" type="video/mp4" />
-          {/* Fallback for browsers that don't support video */}
-          <div className="w-full h-full bg-gradient-to-br from-orange-50 to-red-50" />
+          <source src="/background_video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
         </video>
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-30" />
+        {/* Lighter overlay for better text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-20" />
       </div>
 
       {/* Language Selector - positioned absolutely on desktop */}
@@ -187,20 +191,10 @@ export default function CustomerLandingPage() {
           {/* SOL Logo */}
           <div className="animate-fade-in">
             <img
-              src="/logo_full.png"
+              src="/logo_trim.png"
               alt="SOL eMenu"
               className="w-64 h-auto lg:w-80"
             />
-          </div>
-
-          {/* SOL eMenu Title */}
-          <div className="text-center animate-slide-up">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
-              SOL eMenu
-            </h1>
-            <p className="text-xl lg:text-2xl text-white drop-shadow-md max-w-2xl mx-auto leading-relaxed">
-              {t.tagline}
-            </p>
           </div>
 
           {/* Centered QR Code */}
@@ -230,7 +224,7 @@ export default function CustomerLandingPage() {
           {/* SOL Logo */}
           <div className="text-center mb-8 animate-fade-in">
             <img
-              src="/logo_full.png"
+              src="/logo_trim.png"
               alt="SOL eMenu"
               className="w-48 h-auto mx-auto"
             />
