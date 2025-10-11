@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle } from 'lucide-react';
 
-interface BranchItem { id: string; name: string; code: string; }
+interface BranchItem { id: string; name: string; code: string; display_name?: string; }
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const [branches, setBranches] = useState<BranchItem[]>([]);
@@ -23,7 +23,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     setSelectedBranchId(value);
     if (value) {
       const br = branches.find(b => b.id === value);
-      setSelectedBranchName(br ? `${br.name} (${br.code})` : value);
+      setSelectedBranchName(br ? `${br.display_name || br.name} (${br.code})` : value);
     } else {
       setSelectedBranchName('None');
     }
@@ -35,7 +35,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         const res = await fetch('/api/branches');
         const json = await res.json();
         const list: BranchItem[] = Array.isArray(json?.data)
-          ? json.data.map((b: { id: string; name: string; code: string }) => ({ id: b.id, name: b.name, code: b.code }))
+          ? json.data.map((b: { id: string; name: string; code: string; display_name?: string }) => ({ id: b.id, name: b.name, code: b.code, display_name: b.display_name }))
           : [];
         setBranches(list);
       } catch (e) {
@@ -69,7 +69,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         });
         setSelectedBranchId(branchId);
         const br = branches.find(b => b.id === branchId);
-        setSelectedBranchName(br ? `${br.name} (${br.code})` : branchId);
+        setSelectedBranchName(br ? `${br.display_name || br.name} (${br.code})` : branchId);
       }
     } catch (e) {
       console.error('Failed to set selected branch:', e);
@@ -118,7 +118,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   {branches.map((b) => (
                     <SelectItem key={b.id} value={b.id} className="cursor-pointer hover:bg-gray-50">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">{b.name}</span>
+                        <span className="text-sm">{b.display_name || b.name}</span>
                         <span className="text-[10px] rounded bg-gray-100 px-2 py-0.5 text-gray-600">#{b.code}</span>
                       </div>
                     </SelectItem>
@@ -148,7 +148,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             </a>
             <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/tables-zones">
               <TableIcon className="h-4 w-4" />
-              <span>Tables</span>
+              <span>Table List</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/visual-tables">
+              <TableIcon className="h-4 w-4" />
+              <span>Visual Tables</span>
             </a>
             <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/promotions">
               <Megaphone className="h-4 w-4" />
