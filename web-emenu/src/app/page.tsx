@@ -86,32 +86,32 @@ export default function CustomerLandingPage() {
     en: {
       title: 'Scan to View on Mobile',
       subtitle: 'This experience is optimized for mobile devices',
-      instruction: 'Scan this QR code with your phone camera to continue'
+      instruction: 'Scan to continue'
     },
     vi: {
       title: 'Quét để xem trên di động',
       subtitle: 'Trải nghiệm này được tối ưu cho thiết bị di động',
-      instruction: 'Quét mã QR này bằng camera điện thoại của bạn để tiếp tục'
+      instruction: 'Quét để tiếp tục'
     },
     ja: {
       title: 'モバイルで表示',
       subtitle: 'この体験はモバイルデバイス用に最適化されています',
-      instruction: 'このQRコードをスマートフォンカメラでスキャンして続行'
+      instruction: 'スキャンして続行'
     },
     ko: {
       title: '모바일에서 보기',
       subtitle: '이 경험은 모바일 기기에 최적화되어 있습니다',
-      instruction: '휴대폰 카메라로 이 QR 코드를 스캔하여 계속하세요'
+      instruction: '스캔하여 계속'
     },
     zh: {
       title: '在移动设备上查看',
       subtitle: '此体验已针对移动设备进行优化',
-      instruction: '使用手机摄像头扫描此二维码继续'
+      instruction: '扫描以继续'
     },
     ru: {
       title: 'Просмотр на мобильном устройстве',
       subtitle: 'Этот опыт оптимизирован для мобильных устройств',
-      instruction: 'Отсканируйте этот QR-код камерой телефона, чтобы продолжить'
+      instruction: 'Сканируйте, чтобы продолжить'
     }
   };
 
@@ -158,14 +158,14 @@ export default function CustomerLandingPage() {
           loop
           playsInline
           className="w-full h-full object-cover opacity-80"
-          preload="auto"
+          preload="metadata"
           poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(254%2C215%2C170);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(251%2C146%2C60);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23grad)' /%3E%3C/svg%3E"
         >
           <source src="/background_video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* Lighter overlay for better text readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-20" />
+        <div className="absolute inset-0 bg-black/20" />
       </div>
 
       {/* Language Selector - positioned absolutely on desktop */}
