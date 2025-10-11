@@ -27,12 +27,16 @@ const { logger } = require('./utils/logger');
 const { ApiClient } = require('./utils/api-client');
 const { DataMapper } = require('./utils/data-mapper');
 const { syncConfig } = require('./utils/sync-config');
+const { SessionLogger } = require('./utils/session-logger');
 
 class CukCukSync {
   constructor() {
     this.apiClient = new ApiClient();
     this.dataMapper = new DataMapper();
     this.config = syncConfig;
+    this.sessionLogger = new SessionLogger({
+      enabled: this.config.get('enableSessionLogging') !== false
+    });
     this.stats = {
       startTime: new Date(),
       endTime: null,
@@ -48,6 +52,9 @@ class CukCukSync {
    * Initialize the sync system
    */
   async initialize() {
+    // Start session logging first to capture all output
+    await this.sessionLogger.start();
+
     logger.section('SOL eMenu - CukCuk Data Synchronization');
 
     // Validate configuration
@@ -67,6 +74,7 @@ class CukCukSync {
     await this.testConnections();
 
     logger.success('Sync system initialized successfully');
+    logger.info(`Session logging enabled. Log file: ${this.sessionLogger.getLogFilePath()}`);
   }
 
   /**
@@ -189,11 +197,23 @@ class CukCukSync {
             // Update existing branch
             const result = await this.apiClient.updateDirectusItem('branches', existing.data[0].id, branchData);
             branchId = existing.data[0].id;
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('branches', existing.data[0].id, {
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            });
+
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated branch: ${branchData.name}`);
           } else {
-            // Create new branch
-            const result = await this.apiClient.createDirectusItem('branches', branchData);
+            // Create new branch with sync status
+            const createData = {
+              ...branchData,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            };
+            const result = await this.apiClient.createDirectusItem('branches', createData);
             branchId = result.data.id;
             this.updateStats(syncType, 'created');
             logger.debug(`Created branch: ${branchData.name}`);
@@ -211,6 +231,23 @@ class CukCukSync {
 
         } catch (error) {
           this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('branches', {
+              external_id: { _eq: branchData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('branches', existing.data[0].id, {
+                sync_status: 'failed',
+                last_sync_at: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
           logger.error(`Failed to sync branch "${branchData.name}": ${error.message}`);
         }
       }
@@ -222,8 +259,12 @@ class CukCukSync {
       logger.syncSuccess('Branches', typeStats);
       logger.info(`Branch sync completed in ${Math.round(duration / 1000)}s`);
 
-      // Create sync log
-      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      // Create sync log with session information
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
 
       // Return branch map for other sync operations
       return branchMap;
@@ -233,7 +274,11 @@ class CukCukSync {
       if (typeStats.startTime) {
         typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
       }
-      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
       logger.syncError('Branches', error);
       throw error;
     }
@@ -284,11 +329,23 @@ class CukCukSync {
           if (existing.data && existing.data.length > 0) {
             // Update existing category
             await this.apiClient.updateDirectusItem('categories', existing.data[0].id, categoryData);
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('categories', existing.data[0].id, {
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            });
+
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated category: ${categoryData.name}`);
           } else {
-            // Create new category
-            await this.apiClient.createDirectusItem('categories', categoryData);
+            // Create new category with sync status
+            const createData = {
+              ...categoryData,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            };
+            await this.apiClient.createDirectusItem('categories', createData);
             this.updateStats(syncType, 'created');
             logger.debug(`Created category: ${categoryData.name}`);
           }
@@ -300,6 +357,23 @@ class CukCukSync {
 
         } catch (error) {
           this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('categories', {
+              external_id: { _eq: categoryData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('categories', existing.data[0].id, {
+                sync_status: 'failed',
+                last_sync_at: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
           logger.error(`Failed to sync category "${categoryData.name}": ${error.message}`);
         }
       }
@@ -311,15 +385,23 @@ class CukCukSync {
       logger.syncSuccess('Categories', typeStats);
       logger.info(`Category sync completed in ${Math.round(duration / 1000)}s`);
 
-      // Create sync log
-      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      // Create sync log with session information
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
 
     } catch (error) {
       typeStats.endTime = new Date();
       if (typeStats.startTime) {
         typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
       }
-      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
       logger.syncError('Categories', error);
       throw error;
     }
@@ -357,15 +439,23 @@ class CukCukSync {
         }
       }
 
+      const sessionStats = this.sessionLogger.getStats();
       const initialLog = await this.apiClient.createSyncLog(syncType, 'in_progress', typeStats, null, {
         performanceMetrics: {
           api_calls: 0,
           avg_response_time: 0,
           memory_usage: process.memoryUsage(),
           checkpoint: checkpoint || null
-        }
+        },
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
       });
       syncLogId = initialLog?.data?.id || null;
+
+      // Set the sync log ID for session logger reference
+      if (syncLogId) {
+        this.sessionLogger.setSyncLogId(syncLogId);
+      }
     } catch (e) {
       logger.warn(`Failed to create in-progress sync log: ${e.message}`);
     }
@@ -383,7 +473,8 @@ class CukCukSync {
                 avg_response_time: 0,
                 memory_usage: process.memoryUsage(),
                 checkpoint: cp
-              }
+              },
+              date_updated: new Date().toISOString()
             });
           } catch (err) {
             logger.warn(`Failed to update checkpoint: ${err.message}`);
@@ -399,7 +490,7 @@ class CukCukSync {
           try {
             await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
               status: 'completed',
-              sync_completed_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
               records_processed: 0,
               records_created: 0,
               records_updated: 0,
@@ -440,11 +531,23 @@ class CukCukSync {
           if (existing.data && existing.data.length > 0) {
             // Update existing menu item
             await this.apiClient.updateDirectusItem('menu_items', existing.data[0].id, menuItemData);
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('menu_items', existing.data[0].id, {
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            });
+
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated menu item: ${menuItemData.name}`);
           } else {
-            // Create new menu item
-            await this.apiClient.createDirectusItem('menu_items', menuItemData);
+            // Create new menu item with sync status
+            const createData = {
+              ...menuItemData,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            };
+            await this.apiClient.createDirectusItem('menu_items', createData);
             this.updateStats(syncType, 'created');
             logger.debug(`Created menu item: ${menuItemData.name}`);
           }
@@ -472,6 +575,23 @@ class CukCukSync {
 
         } catch (error) {
           this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('menu_items', {
+              external_id: { _eq: menuItemData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('menu_items', existing.data[0].id, {
+                sync_status: 'failed',
+                last_sync_at: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
           logger.error(`Failed to sync menu item "${menuItemData.name}": ${error.message}`);
         }
       }
@@ -484,22 +604,28 @@ class CukCukSync {
       logger.info(`Menu items sync completed in ${Math.round(duration / 1000)}s`);
 
       // Finalize sync log
+      const finalSessionStats = this.sessionLogger.getStats();
       if (syncLogId) {
         try {
           await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
             status: 'completed',
-            sync_completed_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(),
             records_processed: typeStats.created + typeStats.updated + typeStats.failed,
             records_created: typeStats.created,
             records_updated: typeStats.updated,
             records_failed: typeStats.failed,
-            duration_seconds: typeStats.duration
+            duration_seconds: typeStats.duration,
+            session_log: this.sessionLogger.getSessionLogHTML(),
+            date_updated: new Date().toISOString()
           });
         } catch (e) {
           logger.warn(`Failed to finalize sync log: ${e.message}`);
         }
       } else {
-        await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+        await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+          sessionLog: this.sessionLogger.getSessionLogHTML(),
+          logFilePath: finalSessionStats.logFilePath
+        });
       }
 
     } catch (error) {
@@ -513,19 +639,25 @@ class CukCukSync {
         try {
           await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
             status: 'failed',
-            sync_completed_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(),
             records_processed: typeStats.created + typeStats.updated + typeStats.failed,
             records_created: typeStats.created || 0,
             records_updated: typeStats.updated || 0,
             records_failed: typeStats.failed || 0,
             duration_seconds: typeStats.duration,
-            last_error_message: error.message
+            last_error_message: error.message,
+            session_log: this.sessionLogger.getSessionLogHTML(),
+            date_updated: new Date().toISOString()
           });
         } catch (e) {
           logger.warn(`Failed to update failed sync log: ${e.message}`);
         }
       } else {
-        await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+        const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
       }
       logger.syncError('Menu Items', error);
       throw error;
@@ -584,11 +716,23 @@ class CukCukSync {
           if (existing.data && existing.data.length > 0) {
             // Update existing table
             await this.apiClient.updateDirectusItem('tables', existing.data[0].id, tableData);
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('tables', existing.data[0].id, {
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            });
+
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated table: ${tableData.name}`);
           } else {
-            // Create new table
-            await this.apiClient.createDirectusItem('tables', tableData);
+            // Create new table with sync status
+            const createData = {
+              ...tableData,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            };
+            await this.apiClient.createDirectusItem('tables', createData);
             this.updateStats(syncType, 'created');
             logger.debug(`Created table: ${tableData.name}`);
           }
@@ -600,6 +744,23 @@ class CukCukSync {
 
         } catch (error) {
           this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('tables', {
+              external_id: { _eq: tableData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('tables', existing.data[0].id, {
+                sync_status: 'failed',
+                last_sync_at: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
           logger.error(`Failed to sync table "${tableData.name}": ${error.message}`);
         }
       }
@@ -611,15 +772,23 @@ class CukCukSync {
       logger.syncSuccess('Tables', typeStats);
       logger.info(`Tables sync completed in ${Math.round(duration / 1000)}s`);
 
-      // Create sync log
-      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      // Create sync log with session information
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
 
     } catch (error) {
       typeStats.endTime = new Date();
       if (typeStats.startTime) {
         typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
       }
-      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
       logger.syncError('Tables', error);
       throw error;
     }
@@ -677,11 +846,23 @@ class CukCukSync {
           if (existing.data && existing.data.length > 0) {
             // Update existing layout
             await this.apiClient.updateDirectusItem('layouts', existing.data[0].id, layoutData);
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('layouts', existing.data[0].id, {
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            });
+
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated layout: ${layoutData.name}`);
           } else {
-            // Create new layout
-            await this.apiClient.createDirectusItem('layouts', layoutData);
+            // Create new layout with sync status
+            const createData = {
+              ...layoutData,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString()
+            };
+            await this.apiClient.createDirectusItem('layouts', createData);
             this.updateStats(syncType, 'created');
             logger.debug(`Created layout: ${layoutData.name}`);
           }
@@ -693,6 +874,23 @@ class CukCukSync {
 
         } catch (error) {
           this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('layouts', {
+              external_id: { _eq: layoutData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('layouts', existing.data[0].id, {
+                sync_status: 'failed',
+                last_sync_at: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
           logger.error(`Failed to sync layout "${layoutData.name}": ${error.message}`);
         }
       }
@@ -704,15 +902,23 @@ class CukCukSync {
       logger.syncSuccess('Layouts', typeStats);
       logger.info(`Layouts sync completed in ${Math.round(duration / 1000)}s`);
 
-      // Create sync log
-      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      // Create sync log with session information
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
 
     } catch (error) {
       typeStats.endTime = new Date();
       if (typeStats.startTime) {
         typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
       }
-      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
       logger.syncError('Layouts', error);
       throw error;
     }
@@ -742,6 +948,11 @@ class CukCukSync {
       const totalDuration = this.stats.endTime - this.stats.startTime;
 
       this.printSummary(totalDuration);
+
+      // Stop session logging and save final log
+      const sessionStats = await this.sessionLogger.stop();
+      logger.info(`Session log saved to: ${sessionStats.logFilePath}`);
+      logger.info(`Session duration: ${sessionStats.durationFormatted}`);
 
       if (this.stats.totalFailed === 0) {
         logger.success('🎉 All synchronizations completed successfully!');
@@ -826,6 +1037,11 @@ class CukCukSync {
     if (this.stats.totalProcessed > 0) {
       this.printSummary(this.stats.endTime - this.stats.startTime);
     }
+
+    // Stop session logging and get final stats
+    const sessionStats = await this.sessionLogger.stop();
+    logger.info(`Session log saved to: ${sessionStats.logFilePath}`);
+    logger.info(`Session duration: ${sessionStats.durationFormatted}`);
 
     logger.info('Sync system shutdown complete');
     process.exit(0);

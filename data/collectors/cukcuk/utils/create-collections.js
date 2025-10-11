@@ -270,6 +270,92 @@ const collections = [
           data_type: 'integer',
           default_value: 0
         }
+      },
+      {
+        field: 'created_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: true,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Record creation timestamp'
+        },
+        schema: {
+          name: 'created_at',
+          is_primary: false,
+          default_value: 'now()',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'updated_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: true,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Record last update timestamp'
+        },
+        schema: {
+          name: 'updated_at',
+          is_primary: false,
+          default_value: 'now()',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'sync_status',
+        type: 'string',
+        meta: {
+          interface: 'select-dropdown',
+          options: {
+            choices: [
+              { text: 'Pending', value: 'pending' },
+              { text: 'In Progress', value: 'in_progress' },
+              { text: 'Synced', value: 'synced' },
+              { text: 'Failed', value: 'failed' }
+            ]
+          },
+          display: 'labels',
+          display_options: {
+            'showAsDot': true
+          },
+          note: 'Sync status for this record'
+        },
+        schema: {
+          name: 'sync_status',
+          is_primary: false,
+          default_value: 'pending',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'last_sync_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: false,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Last sync timestamp'
+        },
+        schema: {
+          name: 'last_sync_at',
+          is_primary: false,
+          default_value: null,
+          is_nullable: true
+        }
       }
     ]
   },
@@ -432,6 +518,92 @@ const collections = [
           is_primary: false,
           data_type: 'integer',
           default_value: 0
+        }
+      },
+      {
+        field: 'created_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: true,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Record creation timestamp'
+        },
+        schema: {
+          name: 'created_at',
+          is_primary: false,
+          default_value: 'now()',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'updated_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: true,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Record last update timestamp'
+        },
+        schema: {
+          name: 'updated_at',
+          is_primary: false,
+          default_value: 'now()',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'sync_status',
+        type: 'string',
+        meta: {
+          interface: 'select-dropdown',
+          options: {
+            choices: [
+              { text: 'Pending', value: 'pending' },
+              { text: 'In Progress', value: 'in_progress' },
+              { text: 'Synced', value: 'synced' },
+              { text: 'Failed', value: 'failed' }
+            ]
+          },
+          display: 'labels',
+          display_options: {
+            'showAsDot': true
+          },
+          note: 'Sync status for this record'
+        },
+        schema: {
+          name: 'sync_status',
+          is_primary: false,
+          default_value: 'pending',
+          is_nullable: false
+        }
+      },
+      {
+        field: 'last_sync_at',
+        type: 'timestamp',
+        meta: {
+          interface: 'datetime',
+          readonly: true,
+          hidden: false,
+          display: 'datetime',
+          display_options: {
+            'relative': true
+          },
+          note: 'Last sync timestamp'
+        },
+        schema: {
+          name: 'last_sync_at',
+          is_primary: false,
+          default_value: null,
+          is_nullable: true
         }
       }
     ]

@@ -371,10 +371,31 @@ class ApiClient {
     });
   }
 
-  async getDirectusItems(collection, filters = {}, limit = null) {
+  async getDirectusItems(collection, filters = {}, limit = null, options = {}) {
     return this.withRetry(async () => {
-      const params = { filter: filters };
+      const params = {};
+
+      // Support both old format (filters as object) and new format
+      if (filters && typeof filters === 'object') {
+        params.filter = filters;
+      }
+
+      // Enhanced query options
       if (limit) params.limit = limit;
+      if (options.sort) params.sort = options.sort;
+      if (options.fields) params.fields = options.fields;
+      if (options.offset) params.offset = options.offset;
+      if (options.page) params.page = options.page;
+      if (options.search) params.search = options.search;
+
+      // Support for advanced Directus query options
+      if (options.deep) params.deep = options.deep;
+      if (options.alias) params.alias = options.alias;
+      if (options.aggregate) params.aggregate = options.aggregate;
+      if (options.group) params.group = options.group;
+      if (options.version) params.version = options.version;
+      if (options.export) params.export = options.export;
+      if (options.backlink) params.backlink = options.backlink;
 
       const response = await this.directus.get(`/items/${collection}`, { params });
       return response.data;
@@ -431,9 +452,9 @@ class ApiClient {
       records_created: stats.created || 0,
       records_updated: stats.updated || 0,
       records_failed: stats.failed || 0,
-      // Enhanced timestamp fields
-      sync_started_at: stats.startTime ? new Date(stats.startTime).toISOString() : now,
-      sync_completed_at: (status === 'completed' || status === 'failed') ? now : null,
+      // Correct timestamp fields (matching actual collection schema)
+      started_at: stats.startTime ? new Date(stats.startTime).toISOString() : now,
+      completed_at: (status === 'completed' || status === 'failed') ? now : null,
       duration_seconds: stats.duration || null,
       // Enhanced tracking fields
       triggered_by: options.triggeredBy || 'manual',
@@ -448,7 +469,12 @@ class ApiClient {
         avg_response_time: stats.avgResponseTime || 0,
         memory_usage: process.memoryUsage()
       },
-      warning_count: stats.warnings || 0
+      warning_count: stats.warnings || 0,
+      // New fields for enhanced logging
+      date_created: now,
+      date_updated: now,
+      session_log: options.sessionLog || null,
+      log_file_path: options.logFilePath || null
     };
 
     try {
@@ -566,18 +592,57 @@ class ApiClient {
 
   async findLatestSyncLog(syncType, statuses = ['failed', 'in_progress']) {
     return this.withRetry(async () => {
-      const params = {
-        filter: {
-          sync_type: { _eq: syncType },
-          status: { _in: statuses }
-        },
-        sort: ['-date_created'],
-        limit: 1
-      };
-      const response = await this.directus.get('/items/sync_logs', { params });
-      const data = response?.data?.data || response?.data || [];
+      const response = await this.getDirectusItems('sync_logs', {
+        sync_type: { _eq: syncType },
+        status: { _in: statuses }
+      }, 1, { sort: ['-date_created'] });
+      const data = response?.data || [];
       return Array.isArray(data) && data.length > 0 ? data[0] : null;
     });
+  }
+
+  // Utility methods for common query patterns
+
+  /**
+   * Get items with sorting
+   */
+  async getDirectusItemsSorted(collection, filters = {}, sort = [], limit = null) {
+    return this.getDirectusItems(collection, filters, limit, { sort });
+  }
+
+  /**
+   * Get specific fields from items
+   */
+  async getDirectusItemsFields(collection, filters = {}, fields = [], limit = null) {
+    return this.getDirectusItems(collection, filters, limit, { fields });
+  }
+
+  /**
+   * Get items with pagination
+   */
+  async getDirectusItemsPaginated(collection, filters = {}, page = 1, limit = 50) {
+    return this.getDirectusItems(collection, filters, limit, { page });
+  }
+
+  /**
+   * Search items
+   */
+  async searchDirectusItems(collection, searchTerm, filters = {}, limit = null) {
+    return this.getDirectusItems(collection, filters, limit, { search: searchTerm });
+  }
+
+  /**
+   * Get items with related data (deep queries)
+   */
+  async getDirectusItemsWithRelations(collection, filters = {}, relations = {}, limit = null) {
+    return this.getDirectusItems(collection, filters, limit, { deep: relations });
+  }
+
+  /**
+   * Get items with aggregate functions
+   */
+  async getDirectusItemsAggregate(collection, filters = {}, aggregate = {}, limit = null) {
+    return this.getDirectusItems(collection, filters, limit, { aggregate });
   }
 }
 
