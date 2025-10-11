@@ -9,7 +9,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 export default function CustomerLandingPage() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'vi'>('en');
+  const [language, setLanguage] = useState<'en' | 'vi' | 'ja' | 'ko' | 'zh' | 'ru'>('en');
   const router = useRouter();
 
   const translations = {
@@ -34,6 +34,50 @@ export default function CustomerLandingPage() {
       zalo: 'Zalo',
       email: 'Email',
       language: 'Ngôn ngữ'
+    },
+    ja: {
+      welcome: 'SOL eMenuへようこそ',
+      tagline: 'テーブルのQRコードをスキャンしてメニューをご覧ください',
+      scanQR: 'QRコードをスキャン',
+      loading: '読み込み中...',
+      website: 'ウェブサイト',
+      hotline: 'ホットライン',
+      zalo: 'Zalo',
+      email: 'メール',
+      language: '言語'
+    },
+    ko: {
+      welcome: 'SOL eMenu에 오신 것을 환영합니다',
+      tagline: '테이블의 QR 코드를 스캔하여 메뉴를 보고 주문하세요',
+      scanQR: 'QR 코드 스캔',
+      loading: '로딩 중...',
+      website: '웹사이트',
+      hotline: '핫라인',
+      zalo: 'Zalo',
+      email: '이메일',
+      language: '언어'
+    },
+    zh: {
+      welcome: '欢迎使用SOL电子菜单',
+      tagline: '扫描桌上的二维码浏览菜单并下单',
+      scanQR: '扫描二维码',
+      loading: '加载中...',
+      website: '网站',
+      hotline: '热线',
+      zalo: 'Zalo',
+      email: '邮箱',
+      language: '语言'
+    },
+    ru: {
+      welcome: 'Добро пожаловать в SOL eMenu',
+      tagline: 'Отсканируйте QR-код на вашем столе, чтобы просмотреть меню и сделать заказ',
+      scanQR: 'Сканировать QR-код',
+      loading: 'Загрузка...',
+      website: 'Веб-сайт',
+      hotline: 'Горячая линия',
+      zalo: 'Zalo',
+      email: 'Электронная почта',
+      language: 'Язык'
     }
   };
 

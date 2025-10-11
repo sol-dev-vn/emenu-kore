@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface LanguageSelectorProps {
-  currentLanguage: 'en' | 'vi';
-  onLanguageChange: (language: 'en' | 'vi') => void;
+  currentLanguage: 'en' | 'vi' | 'ja' | 'ko' | 'zh' | 'ru';
+  onLanguageChange: (language: 'en' | 'vi' | 'ja' | 'ko' | 'zh' | 'ru') => void;
 }
 
 export default function LanguageSelector({ currentLanguage, onLanguageChange }: LanguageSelectorProps) {
@@ -14,7 +14,11 @@ export default function LanguageSelector({ currentLanguage, onLanguageChange }: 
 
   const languages = [
     { code: 'en' as const, name: 'English', flag: '🇺🇸' },
-    { code: 'vi' as const, name: 'Tiếng Việt', flag: '🇻🇳' }
+    { code: 'vi' as const, name: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'ja' as const, name: '日本語', flag: '🇯🇵' },
+    { code: 'ko' as const, name: '한국어', flag: '🇰🇷' },
+    { code: 'zh' as const, name: '中文', flag: '🇨🇳' },
+    { code: 'ru' as const, name: 'Русский', flag: '🇷🇺' }
   ];
 
   const currentLanguageData = languages.find(lang => lang.code === currentLanguage);
@@ -23,7 +27,7 @@ export default function LanguageSelector({ currentLanguage, onLanguageChange }: 
     <div className="relative">
       <Select
         value={currentLanguage}
-        onValueChange={(value: 'en' | 'vi') => onLanguageChange(value)}
+        onValueChange={(value: 'en' | 'vi' | 'ja' | 'ko' | 'zh' | 'ru') => onLanguageChange(value)}
       >
         <SelectTrigger className="w-32 bg-white border-gray-200 shadow-sm">
           <SelectValue>
