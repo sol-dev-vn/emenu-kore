@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRScanner from '@/components/QRScanner';
-import DesktopQR from '@/components/DesktopQR';
 import LanguageSelector from '@/components/LanguageSelector';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -82,7 +81,42 @@ export default function CustomerLandingPage() {
     }
   };
 
+  // Desktop QR translations
+  const qrTranslations = {
+    en: {
+      title: 'Scan to View on Mobile',
+      subtitle: 'This experience is optimized for mobile devices',
+      instruction: 'Scan this QR code with your phone camera to continue'
+    },
+    vi: {
+      title: 'Quét để xem trên di động',
+      subtitle: 'Trải nghiệm này được tối ưu cho thiết bị di động',
+      instruction: 'Quét mã QR này bằng camera điện thoại của bạn để tiếp tục'
+    },
+    ja: {
+      title: 'モバイルで表示',
+      subtitle: 'この体験はモバイルデバイス用に最適化されています',
+      instruction: 'このQRコードをスマートフォンカメラでスキャンして続行'
+    },
+    ko: {
+      title: '모바일에서 보기',
+      subtitle: '이 경험은 모바일 기기에 최적화되어 있습니다',
+      instruction: '휴대폰 카메라로 이 QR 코드를 스캔하여 계속하세요'
+    },
+    zh: {
+      title: '在移动设备上查看',
+      subtitle: '此体验已针对移动设备进行优化',
+      instruction: '使用手机摄像头扫描此二维码继续'
+    },
+    ru: {
+      title: 'Просмотр на мобильном устройстве',
+      subtitle: 'Этот опыт оптимизирован для мобильных устройств',
+      instruction: 'Отсканируйте этот QR-код камерой телефона, чтобы продолжить'
+    }
+  };
+
   const t = translations[language];
+  const qrT = qrTranslations[language];
 
   const handleQRScan = async (data: string) => {
     setIsLoading(true);
@@ -109,56 +143,112 @@ export default function CustomerLandingPage() {
 
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex flex-col">
+    <div className="min-h-screen relative flex flex-col">
       {/* Loading Overlay */}
       {isLoading && <LoadingSpinner message={t.loading} />}
 
-      {/* Header */}
-      <header className="relative">
-        <div className="absolute top-4 right-4 z-10">
-          <LanguageSelector
-            currentLanguage={language}
-            onLanguageChange={setLanguage}
-          />
-        </div>
+      {/* Video Background for Desktop */}
+      <div className="hidden md:block absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/background-video.mp4" type="video/mp4" />
+          {/* Fallback for browsers that don't support video */}
+          <div className="w-full h-full bg-gradient-to-br from-orange-50 to-red-50" />
+        </video>
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
+      </div>
 
-        <div className="flex flex-col items-center justify-center pt-12 pb-8 px-4">
+      {/* Language Selector - positioned absolutely on desktop */}
+      <div className="hidden md:block absolute top-4 right-4 z-20">
+        <LanguageSelector
+          currentLanguage={language}
+          onLanguageChange={setLanguage}
+        />
+      </div>
+
+      {/* Mobile Language Selector - positioned normally */}
+      <div className="md:hidden absolute top-4 right-4 z-10">
+        <LanguageSelector
+          currentLanguage={language}
+          onLanguageChange={setLanguage}
+        />
+      </div>
+
+      {/* Main Content */}
+      <main className="relative z-10 flex-grow flex flex-col items-center justify-center px-4">
+        {/* Desktop View - Video background with centered QR and title */}
+        <div className="hidden md:flex flex-col items-center justify-center w-full h-screen space-y-8">
           {/* SOL Logo */}
-          <div className="mb-8 animate-fade-in">
+          <div className="animate-fade-in">
             <img
               src="/logo_full.png"
               alt="SOL eMenu"
-              className="w-48 h-auto md:w-64 lg:w-72"
+              className="w-64 h-auto lg:w-80"
+            />
+          </div>
+
+          {/* SOL eMenu Title */}
+          <div className="text-center animate-slide-up">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
+              SOL eMenu
+            </h1>
+            <p className="text-xl lg:text-2xl text-white drop-shadow-md max-w-2xl mx-auto leading-relaxed">
+              {t.tagline}
+            </p>
+          </div>
+
+          {/* Centered QR Code */}
+          <div className="animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 backdrop-blur-sm bg-opacity-95">
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {qrT.title}
+                </h3>
+                <p className="text-gray-600">
+                  {qrT.instruction}
+                </p>
+              </div>
+              <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=https://sol-menu.alphabits.team/"
+                  alt="QR Code"
+                  className="w-64 h-64"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile View - Current design */}
+        <div className="md:hidden w-full max-w-md animate-fade-in space-y-6">
+          {/* SOL Logo */}
+          <div className="text-center mb-8 animate-fade-in">
+            <img
+              src="/logo_full.png"
+              alt="SOL eMenu"
+              className="w-48 h-auto mx-auto"
             />
           </div>
 
           {/* Welcome Text */}
           <div className="text-center mb-12 animate-slide-up">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {t.welcome}
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-gray-600 leading-relaxed">
               {t.tagline}
             </p>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12">
-        {/* Desktop View - Show QR code to scan with phone */}
-        <div className="hidden md:block w-full animate-fade-in">
-          <DesktopQR
-            url="https://sol-menu.alphabits.team/"
-            language={language}
-          />
-        </div>
-
-        {/* Mobile View - Show QR scanner */}
-        <div className="md:hidden w-full max-w-md animate-fade-in">
+          {/* Mobile QR Scanner */}
           {!showQRScanner ? (
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              {/* Scan QR Code Button */}
               <button
                 onClick={() => setShowQRScanner(true)}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-3"
@@ -180,18 +270,18 @@ export default function CustomerLandingPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-wrap justify-center items-center gap-4 text-xs text-gray-600">
+      {/* Semi-translucent blurry footer */}
+      <footer className="relative z-10 bg-white bg-opacity-20 backdrop-blur-md border-t border-white border-opacity-20">
+        <div className="max-w-6xl mx-auto py-6 px-4">
+          <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-white">
             {/* Website */}
             <a
               href="https://www.sol.com.vn"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-2 hover:text-orange-300 transition-colors drop-shadow-md"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
               </svg>
               <span>{t.website}</span>
@@ -200,9 +290,9 @@ export default function CustomerLandingPage() {
             {/* Hotline */}
             <a
               href="tel:0888104799"
-              className="flex items-center gap-1 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-2 hover:text-orange-300 transition-colors drop-shadow-md"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
               <span>0888.104.799</span>
@@ -213,9 +303,9 @@ export default function CustomerLandingPage() {
               href="https://zalo.me/2735540598556716859"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-2 hover:text-orange-300 transition-colors drop-shadow-md"
             >
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
               <span>{t.zalo}</span>
@@ -224,15 +314,15 @@ export default function CustomerLandingPage() {
             {/* Email */}
             <a
               href="mailto:contact@sol.com.vn"
-              className="flex items-center gap-1 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-2 hover:text-orange-300 transition-colors drop-shadow-md"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <span>{t.email}</span>
             </a>
           </div>
-          <div className="text-center mt-3 text-xs text-gray-500">
+          <div className="text-center mt-4 text-sm text-white drop-shadow-md">
             © 2025 SOL.com.vn - Sense of Life
           </div>
         </div>
