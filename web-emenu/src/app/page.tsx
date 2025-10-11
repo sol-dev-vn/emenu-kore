@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRScanner from '@/components/QRScanner';
+import DesktopQR from '@/components/DesktopQR';
 import LanguageSelector from '@/components/LanguageSelector';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -145,9 +146,17 @@ export default function CustomerLandingPage() {
 
       {/* Main Content */}
       <main className="flex-grow flex flex-col items-center justify-center px-4 pb-12">
-        {/* QR Scanner Section */}
-        {!showQRScanner && (
-          <div className="w-full max-w-md animate-fade-in">
+        {/* Desktop View - Show QR code to scan with phone */}
+        <div className="hidden md:block w-full animate-fade-in">
+          <DesktopQR
+            url="https://sol-menu.alphabits.team/"
+            language={language}
+          />
+        </div>
+
+        {/* Mobile View - Show QR scanner */}
+        <div className="md:hidden w-full max-w-md animate-fade-in">
+          {!showQRScanner ? (
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
               {/* Scan QR Code Button */}
               <button
@@ -160,18 +169,15 @@ export default function CustomerLandingPage() {
                 {t.scanQR}
               </button>
             </div>
-          </div>
-        )}
-
-        {/* QR Scanner Component */}
-        {showQRScanner && (
-          <div className="w-full max-w-md animate-fade-in">
-            <QRScanner
-              onScan={handleQRScan}
-              onClose={() => setShowQRScanner(false)}
-            />
-          </div>
-        )}
+          ) : (
+            <div className="w-full max-w-md animate-fade-in">
+              <QRScanner
+                onScan={handleQRScan}
+                onClose={() => setShowQRScanner(false)}
+              />
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Footer */}
