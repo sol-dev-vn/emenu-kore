@@ -2,56 +2,61 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { ChevronRight, X, Clock, CheckCircle, XCircle, AlertCircle, Database, Zap, FileText, Activity } from 'lucide-react';
-
-interface SyncLogStats {
-  total: number;
-  completed: number;
-  failed: number;
-  in_progress: number;
-  pending: number;
-}
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+  AlertCircle,
+  Download,
+  Eye,
+  Filter
+} from 'lucide-react';
 
 interface SyncLog {
   id: string;
-  sync_type: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  records_processed: number;
-  records_created: number;
-  records_updated: number;
-  records_failed: number;
-  duration_seconds: number;
-  last_error_message?: string;
-  date_created: string;
+  entity_type: string;
+  entity_id: string;
+  entity_name?: string;
+  operation: string;
+  status: 'success' | 'failed' | 'pending' | 'in_progress';
+  error_message?: string;
+  request_data?: Record<string, any>;
+  response_data?: Record<string, any>;
+  external_source: string;
+  external_id?: string;
+  started_at: string;
   completed_at?: string;
-  performance_metrics?: Record<string, unknown>;
-  log_data?: string;
-  metadata?: Record<string, unknown>;
+  duration_ms?: number;
+  retry_count?: number;
+  branch_id?: string;
+  user_id?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function SyncLogsPage() {
-  const [stats, setStats] = useState<SyncLogStats | null>(null);
   const [logs, setLogs] = useState<SyncLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [entityFilter, setEntityFilter] = useState<string>('');
+  const [operationFilter, setOperationFilter] = useState<string>('');
   const [selectedLog, setSelectedLog] = useState<SyncLog | null>(null);
-  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
-
-  const loadStats = async () => {
-    try {
-      const res = await fetch('/api/sync-logs/stats');
-      const json = await res.json();
-      if (json.success) {
-        setStats(json.data);
-      }
-    } catch (e) {
-      console.error('Failed to load sync log stats:', e);
-    }
-  };
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const [stats, setStats] = useState({
+    total: 0,
+    success: 0,
+    failed: 0,
+    pending: 0,
+    inProgress: 0
+  });
 
   const loadLogs = async () => {
     try {
@@ -60,94 +65,118 @@ export default function SyncLogsPage() {
         limit: '20',
       });
 
+      if (searchQuery) params.append('search', searchQuery);
       if (statusFilter) params.append('status', statusFilter);
-      if (typeFilter) params.append('sync_type', typeFilter);
+      if (entityFilter) params.append('entity', entityFilter);
+      if (operationFilter) params.append('operation', operationFilter);
 
       const res = await fetch(`/api/sync-logs?${params}`);
       const json = await res.json();
       if (json.success) {
-        setLogs(json.data);
+        setLogs(json.data || []);
+        setTotalLogs(json.total || 0);
+        setStats(json.stats || {
+          total: 0,
+          success: 0,
+          failed: 0,
+          pending: 0,
+          inProgress: 0
+        });
+      } else {
+        setError(json.error || 'Failed to load sync logs');
       }
     } catch (e) {
       setError('Failed to load sync logs');
     }
   };
 
-  const handleLogClick = async (log: SyncLog) => {
+  const exportLogs = async () => {
     try {
-      // Fetch full log details including log_data from Directus
-      const res = await fetch(`/api/sync-logs/${log.id}`);
-      const json = await res.json();
-      if (json.success) {
-        setSelectedLog(json.data);
-        setIsDetailPanelOpen(true);
-      } else {
-        setSelectedLog(log);
-        setIsDetailPanelOpen(true);
-      }
+      const params = new URLSearchParams({
+        format: 'csv',
+        status: statusFilter,
+        entity: entityFilter,
+        operation: operationFilter,
+        search: searchQuery,
+      });
+
+      const res = await fetch(`/api/sync-logs/export?${params}`);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sync-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (e) {
-      // Fallback to the log data we already have
-      setSelectedLog(log);
-      setIsDetailPanelOpen(true);
+      console.error('Failed to export logs:', e);
     }
   };
 
-  const closeDetailPanel = () => {
-    setIsDetailPanelOpen(false);
-    setSelectedLog(null);
+  const retrySync = async (logId: string) => {
+    try {
+      const res = await fetch(`/api/sync-logs/${logId}/retry`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        await loadLogs();
+      }
+    } catch (e) {
+      console.error('Failed to retry sync:', e);
+    }
+  };
+
+  const viewDetails = (log: SyncLog) => {
+    setSelectedLog(log);
+    setShowDetailModal(true);
   };
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       setError(null);
-      await Promise.all([loadStats(), loadLogs()]);
+      await loadLogs();
       setLoading(false);
     }
     loadData();
-  }, [page, statusFilter, typeFilter]);
+  }, [page, searchQuery, statusFilter, entityFilter, operationFilter]);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case 'in_progress':
+        return <RefreshCw className="h-4 w-4 text-blue-600" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-gray-600" />;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
+      case 'success':
         return 'bg-green-100 text-green-800';
       case 'failed':
         return 'bg-red-100 text-red-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'failed':
-        return <XCircle className="w-4 h-4 text-red-600" />;
-      case 'in_progress':
-        return <Activity className="w-4 h-4 text-blue-600" />;
-      case 'pending':
-        return <AlertCircle className="w-4 h-4 text-yellow-600" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getSyncTypeIcon = (syncType: string) => {
-    switch (syncType) {
-      case 'branches':
-        return <Database className="w-4 h-4" />;
-      case 'categories':
-        return <FileText className="w-4 h-4" />;
-      case 'menu_items':
-        return <Zap className="w-4 h-4" />;
-      default:
-        return <Activity className="w-4 h-4" />;
-    }
+  const formatDuration = (ms?: number) => {
+    if (!ms) return 'N/A';
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(2)}s`;
   };
 
   const formatDate = (dateString: string) => {
@@ -163,19 +192,19 @@ export default function SyncLogsPage() {
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${isDetailPanelOpen ? 'mr-96' : ''}`}>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Activity className="w-6 h-6 text-blue-600" />
-                Sync Logs
-              </h1>
-              <p className="text-gray-600 mt-2">Monitor data synchronization status</p>
-            </div>
-          </div>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Sync Logs</h1>
+          <p className="text-gray-600 mt-2">Monitor data synchronization between systems</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportLogs}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
 
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -183,101 +212,126 @@ export default function SyncLogsPage() {
         </div>
       )}
 
-          {/* Stats Cards */}
-          {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Database className="w-5 h-5 text-gray-500" />
-                    <div className="text-3xl font-bold">{stats.total}</div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Completed</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Failed</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <XCircle className="w-5 h-5 text-red-500" />
-                    <div className="text-3xl font-bold text-red-600">{stats.failed}</div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">In Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-blue-500" />
-                    <div className="text-3xl font-bold text-blue-600">{stats.in_progress}</div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-500" />
-                    <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
-                  </div>
-                </CardContent>
-              </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-sm text-gray-600">Total Logs</p>
+              </div>
+              <RefreshCw className="h-8 w-8 text-blue-600" />
             </div>
-          )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-green-600">{stats.success}</p>
+                <p className="text-sm text-gray-600">Success</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+                <p className="text-sm text-gray-600">Failed</p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-sm text-gray-600">Pending</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                <p className="text-sm text-gray-600">In Progress</p>
+              </div>
+              <RefreshCw className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filters */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Search</label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by entity name or ID..."
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
               >
-                <option value="">All Statuses</option>
+                <option value="">All Status</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Sync Type</label>
+              <label className="block text-sm font-medium mb-2">Entity Type</label>
               <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={entityFilter}
+                onChange={(e) => setEntityFilter(e.target.value)}
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
               >
-                <option value="">All Types</option>
-                <option value="branches">Branches</option>
-                <option value="categories">Categories</option>
-                <option value="menu_items">Menu Items</option>
-                <option value="tables">Tables</option>
-                <option value="layouts">Layouts</option>
+                <option value="">All Entities</option>
+                <option value="menu_item">Menu Items</option>
+                <option value="table">Tables</option>
+                <option value="category">Categories</option>
+                <option value="promotion">Promotions</option>
+                <option value="order">Orders</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Operation</label>
+              <select
+                value={operationFilter}
+                onChange={(e) => setOperationFilter(e.target.value)}
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+              >
+                <option value="">All Operations</option>
+                <option value="create">Create</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+                <option value="sync">Sync</option>
               </select>
             </div>
           </div>
@@ -287,7 +341,7 @@ export default function SyncLogsPage() {
       {/* Logs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sync Logs</CardTitle>
+          <CardTitle>Sync Logs ({totalLogs})</CardTitle>
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (
@@ -303,29 +357,31 @@ export default function SyncLogsPage() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      Entity
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Records
+                      Operation
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Duration
+                      External ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Started
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Completed
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Retries
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {logs.map((log) => (
-                    <tr
-                      key={log.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleLogClick(log)}
-                    >
+                    <tr key={log.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {getStatusIcon(log.status)}
@@ -334,36 +390,54 @@ export default function SyncLogsPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="flex items-center gap-2">
-                          {getSyncTypeIcon(log.sync_type)}
-                          <span className="capitalize">{log.sync_type.replace('_', ' ')}</span>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {log.entity_name || `${log.entity_type} ${log.entity_id}`}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {log.entity_type}
+                          </div>
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {log.operation}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="text-xs space-y-1">
-                          <div>Processed: {log.records_processed || 0}</div>
-                          <div className="text-green-600">Created: {log.records_created || 0}</div>
-                          <div className="text-blue-600">Updated: {log.records_updated || 0}</div>
-                          {log.records_failed > 0 && (
-                            <div className="text-red-600">Failed: {log.records_failed}</div>
+                        {log.external_id || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(log.started_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDuration(log.duration_ms)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {log.retry_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => viewDetails(log)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Details
+                          </Button>
+                          {log.status === 'failed' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => retrySync(log.id)}
+                            >
+                              <RefreshCw className="h-3 w-3 mr-1" />
+                              Retry
+                            </Button>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {log.duration_seconds ? `${log.duration_seconds}s` : '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(log.date_created)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {log.completed_at ? formatDate(log.completed_at) : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
                       </td>
                     </tr>
                   ))}
@@ -371,131 +445,110 @@ export default function SyncLogsPage() {
               </table>
             </div>
           )}
+
+          {/* Pagination */}
+          {totalLogs > 20 && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, totalLogs)} of {totalLogs} results
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page * 20 >= totalLogs}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
-        </div>
-      </div>
 
-      {/* Detail Panel */}
-      {isDetailPanelOpen && selectedLog && (
-        <div className="w-96 bg-white border-l border-gray-200 shadow-lg overflow-hidden flex flex-col fixed right-0 top-0 h-full z-40">
-          {/* Panel Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {getStatusIcon(selectedLog.status)}
-                <div>
-                  <h3 className="font-semibold">Sync Log Details</h3>
-                  <p className="text-sm opacity-90">{selectedLog.sync_type.replace('_', ' ').toUpperCase()}</p>
-                </div>
-              </div>
-              <button
-                onClick={closeDetailPanel}
-                className="p-1 hover:bg-white/20 rounded-md transition-colors"
+      {/* Detail Modal */}
+      {showDetailModal && selectedLog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Sync Log Details</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDetailModal(false)}
               >
-                <X className="w-5 h-5" />
-              </button>
+                Close
+              </Button>
             </div>
-          </div>
 
-          {/* Panel Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Status and Type */}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Status</h4>
-              <div className="flex items-center gap-2">
-                {getStatusIcon(selectedLog.status)}
-                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(selectedLog.status)}`}>
-                  {selectedLog.status}
-                </span>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Entity</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedLog.entity_name || `${selectedLog.entity_type} ${selectedLog.entity_id}`}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Operation</label>
+                <p className="mt-1 text-sm text-gray-900">{selectedLog.operation}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <div className="mt-1">
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(selectedLog.status)}`}>
+                    {selectedLog.status}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Duration</label>
+                <p className="mt-1 text-sm text-gray-900">{formatDuration(selectedLog.duration_ms)}</p>
               </div>
             </div>
 
-            {/* Timing Information */}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Timing</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Started:</span>
-                  <span>{formatDate(selectedLog.date_created)}</span>
-                </div>
-                {selectedLog.completed_at && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Completed:</span>
-                    <span>{formatDate(selectedLog.completed_at)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Duration:</span>
-                  <span>{selectedLog.duration_seconds ? `${selectedLog.duration_seconds}s` : 'N/A'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Records Processing */}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Records Processing</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Processed:</span>
-                  <span>{selectedLog.records_processed || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Created:</span>
-                  <span className="text-green-600">{selectedLog.records_created || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Updated:</span>
-                  <span className="text-blue-600">{selectedLog.records_updated || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Failed:</span>
-                  <span className="text-red-600">{selectedLog.records_failed || 0}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {selectedLog.last_error_message && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-red-700 mb-2">Error Message</h4>
-                <p className="text-sm text-red-600">{selectedLog.last_error_message}</p>
-              </div>
-            )}
-
-            {/* Performance Metrics */}
-            {selectedLog.performance_metrics && (
-              <div className="bg-gray-50 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Performance Metrics</h4>
-                <div className="bg-white rounded border border-gray-200 p-2 max-h-32 overflow-y-auto">
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                    {JSON.stringify(selectedLog.performance_metrics, null, 2)}
-                  </pre>
+            {selectedLog.error_message && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700">Error Message</label>
+                <div className="mt-1 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-900">{selectedLog.error_message}</p>
                 </div>
               </div>
             )}
 
-            {/* Log Data */}
-            {selectedLog.log_data && (
-              <div className="bg-gray-50 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Log Data</h4>
-                <div className="bg-white rounded border border-gray-200 p-2 max-h-48 overflow-y-auto">
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                    {selectedLog.log_data}
+            <div className="grid grid-cols-2 gap-6">
+              {selectedLog.request_data && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Request Data</label>
+                  <pre className="p-3 bg-gray-50 rounded-md text-xs overflow-auto max-h-40">
+                    {JSON.stringify(selectedLog.request_data, null, 2)}
                   </pre>
                 </div>
-              </div>
-            )}
+              )}
+              {selectedLog.response_data && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Response Data</label>
+                  <pre className="p-3 bg-gray-50 rounded-md text-xs overflow-auto max-h-40">
+                    {JSON.stringify(selectedLog.response_data, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
 
-            {/* Metadata */}
-            {selectedLog.metadata && (
-              <div className="bg-gray-50 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Metadata</h4>
-                <div className="bg-white rounded border border-gray-200 p-2 max-h-32 overflow-y-auto">
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                    {JSON.stringify(selectedLog.metadata, null, 2)}
-                  </pre>
-                </div>
+            {selectedLog.status === 'failed' && (
+              <div className="mt-6 flex gap-2">
+                <Button onClick={() => retrySync(selectedLog.id)}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry Sync
+                </Button>
               </div>
             )}
           </div>

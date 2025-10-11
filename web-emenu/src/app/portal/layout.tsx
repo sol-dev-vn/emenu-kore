@@ -6,10 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle, Sun, Moon, Monitor, Menu, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface BranchItem { id: string; name: string; code: string; display_name?: string; }
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [branches, setBranches] = useState<BranchItem[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedBranchName, setSelectedBranchName] = useState<string>('None');
@@ -27,7 +29,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/login';
+    router.push('/login');
   }
 
   function readSelectedBranchCookie() {
@@ -158,19 +160,19 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   const navItems = [
     { href: '/portal/visual-tables', icon: TableIcon, label: 'Live Dashboard', isProminent: true },
-    { href: '/portal', icon: Home, label: 'Dashboard' },
-    { href: '/portal/sync-logs', icon: History, label: 'Sync Logs' },
     { href: '/portal/menu-management', icon: Utensils, label: 'Menu Management' },
-    { href: '/portal/master/brands-branches', icon: Building2, label: 'Branches' },
     { href: '/portal/tables-zones', icon: TableIcon, label: 'Table List' },
     { href: '/portal/promotions', icon: Megaphone, label: 'Promotions' },
     { href: '/portal/orders', icon: TableIcon, label: 'Orders' },
-    { href: '/portal/reports', icon: Settings, label: 'Reports' },
   ];
 
-  const masterSettingsItems = [
-    { href: '/portal/master/staff', icon: Users, label: 'Staff Management' },
-    { href: '/portal/master/roles', icon: Shield, label: 'Permissions & Roles' },
+  const platformSettingsItems = [
+    { href: '/portal', icon: Home, label: 'Admin Overview', adminOnly: true },
+    { href: '/portal/master/staff', icon: Users, label: 'Staff Management', adminOnly: true },
+    { href: '/portal/master/roles', icon: Shield, label: 'Permissions & Roles', adminOnly: true },
+    { href: '/portal/master/brands-branches', icon: Building2, label: 'Branches', adminOnly: true },
+    { href: '/portal/sync-logs', icon: History, label: 'Sync Logs', adminOnly: true },
+    { href: '/portal/reports', icon: Settings, label: 'Executive Summary', adminOnly: true },
   ];
 
   const supportItems = [
@@ -255,33 +257,35 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             })}
           </nav>
 
-          {/* Master Settings */}
-          <div className="mb-6">
-            {!isSidebarCollapsed && (
-              <div className="text-xs uppercase text-gray-400 dark:text-gray-500 mb-2 font-semibold">Master Settings</div>
-            )}
-            <nav className="flex flex-col gap-1 text-sm">
-              {masterSettingsItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2'} rounded-md px-3 py-2 transition-colors ${
-                      isActive
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {!isSidebarCollapsed && <span>{item.label}</span>}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
+          {/* Platform Settings - Admin Only */}
+          {currentUser?.role?.name === 'Administrator' && (
+            <div className="mb-6">
+              {!isSidebarCollapsed && (
+                <div className="text-xs uppercase text-gray-400 dark:text-gray-500 mb-2 font-semibold">Platform Settings</div>
+              )}
+              <nav className="flex flex-col gap-1 text-sm">
+                {platformSettingsItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2'} rounded-md px-3 py-2 transition-colors ${
+                        isActive
+                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-medium'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                      title={item.label}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {!isSidebarCollapsed && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
 
           {/* Support Section */}
           <div className="mb-6">

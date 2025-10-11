@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+export const dynamic = 'force-dynamic';
+
 interface Order {
   id: string;
   order_number: string;

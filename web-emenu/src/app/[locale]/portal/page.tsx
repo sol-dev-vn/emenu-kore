@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 interface DashboardStats {
   branches: number;
   tables: number;
