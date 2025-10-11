@@ -71,7 +71,7 @@ module.exports = {
         ignore_watch: ['node_modules', '.next', 'logs'],
         env: {
           NODE_ENV: 'development',
-          PORT: 3000
+          PORT: 3520
         }
       }
     }

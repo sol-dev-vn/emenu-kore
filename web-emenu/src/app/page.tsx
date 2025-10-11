@@ -183,7 +183,7 @@ export default function CustomerLandingPage() {
             </a>
           </div>
           <div className="text-center mt-3 text-xs text-gray-500">
-            © 2024 SOL.com.vn - Sense of Life
+            © 2025 SOL.com.vn - Sense of Life
           </div>
         </div>
       </footer>
