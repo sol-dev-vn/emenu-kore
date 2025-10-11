@@ -9,6 +9,14 @@ The SOL eMenu platform is a comprehensive digital menu system designed for SOL.c
 ### Public eMenu Platform
 - **Production**: https://em.sol.com.vn *(pending domain setup)*
 - **Development**: https://sol-emenu.alphabits.team → `http://localhost:3520`
+- **Landing Page**: `/` (root path) - Generic welcome page with SOL logo
+- **QR Code Routes**: `/qr?table=[table_id]` - Direct menu access via table QR codes
+- **QR Scanner**: Built-in QR code scanning capability on landing page
+
+### Operation Portal (Web Management)
+- **Access**: `/login` - Staff authentication and management portal
+- **Dashboard**: `/dashboard` - Overview of all restaurant operations
+- **QR Management**: `/qr-codes` - Comprehensive QR code management interface
 
 ### Core API Backend & Admin Portal
 - **Production**: https://kore.sol.com.vn *(pending domain setup)*
@@ -90,26 +98,74 @@ CompanyCode: [company-code]
 - **User Administration**: Create and manage accounts for store managers and employees
 - **System Configuration**: Global settings and platform-wide controls
 
-### Operator Portal (Store Staff)
-- **Authentication & Security**
-  - Login via email or phone number
-  - Password reset functionality
-  - Two-factor authentication (optional, disabled by default)
+### Operation Portal (/login)
+**Staff authentication and management interface accessible at `/login`**
 
-- **Branch Management**
-  - Each branch maintains independent menu and pricing
-  - Multi-zone layout configuration per branch
-  - Table status monitoring and management
+#### Authentication & Security
+- **Login Methods**: Email or phone number with password
+- **Role-Based Access**: Different permission levels for managers, staff, and administrators
+- **Password Reset**: Email-based password recovery
+- **Session Management**: Secure session handling with automatic logout
+- **Two-Factor Authentication**: Optional enhanced security (disabled by default)
 
-- **QR Code System**
-  - Unique QR code per table: `https://qr.sol.com.vn/tables/[table-code]?ts=[timestamp]`
-  - Table code generation: `(100000000000).toString(36)` for unique alphanumeric strings
-  - Bulk QR code generation and printing (A4 PDF export by zone/table)
+#### Dashboard Overview (/dashboard)
+- **Real-time Statistics**: Active tables, pending orders, revenue overview
+- **Branch Performance**: Multi-branch operational metrics
+- **Quick Actions**: Fast access to common management tasks
+- **Alert System**: Notifications for important events and issues
 
-- **Content Management**
-  - Promotional banner configuration (eMenu header section)
-  - Campaign visibility (synchronized from Cukcuk data)
-  - Sync job monitoring and status tracking
+#### Branch Management
+- **Multi-Branch Support**: Each branch maintains independent menu and pricing
+- **Zone Configuration**: Multi-zone layout configuration per branch
+- **Table Status Monitoring**: Real-time table status updates and management
+- **Staff Assignment**: Manage staff permissions per branch
+
+#### QR Code Management (/qr-codes)
+**Comprehensive QR code generation and management system**
+
+##### QR Code Generation
+- **Automatic Generation**: Create QR codes for all tables automatically
+- **Custom QR Codes**: Generate QR codes with custom designs and branding
+- **Bulk Operations**: Generate QR codes for entire branches or zones at once
+- **QR Code Format**: `https://sol-emenu.alphabits.team/qr?table=[table_id]`
+
+##### QR Code Display & Management
+- **Table Overview**: Grid view of all tables with QR code status
+- **Search & Filter**: Find specific tables by zone, status, or table code
+- **QR Code Preview**: Visual preview of generated QR codes
+- **Download Options**:
+  - Individual QR code downloads (PNG, SVG)
+  - Bulk PDF generation for printing
+  - A4 format with table labels and QR codes
+
+##### QR Code Features
+- **Expiry Management**: Set expiry dates for temporary QR codes
+- **Access Control**: Restrict QR code access by time or date
+- **Analytics**: Track QR code scan frequency and usage patterns
+- **Custom Branding**: Add SOL logo and custom colors to QR codes
+
+##### Advanced QR Operations
+```javascript
+// QR Code Generation API Example
+const generateQRCode = (tableId, options = {}) => {
+  const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL;
+  const qrUrl = `${baseUrl}/qr?table=${tableId}`;
+
+  return {
+    url: qrUrl,
+    tableId: tableId,
+    format: options.format || 'png',
+    size: options.size || 'medium',
+    branding: options.branding || true
+  };
+};
+```
+
+#### Content Management
+- **Promotional Banners**: Configure eMenu header promotional content
+- **Campaign Management**: Set up and manage promotional campaigns
+- **Sync Job Monitoring**: Real-time status of CukCuk synchronization jobs
+- **Menu Customization**: Modify menu presentation and ordering
 
 ### Menu Management System
 - **Food Item Configuration**
@@ -204,16 +260,83 @@ CompanyCode: [company-code]
 
 ## 📱 Customer-Facing eMenu
 
+### Landing Page (/) - Welcome Experience
+**Root path landing page providing elegant entry point to the SOL eMenu system**
+
+#### Visual Design
+- **SOL Branding**: Full SOL logo prominently displayed (`web-emenu/public/logo_full.png`)
+- **Clean Layout**: Minimalist design with focus on ease of use
+- **Responsive Design**: Optimized for mobile and tablet devices
+- **Loading States**: Smooth transitions and loading animations
+
+#### Core Features
+- **QR Code Scanner**: Built-in camera-based QR code scanning capability
+  - Mobile-first scanning interface
+  - Automatic QR code detection and processing
+  - Fallback manual table entry option
+- **Welcome Message**: Brief introduction to SOL eMenu system
+- **Restaurant Information**: Location, hours, and contact details
+- **Language Selection**: Multi-language support (Vietnamese, English)
+
+#### User Experience Flow
+1. **Initial Landing**: Display SOL logo and welcome message
+2. **Primary Action**: "Scan QR Code" button opens camera interface
+3. **Alternative Access**: Manual table number entry option
+4. **Direct Navigation**: Automatic redirect to menu upon successful scan
+
+#### Technical Implementation
+```javascript
+// Landing Page Component Structure
+const LandingPage = () => {
+  return (
+    <div className="landing-container">
+      <header className="brand-header">
+        <img src="/logo_full.png" alt="SOL eMenu" />
+        <h1>Welcome to SOL eMenu</h1>
+      </header>
+
+      <main className="action-section">
+        <QRScannerComponent onScan={handleQRScan} />
+        <ManualEntryComponent />
+      </main>
+
+      <footer className="info-section">
+        <RestaurantInfo />
+        <LanguageSelector />
+      </footer>
+    </div>
+  );
+};
+```
+
+### QR Code Direct Access (/qr?table=[table_id])
+**Direct menu access via QR code scanning**
+
+#### Route Structure
+- **URL Pattern**: `/qr?table=[table_id]`
+- **Table Validation**: Verify table exists and is accessible
+- **Branch Detection**: Automatic branch identification from table
+- **Menu Loading**: Load branch-specific menu and pricing
+
+#### User Experience
+1. **QR Code Scan**: Customer scans table QR code
+2. **Direct Access**: Immediate redirect to table-specific menu
+3. **Menu Display**: Branch-appropriate menu with table context
+4. **Order Flow**: Seamless ordering experience with table association
+
 ### Branch-Specific Experience
 - **Individualized Menus**: Each branch maintains custom menu and pricing
 - **Zone-Based Layout**: Tailored table arrangements per branch zone
-- **QR Code Access**: Direct table-to-menu mapping via unique QR codes
+- **Table Context**: Menu displays table number and zone information
+- **Personalized Experience**: Custom branding and promotions per branch
 
 ### eMenu Interface Layout
-1. **Promotional Banners** (configurable via operator portal)
-2. **Menu Categories** (grid or list view options)
-3. **Featured Items** (highlighted popular dishes)
-4. **Promotions Section** (special offers and campaigns)
+1. **Table Header**: Display current table and zone information
+2. **Promotional Banners** (configurable via operator portal)
+3. **Menu Categories** (grid or list view options)
+4. **Featured Items** (highlighted popular dishes)
+5. **Promotions Section** (special offers and campaigns)
+6. **Order Summary**: Real-time cart and order details
 
 
 ## 🛠️ Technical Stack
@@ -257,19 +380,151 @@ Location: /Users/dev/code/emenu-kore
 IDE Mapping: Default workspace folder
 ```
 
+## 🔐 Security Architecture & API Design
+
+### API Security Strategy
+**Preventing Directus token exposure and CORS issues through secure backend routing**
+
+#### Backend API Gateway Pattern
+- **No Direct Directus Access**: Frontend never directly communicates with Directus
+- **Backend Proxy**: All API requests route through Next.js API routes
+- **Token Security**: Directus tokens stored securely in backend environment variables
+- **CORS Resolution**: Backend handles all cross-origin requests securely
+
+#### API Route Structure
+```javascript
+// Next.js API Routes Structure
+/api/
+├── auth/
+│   ├── login.js          # Staff authentication
+│   └── logout.js         # Session management
+├── branches/
+│   └── index.js          # Branch data from Directus
+├── menu/
+│   ├── items.js          # Menu items and categories
+│   └── combos.js         # Combo meal data
+├── tables/
+│   └── index.js          # Table and zone information
+└── orders/
+    ├── create.js         # Order creation
+    └── status.js         # Order status updates
+```
+
+#### Backend Implementation Example
+```javascript
+// pages/api/branches/index.js
+export default async function handler(req, res) {
+  // Backend securely fetches from Directus
+  const directusResponse = await fetch(
+    `${process.env.DIRECTUS_URL}/items/branches?limit=-1`,
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.DIRECTUS_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  const data = await directusResponse.json();
+
+  // Forward data to frontend without exposing Directus credentials
+  res.status(200).json(data);
+}
+```
+
+#### Frontend API Usage
+```javascript
+// Frontend API calls through Next.js routes
+const fetchBranches = async () => {
+  const response = await fetch('/api/branches');
+  const data = await response.json();
+  return data.data;
+};
+
+const fetchMenuItems = async (branchId) => {
+  const response = await fetch(`/api/menu/items?branch=${branchId}`);
+  const data = await response.json();
+  return data.data;
+};
+```
+
+### Environment Security Configuration
+
+#### Backend Environment Variables (.env.local)
+```bash
+# Directus API Configuration (Backend Only)
+NEXT_PUBLIC_DIRECTUS_URL=https://sol-kore.alphabits.team
+DIRECTUS_TOKEN=39Omtm9x8eE3dOYxsI1iXk3MPZ9L235y
+
+# CukCuk API Integration (Backend Only)
+CUKCUK_API_TOKEN=secure_cukcuk_token
+CUKCUK_COMPANY_CODE=sol
+
+# Next.js Session Configuration
+NEXTAUTH_URL=http://localhost:3520
+NEXTAUTH_SECRET=your_session_secret_here
+```
+
+#### Public Environment Variables (Safe for Frontend)
+```bash
+# Public Application Configuration
+NEXT_PUBLIC_APP_NAME=SOL eMenu
+NEXT_PUBLIC_APP_VERSION=1.0.0
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3520/api
+```
+
+### CORS Configuration
+```javascript
+// next.config.js
+module.exports = {
+  async rewrites() {
+    return [
+      // API route rewrites for security
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
+        ],
+      },
+    ];
+  },
+};
+```
+
+### Security Benefits
+- **Token Protection**: Directus tokens never exposed to client-side code
+- **CORS Elimination**: Backend handles all cross-origin requests
+- **Request Validation**: Backend validates and sanitizes all API requests
+- **Rate Limiting**: Backend can implement rate limiting and security controls
+- **Audit Trail**: All API requests logged through backend for security monitoring
+
 ## 🔧 System Configuration
 
 ### Environment Variables
-- Database connection strings
-- API endpoints and authentication tokens
-- Cukcuk API integration credentials
-- Cloudflare tunnel configurations
+- **Backend**: Database connection strings, Directus tokens, CukCuk API credentials
+- **Frontend**: Only public configuration variables (no sensitive data)
+- **Cloudflare**: Tunnel configurations for secure external access
 
 ### Security Considerations
-- Two-factor authentication for admin access
-- Role-based user permissions
-- Secure QR code generation with timestamps
-- Encrypted data transmission via HTTPS tunnels
+- **No Client-Side Tokens**: All sensitive API credentials stored server-side only
+- **Backend API Gateway**: All external API requests routed through secure backend
+- **Role-Based Access**: Different permission levels for managers, staff, and administrators
+- **Secure QR Codes**: QR code generation with timestamps and access controls
+- **HTTPS Encryption**: All data transmission via encrypted tunnels
+- **Session Management**: Secure session handling with automatic timeout
+- **API Rate Limiting**: Protection against abuse and DDoS attacks
 
 ---
 
