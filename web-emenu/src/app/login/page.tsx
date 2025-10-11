@@ -78,17 +78,33 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar skeleton */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 p-6">
+      {/* Sidebar - Pre-auth */}
+      <aside className="hidden md:flex w-72 bg-gradient-to-b from-orange-50 to-rose-50 border-r border-gray-200 p-6">
         <div className="flex flex-col gap-4 w-full">
-          <div className="text-xl font-bold">SOL eMenu</div>
-          <nav className="flex flex-col gap-2 text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">Restaurant Portal</span>
-            <span>Manage branches</span>
-            <span>Menu & items</span>
-            <span>Orders</span>
-            <span>Staff</span>
+          <div className="flex items-center gap-3 mb-2">
+            <img src="/logo_trim.png" alt="SOL eMenu" className="h-10 w-auto" />
+            <div>
+              <div className="text-xl font-bold tracking-tight text-gray-900">SOL eMenu</div>
+              <div className="text-xs text-gray-500">Restaurant Portal</div>
+            </div>
+          </div>
+          <nav className="flex flex-col gap-2 text-sm text-gray-700">
+            <span className="font-semibold text-gray-900">Welcome</span>
+            <span className="text-gray-600">Sign in to manage branches, menu & orders</span>
           </nav>
+          <div className="mt-4">
+            <div className="text-xs uppercase text-gray-400 mb-2">Quick Links</div>
+            <div className="flex flex-col gap-1 text-sm">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-white/60 hover:text-black" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4"/><path d="M3 15a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4"/><path d="M7 11V7a5 5 0 1 1 10 0v4"/></svg>
+                <span>Support</span>
+              </a>
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-white/60 hover:text-black" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10a9 9 0 1 1-18 0"/><path d="M12 6v6l4 2"/></svg>
+                <span>Contact</span>
+              </a>
+            </div>
+          </div>
         </div>
       </aside>
 

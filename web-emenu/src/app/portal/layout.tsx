@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle } from 'lucide-react';
 
 interface BranchItem { id: string; name: string; code: string; }
 
@@ -68,12 +69,18 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-72 bg-white border-r border-gray-200 p-6 hidden md:flex">
+      <aside className="w-72 bg-gradient-to-b from-orange-50 to-rose-50 border-r border-gray-200 p-6 hidden md:flex">
         <div className="w-full">
-          <div className="text-xl font-bold mb-4">SOL eMenu</div>
+          <div className="flex items-center gap-3 mb-6">
+            <img src="/logo_trim.png" alt="SOL eMenu" className="h-10 w-auto" />
+            <div>
+              <div className="text-xl font-bold tracking-tight text-gray-900">SOL eMenu</div>
+              <div className="text-xs text-gray-500">Restaurant Portal</div>
+            </div>
+          </div>
 
           {/* Impersonation section */}
-          <div className="mb-6">
+          <div className="mb-6 rounded-lg bg-white/70 border border-gray-200 p-3">
             <div className="text-xs uppercase text-gray-400">Impersonation</div>
             <div className="mt-2 text-sm">Current Branch:</div>
             <div className="mt-1 text-sm font-medium">{selectedBranchName}</div>
@@ -88,22 +95,64 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           </div>
 
           {/* Primary sections */}
-          <nav className="flex flex-col gap-2 text-sm">
-            <a className="text-gray-700 hover:text-black" href="/portal">Dashboard</a>
-            <a className="text-gray-700 hover:text-black" href="/portal/branch-settings">Branch Settings</a>
-            <a className="text-gray-700 hover:text-black" href="/portal/tables-zones">Table & Zones</a>
-            <a className="text-gray-700 hover:text-black" href="/portal/menu-combo">Menu & Combo</a>
-            <a className="text-gray-700 hover:text-black" href="/portal/promotions">Promotions & Discount</a>
+          <nav className="flex flex-col gap-1 text-sm">
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal">
+              <Home className="h-4 w-4" />
+              <span>Dashboard</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/branch-settings">
+              <Settings className="h-4 w-4" />
+              <span>Branch Settings</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/tables-zones">
+              <TableIcon className="h-4 w-4" />
+              <span>Table & Zones</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/menu-combo">
+              <Utensils className="h-4 w-4" />
+              <span>Menu & Combo</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/promotions">
+              <Megaphone className="h-4 w-4" />
+              <span>Promotions & Discount</span>
+            </a>
           </nav>
 
           {/* Master Settings */}
           <div className="mt-6">
             <div className="text-xs uppercase text-gray-400 mb-2">Master Settings</div>
-            <nav className="flex flex-col gap-2 text-sm">
-              <a className="text-gray-700 hover:text-black" href="/portal/master/sync-history">Data Sync History</a>
-              <a className="text-gray-700 hover:text-black" href="/portal/master/brands-branches">Brands & Branches</a>
-              <a className="text-gray-700 hover:text-black" href="/portal/master/staff">Store Manager & Staff</a>
-              <a className="text-gray-700 hover:text-black" href="/portal/master/roles">Permission & Roles</a>
+            <nav className="flex flex-col gap-1 text-sm">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/sync-history">
+                <History className="h-4 w-4" />
+                <span>Data Sync History</span>
+              </a>
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/brands-branches">
+                <Building2 className="h-4 w-4" />
+                <span>Brands & Branches</span>
+              </a>
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/staff">
+                <Users className="h-4 w-4" />
+                <span>Store Manager & Staff</span>
+              </a>
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/roles">
+                <Shield className="h-4 w-4" />
+                <span>Permission & Roles</span>
+              </a>
+            </nav>
+          </div>
+
+          {/* Support Section (post-auth) */}
+          <div className="mt-6">
+            <div className="text-xs uppercase text-gray-400 mb-2">Support</div>
+            <nav className="flex flex-col gap-1 text-sm">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="#">
+                <MessageSquare className="h-4 w-4" />
+                <span>IT Help Desk Chat</span>
+              </a>
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="#">
+                <HelpCircle className="h-4 w-4" />
+                <span>FAQ</span>
+              </a>
             </nav>
           </div>
 

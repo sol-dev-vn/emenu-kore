@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
 
+interface TableData { name?: string; branch_id?: string }
+interface BranchData { name?: string }
+
 export default function QRMenuPage() {
   const searchParams = useSearchParams();
   const tableId = searchParams.get('table');
   const [isLoading, setIsLoading] = useState(true);
-  const [tableData, setTableData] = useState<any>(null);
-  const [branchData, setBranchData] = useState<any>(null);
+  const [tableData, setTableData] = useState<TableData | null>(null);
+  const [branchData, setBranchData] = useState<BranchData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -105,6 +108,24 @@ export default function QRMenuPage() {
           </div>
         </div>
       </header>
++      <header className="bg-white shadow-sm border-b border-gray-200">
++        <div className="max-w-4xl mx-auto px-4 py-4">
++          <div className="flex items-center justify-between">
++            <div className="flex items-center gap-3">
++              <img src="/logo_trim.png" alt="SOL eMenu" className="h-8 w-auto" />
++              <div>
++                <h1 className="text-xl font-bold tracking-tight text-gray-900">SOL eMenu</h1>
++                <p className="text-sm text-gray-600">
++                  Table: {tableData?.name} | Branch: {branchData?.name}
++                </p>
++              </div>
++            </div>
++            <Button variant="outline" onClick={goBack}>
++              Change Table
++            </Button>
++          </div>
++        </div>
++      </header>
 
       {/* Main Menu Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
