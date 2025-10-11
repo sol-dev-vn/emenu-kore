@@ -12,34 +12,114 @@ export async function GET(request: NextRequest) {
       filter.is_active = { _eq: active === 'true' };
     }
 
-    const result = await directusClient.getItems('categories', {
-      sort,
-      filter,
-      fields: [
-        'id',
-        'name',
-        'code',
-        'description',
-        'is_active',
-        'external_id',
-        'external_source',
-        'sync_status',
-        'created_at',
-        'updated_at'
-      ]
-    });
+    try {
+      const result = await directusClient.getItems('categories', {
+        sort,
+        filter,
+        fields: [
+          'id',
+          'name',
+          'code',
+          'description',
+          'is_active',
+          'external_id',
+          'external_source',
+          'sync_status',
+          'created_at',
+          'updated_at'
+        ]
+      });
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      meta: result.meta || {}
-    });
+      return NextResponse.json({
+        success: true,
+        data: result.data,
+        meta: result.meta || {}
+      });
+    } catch (directusError) {
+      console.warn('Directus API unavailable, using fallback data:', directusError);
+
+      // Fallback mock data when Directus is not available
+      const mockCategories = [
+        {
+          id: 'cat-1',
+          name: 'Combos',
+          code: 'COMBO',
+          description: 'Value meal combinations',
+          is_active: true,
+          external_id: null,
+          external_source: 'fallback',
+          sync_status: 'fallback',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'cat-2',
+          name: 'Sushi & Sashimi',
+          code: 'SUSHI',
+          description: 'Fresh Japanese cuisine',
+          is_active: true,
+          external_id: null,
+          external_source: 'fallback',
+          sync_status: 'fallback',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'cat-3',
+          name: 'Main Courses',
+          code: 'MAIN',
+          description: 'Hearty main dishes',
+          is_active: true,
+          external_id: null,
+          external_source: 'fallback',
+          sync_status: 'fallback',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'cat-4',
+          name: 'Beverages',
+          code: 'BEVERAGE',
+          description: 'Drinks and refreshments',
+          is_active: true,
+          external_id: null,
+          external_source: 'fallback',
+          sync_status: 'fallback',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'cat-5',
+          name: 'Desserts',
+          code: 'DESSERT',
+          description: 'Sweet treats',
+          is_active: true,
+          external_id: null,
+          external_source: 'fallback',
+          sync_status: 'fallback',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+
+      const filteredCategories = mockCategories.filter(cat =>
+        active === null || active === undefined || cat.is_active === (active === 'true')
+      );
+
+      return NextResponse.json({
+        success: true,
+        data: filteredCategories,
+        meta: { total_count: filteredCategories.length },
+        fallback: true
+      });
+    }
   } catch (error) {
-    console.error('Failed to fetch categories:', error);
+    console.error('Unexpected error in categories API:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch categories'
+        error: error instanceof Error ? error.message : 'Failed to fetch categories',
+        fallback: false
       },
       { status: 500 }
     );

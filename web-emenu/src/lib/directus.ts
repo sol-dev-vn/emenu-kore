@@ -198,13 +198,47 @@ class DirectusClient {
   }
 
   // Generic items read with simple query params
-  async getItems(collection: string, options?: { sort?: string[]; limit?: number; fields?: string[] }): Promise<{ data: unknown[] }> {
+  async getItems(collection: string, options?: { sort?: string[]; limit?: number; fields?: string[]; filter?: Record<string, unknown> }): Promise<{ data: unknown[]; meta?: Record<string, unknown> }> {
     const params: string[] = [];
     if (options?.sort && options.sort.length) params.push(`sort=${encodeURIComponent(options.sort.join(','))}`);
     if (typeof options?.limit === 'number') params.push(`limit=${options.limit}`);
     if (options?.fields && options.fields.length) params.push(`fields=${encodeURIComponent(options.fields.join(','))}`);
+    if (options?.filter) {
+      Object.entries(options.filter).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          Object.entries(value).forEach(([operator, val]) => {
+            params.push(`filter[${key}][${operator}]=${encodeURIComponent(String(val))}`);
+          });
+        } else {
+          params.push(`filter[${key}][_eq]=${encodeURIComponent(String(value))}`);
+        }
+      });
+    }
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.request<{ data: unknown[] }>(`/items/${collection}${qs}`);
+    return this.request<{ data: unknown[]; meta?: Record<string, unknown> }>(`/items/${collection}${qs}`);
+  }
+
+  // Generic item creation
+  async createDirectusItem(collection: string, data: Record<string, unknown>): Promise<{ data: unknown }> {
+    return this.request<{ data: unknown }>(`/items/${collection}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Generic item update
+  async updateDirectusItem(collection: string, id: string, data: Record<string, unknown>): Promise<{ data: unknown }> {
+    return this.request<{ data: unknown }>(`/items/${collection}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Generic item deletion
+  async deleteDirectusItem(collection: string, id: string): Promise<void> {
+    await this.request(`/items/${collection}/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   // Sync Logs methods
