@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { directusClient } from '@/lib/directus';
 
-type SyncLog = { id: string; status?: string; message?: string; date_created?: string };
+type SyncLog = { id: string; status?: string; date_created?: string };
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
         const syncRes = await directusClient.getItems('sync_logs', {
           sort: ['-date_created'],
           limit: 1,
-          fields: ['id', 'status', 'message', 'date_created'],
+          // Minimal set to avoid permission errors (exclude `message`)
+          fields: ['id', 'status', 'date_created'],
         });
         const list = Array.isArray(syncRes?.data) ? (syncRes.data as SyncLog[]) : [];
         const item = list[0];
