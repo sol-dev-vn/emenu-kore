@@ -341,14 +341,77 @@ class CukCukSync {
     logger.syncStart('Menu Items');
     typeStats.startTime = new Date();
 
+    // Resume / checkpoint detection and create in-progress sync_log
+    const resumeEnabled = (syncConfig && syncConfig.resumeEnabled) || this.config.get('resumeEnabled');
+    const resumeReset = (syncConfig && syncConfig.resumeReset) || this.config.get('resumeReset');
+    let checkpoint = null;
+    let syncLogId = null;
+
     try {
-      // Fetch menu items from CukCuk
-      const cukcukMenuItems = await this.apiClient.getCukCukMenuItems(false);
+      if (resumeEnabled && !resumeReset) {
+        const lastLog = await this.apiClient.findLatestSyncLog(syncType, ['failed', 'in_progress']);
+        const lastCheckpoint = lastLog && lastLog.performance_metrics && lastLog.performance_metrics.checkpoint;
+        if (lastCheckpoint && lastCheckpoint.branchId) {
+          checkpoint = { branchId: lastCheckpoint.branchId, branchName: lastCheckpoint.branchName, page: lastCheckpoint.page || 1 };
+          logger.info(`Resuming menu_items sync from branch ${checkpoint.branchId} page ${checkpoint.page}`);
+        }
+      }
+
+      const initialLog = await this.apiClient.createSyncLog(syncType, 'in_progress', typeStats, null, {
+        performanceMetrics: {
+          api_calls: 0,
+          avg_response_time: 0,
+          memory_usage: process.memoryUsage(),
+          checkpoint: checkpoint || null
+        }
+      });
+      syncLogId = initialLog?.data?.id || null;
+    } catch (e) {
+      logger.warn(`Failed to create in-progress sync log: ${e.message}`);
+    }
+
+    try {
+      // Fetch menu items from CukCuk (with resume options)
+      const cukcukMenuItems = await this.apiClient.getCukCukMenuItems(false, null, {
+        checkpoint,
+        onCheckpoint: async (cp) => {
+          if (!syncLogId) return;
+          try {
+            await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
+              performance_metrics: {
+                api_calls: 0,
+                avg_response_time: 0,
+                memory_usage: process.memoryUsage(),
+                checkpoint: cp
+              }
+            });
+          } catch (err) {
+            logger.warn(`Failed to update checkpoint: ${err.message}`);
+          }
+        }
+      });
       logger.info(`Found ${cukcukMenuItems.length} menu items in CukCuk`);
 
       if (cukcukMenuItems.length === 0) {
         logger.warn('No menu items found to sync');
-        await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        // finalize log as completed with zero records
+        if (syncLogId) {
+          try {
+            await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
+              status: 'completed',
+              sync_completed_at: new Date().toISOString(),
+              records_processed: 0,
+              records_created: 0,
+              records_updated: 0,
+              records_failed: 0,
+              duration_seconds: 0
+            });
+          } catch (e) {
+            logger.warn(`Failed to finalize sync log: ${e.message}`);
+          }
+        } else {
+          await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        }
         return;
       }
 
@@ -387,8 +450,24 @@ class CukCukSync {
           }
 
           processed++;
-          if (syncConfig.enableProgressLogging && processed % syncConfig.progressLogInterval === 0) {
+          const progressEnabled = (syncConfig && syncConfig.enableProgressLogging) || this.config.get('enableProgressLogging');
+          const progressInterval = (syncConfig && syncConfig.progressLogInterval) || this.config.get('progressLogInterval');
+          if (progressEnabled && processed % progressInterval === 0) {
             logger.syncProgress('Menu Item', processed, mappingResult.results.length);
+            // Update partial progress to sync_log
+            if (syncLogId) {
+              try {
+                const stats = this.getTypeStats(syncType);
+                await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
+                  records_processed: stats.created + stats.updated + stats.failed,
+                  records_created: stats.created,
+                  records_updated: stats.updated,
+                  records_failed: stats.failed
+                });
+              } catch (e) {
+                logger.warn(`Failed to update progress in sync log: ${e.message}`);
+              }
+            }
           }
 
         } catch (error) {
@@ -404,15 +483,50 @@ class CukCukSync {
       logger.syncSuccess('Menu Items', typeStats);
       logger.info(`Menu items sync completed in ${Math.round(duration / 1000)}s`);
 
-      // Create sync log
-      await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      // Finalize sync log
+      if (syncLogId) {
+        try {
+          await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
+            status: 'completed',
+            sync_completed_at: new Date().toISOString(),
+            records_processed: typeStats.created + typeStats.updated + typeStats.failed,
+            records_created: typeStats.created,
+            records_updated: typeStats.updated,
+            records_failed: typeStats.failed,
+            duration_seconds: typeStats.duration
+          });
+        } catch (e) {
+          logger.warn(`Failed to finalize sync log: ${e.message}`);
+        }
+      } else {
+        await this.apiClient.createSyncLog(syncType, 'completed', typeStats);
+      }
 
     } catch (error) {
       typeStats.endTime = new Date();
       if (typeStats.startTime) {
         typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
       }
-      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+
+      // Mark log as failed
+      if (syncLogId) {
+        try {
+          await this.apiClient.updateDirectusItem('sync_logs', syncLogId, {
+            status: 'failed',
+            sync_completed_at: new Date().toISOString(),
+            records_processed: typeStats.created + typeStats.updated + typeStats.failed,
+            records_created: typeStats.created || 0,
+            records_updated: typeStats.updated || 0,
+            records_failed: typeStats.failed || 0,
+            duration_seconds: typeStats.duration,
+            last_error_message: error.message
+          });
+        } catch (e) {
+          logger.warn(`Failed to update failed sync log: ${e.message}`);
+        }
+      } else {
+        await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message);
+      }
       logger.syncError('Menu Items', error);
       throw error;
     }
