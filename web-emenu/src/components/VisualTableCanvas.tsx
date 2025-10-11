@@ -19,8 +19,10 @@ import {
   Square,
   Circle,
   RectangleHorizontal,
-  RotateCw
+  RotateCw,
+  CreditCard
 } from 'lucide-react';
+import POSSidebar from './POSSidebar';
 
 interface TableData {
   id: string;
@@ -80,6 +82,8 @@ export default function VisualTableCanvas({
   });
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [isPOSVisible, setIsPOSVisible] = useState(false);
+  const [selectedTableForPOS, setSelectedTableForPOS] = useState<TableData | null>(null);
 
   // Update canvas size
   useEffect(() => {
@@ -247,6 +251,8 @@ export default function VisualTableCanvas({
   const handleTableClick = useCallback((table: TableData) => {
     if (!isEditMode) {
       setSelectedTable(table.id);
+      setSelectedTableForPOS(table);
+      setIsPOSVisible(true);
       onTableSelect?.(table);
     }
   }, [isEditMode, onTableSelect]);
@@ -371,6 +377,14 @@ export default function VisualTableCanvas({
             >
               <Maximize2 className="w-4 h-4" />
               {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            </button>
+
+            <button
+              onClick={() => setIsPOSVisible(!isPOSVisible)}
+              className="flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              POS
             </button>
           </div>
         </div>
@@ -684,6 +698,13 @@ export default function VisualTableCanvas({
           </div>
         </div>
       )}
+
+      {/* POS Sidebar */}
+      <POSSidebar
+        isVisible={isPOSVisible}
+        onClose={() => setIsPOSVisible(false)}
+        selectedTable={selectedTableForPOS}
+      />
     </div>
   );
 }
