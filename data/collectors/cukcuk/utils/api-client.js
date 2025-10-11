@@ -138,31 +138,47 @@ class ApiClient {
     });
   }
 
-  async getCukCukMenuItems(includeInactive = false, categoryId = null) {
+  async getCukCukMenuItems(includeInactive = false, categoryId = null, options = {}) {
     return this.withRetry(async () => {
       const client = await this.initializeCukCukClient();
 
-      // Use the correct inventory items paging API
       let menuItems = [];
+
+      // Resume options
+      const checkpoint = options.checkpoint || null;
+      const onCheckpoint = options.onCheckpoint || null;
+      const resumeMode = !!checkpoint;
+      let resumeReached = !resumeMode;
 
       try {
         // Get all branches first to fetch menu items for all branches
         const branchesResult = await client.branches.getAll({ includeInactive });
-        const branches = branchesResult.Data || [];
+        const branches = branchesResult?.Data || branchesResult?.data?.Data || [];
 
         if (branches.length === 0) {
           logger.warn('No branches found to fetch menu items from');
           return [];
         }
 
-        logger.info(`Fetching menu items from ${branches.length} branches`);
+        logger.info(`Fetching menu items from ${branches.length} branches${resumeMode ? ` (resuming at branch ${checkpoint.branchId} page ${checkpoint.page || 1})` : ''}`);
 
-        // Fetch menu items from each branch
+        // Fetch menu items from each branch (support resume checkpoint)
         for (const branch of branches) {
           try {
-            // Use the inventory items paging API
+            // If resuming, skip branches until reaching target branchId
+            if (resumeMode && !resumeReached) {
+              if (branch.Id === checkpoint.branchId) {
+                resumeReached = true;
+              } else {
+                logger.debug(`Skipping branch ${branch.Name} (${branch.Id}) due to resume checkpoint`);
+                continue;
+              }
+            }
+
+            const initialPage = resumeReached && resumeMode && branch.Id === checkpoint.branchId ? (checkpoint.page || 1) : 1;
+
             const requestParams = {
-              Page: 1,
+              Page: initialPage,
               Limit: 100, // Maximum per page
               BranchId: branch.Id,
               CategoryId: categoryId || '',
@@ -170,12 +186,22 @@ class ApiClient {
               IncludeInactive: includeInactive
             };
 
-            // Try direct API call to inventory items paging endpoint
-            const response = await client.client.post('/inventoryitems/paging', requestParams);
+            // Direct API call to inventory items paging endpoint (ensure full path)
+            const response = await client.client.post('/api/v1/inventoryitems/paging', requestParams);
+            const payload = response?.data ?? response;
+            const dataArray = Array.isArray(payload?.Data)
+              ? payload.Data
+              : Array.isArray(payload?.data?.Data)
+              ? payload.data.Data
+              : [];
+            const total = payload?.Total ?? payload?.data?.Total ?? dataArray.length;
 
-            if (response && response.Data && Array.isArray(response.Data)) {
-              // Add branch context to each menu item
-              const branchMenuItems = response.Data.map(item => ({
+            logger.debug(
+              `Branch ${branch.Name} (${branch.Id}) page ${requestParams.Page}: items=${dataArray.length}, total=${total}`
+            );
+
+            if (dataArray.length > 0) {
+              const branchMenuItems = dataArray.map(item => ({
                 ...item,
                 BranchId: branch.Id,
                 BranchName: branch.Name
@@ -183,20 +209,40 @@ class ApiClient {
               menuItems = menuItems.concat(branchMenuItems);
             }
 
-            // Check if there are more pages
-            if (response && response.Total && response.Total > 100) {
-              const totalPages = Math.ceil(response.Total / 100);
-              for (let page = 2; page <= totalPages; page++) {
-                const paginatedParams = { ...requestParams, Page: page };
-                const pageResponse = await client.client.post('/inventoryitems/paging', paginatedParams);
+            // Emit checkpoint after fetching initial page
+            if (typeof onCheckpoint === 'function') {
+              try { onCheckpoint({ branchId: branch.Id, branchName: branch.Name, page: requestParams.Page }); } catch (e) { logger.warn(`onCheckpoint failed: ${e.message}`); }
+            }
 
-                if (pageResponse && pageResponse.Data && Array.isArray(pageResponse.Data)) {
-                  const branchMenuItems = pageResponse.Data.map(item => ({
+            // Check if there are more pages
+            if (total > requestParams.Limit) {
+              const totalPages = Math.ceil(total / requestParams.Limit);
+              for (let page = requestParams.Page + 1; page <= totalPages; page++) {
+                const paginatedParams = { ...requestParams, Page: page };
+                const pageResponse = await client.client.post('/api/v1/inventoryitems/paging', paginatedParams);
+                const pagePayload = pageResponse?.data ?? pageResponse;
+                const pageDataArray = Array.isArray(pagePayload?.Data)
+                  ? pagePayload.Data
+                  : Array.isArray(pagePayload?.data?.Data)
+                  ? pagePayload.data.Data
+                  : [];
+
+                logger.debug(
+                  `Branch ${branch.Name} (${branch.Id}) page ${page}: items=${pageDataArray.length}`
+                );
+
+                if (pageDataArray.length > 0) {
+                  const branchMenuItems = pageDataArray.map(item => ({
                     ...item,
                     BranchId: branch.Id,
                     BranchName: branch.Name
                   }));
                   menuItems = menuItems.concat(branchMenuItems);
+                }
+
+                // Emit checkpoint after each page
+                if (typeof onCheckpoint === 'function') {
+                  try { onCheckpoint({ branchId: branch.Id, branchName: branch.Name, page }); } catch (e) { logger.warn(`onCheckpoint failed: ${e.message}`); }
                 }
               }
             }
@@ -214,17 +260,10 @@ class ApiClient {
 
         // Fallback: try different approaches
         if (client.products && typeof client.products.getList === 'function') {
-          const result = await client.products.getList({
-            includeInactive,
-            categoryId
-          });
+          const result = await client.products.getList({ includeInactive, categoryId });
           menuItems = result.Data || result.data || result;
-        }
-        else if (client.inventoryItems && typeof client.inventoryItems.getList === 'function') {
-          const result = await client.inventoryItems.getList({
-            includeInactive,
-            categoryId
-          });
+        } else if (client.inventoryItems && typeof client.inventoryItems.getList === 'function') {
+          const result = await client.inventoryItems.getList({ includeInactive, categoryId });
           menuItems = result.Data || result.data || result;
         }
 
@@ -523,6 +562,22 @@ class ApiClient {
       logger.error(`Failed to get sync stats: ${error.message}`);
       return { error: error.message };
     }
+  }
+
+  async findLatestSyncLog(syncType, statuses = ['failed', 'in_progress']) {
+    return this.withRetry(async () => {
+      const params = {
+        filter: {
+          sync_type: { _eq: syncType },
+          status: { _in: statuses }
+        },
+        sort: ['-date_created'],
+        limit: 1
+      };
+      const response = await this.directus.get('/items/sync_logs', { params });
+      const data = response?.data?.data || response?.data || [];
+      return Array.isArray(data) && data.length > 0 ? data[0] : null;
+    });
   }
 }
 

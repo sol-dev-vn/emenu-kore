@@ -15,8 +15,14 @@
  * - Health monitoring
  */
 
-require('dotenv').config();
+const path = require('path');
+const dotenv = require('dotenv');
 
+// Load env from project root, fallback to cukcuk collector directory
+const rootEnv = dotenv.config();
+if (rootEnv.error) {
+  dotenv.config({ path: path.resolve(__dirname, '.env') });
+}
 const { logger } = require('./utils/logger');
 const { ApiClient } = require('./utils/api-client');
 const { DataMapper } = require('./utils/data-mapper');
@@ -46,9 +52,11 @@ class CukCukSync {
 
     // Validate configuration
     const validation = this.config.validate();
-    if (!validation.valid) {
+    if (!validation.isValid) {
       logger.error('Configuration validation failed');
-      logger.error('Errors:', validation.errors.join(', '));
+      if (validation.errors && validation.errors.length) {
+        logger.error(`Errors: ${validation.errors.join(', ')}`);
+      }
       throw new Error('Invalid configuration');
     }
 
@@ -111,7 +119,10 @@ class CukCukSync {
   updateStats(type, operation, count = 1) {
     const typeStats = this.getTypeStats(type);
     typeStats[operation] += count;
-    this.stats.totalProcessed += count;
+    // Only increment totalProcessed when marking an item as processed
+    if (operation === 'processed') {
+      this.stats.totalProcessed += count;
+    }
 
     if (operation === 'created') {
       this.stats.totalCreated += count;
@@ -602,12 +613,15 @@ class CukCukSync {
     try {
       await this.initialize();
 
-      // Run sync operations in order, passing branch map
-      const branchMap = await this.syncBranches();
+      // Skip branches and tables per temporary disable; remove layouts entirely
+      // const branchMap = await this.syncBranches();
+      const branchMap = new Map();
       await this.syncCategories(branchMap);
+
+      logger.debug('Starting menu_items synchronization (branches disabled, layouts removed)');
       await this.syncMenuItems(branchMap);
-      await this.syncTables(branchMap);
-      await this.syncLayouts(branchMap);
+      // await this.syncTables(branchMap); // temporarily disabled
+      // await this.syncLayouts(branchMap); // removed per request
 
       // Finalize
       this.stats.endTime = new Date();

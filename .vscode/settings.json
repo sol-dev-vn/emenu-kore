@@ -1,3 +1,4 @@
 {
-    "claudeCodeChat.permissions.yoloMode": true
+    "claudeCodeChat.permissions.yoloMode": true,
+    "idf.pythonInstallPath": "/opt/miniconda3/bin/python"
 }

@@ -5,9 +5,16 @@
  * This script will help us diagnose connection issues before running the full sync
  */
 
+const path = require('path');
+const dotenv = require('dotenv');
+// Load env from project root, fallback to cukcuk collector directory
+const rootEnv = dotenv.config();
+if (rootEnv.error) {
+  dotenv.config({ path: path.resolve(__dirname, '../.env') });
+}
+
 const { CukCukClient } = require('@luutronghieu/cukcuk-api-client');
 const axios = require('axios');
-require('dotenv').config();
 
 // Colors for output
 const colors = {

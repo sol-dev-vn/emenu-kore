@@ -11,11 +11,13 @@ class SyncConfig {
   constructor() {
     this.defaultConfig = {
       // Sync settings
-      syncTypes: ['branches', 'categories', 'menu_items', 'tables', 'layouts'],
+      syncTypes: ['menu_items'],
       batchSize: 100,
       maxRetries: 3,
       retryDelay: 1000,
       timeout: 30000,
+      // Stop after too many service unavailable errors (503/530)
+      maxServiceUnavailableErrors: 5,
 
       // Data processing
       enableValidation: true,
@@ -43,6 +45,10 @@ class SyncConfig {
       enableAutoSync: false,
       syncInterval: '0 2 * * *', // Daily at 2 AM
       timezone: 'Asia/Ho_Chi_Minh',
+
+      // Resume / Checkpointing
+      resumeEnabled: false,
+      resumeReset: false,
 
       // Data filters
       includeInactive: false,
@@ -72,13 +78,26 @@ class SyncConfig {
       this.config.retryDelay = parseInt(process.env.SYNC_RETRY_DELAY);
     }
 
+    // Stop after too many 503/530 errors
+    if (process.env.SYNC_MAX_SERVICE_UNAVAILABLE_ERRORS) {
+      this.config.maxServiceUnavailableErrors = parseInt(process.env.SYNC_MAX_SERVICE_UNAVAILABLE_ERRORS);
+    }
+
+    // Resume settings
+    if (process.env.SYNC_RESUME_ENABLED === 'true') {
+      this.config.resumeEnabled = true;
+    }
+    if (process.env.SYNC_RESUME_RESET === 'true') {
+      this.config.resumeReset = true;
+    }
+
     // Enable/disable sync types
     const syncFlags = {
       'SYNC_ENABLE_BRANCHES': 'branches',
       'SYNC_ENABLE_CATEGORIES': 'categories',
       'SYNC_ENABLE_MENU_ITEMS': 'menu_items',
       'SYNC_ENABLE_TABLES': 'tables',
-      'SYNC_ENABLE_LAYOUTS': 'layouts',
+      // Layout sync removed
       'SYNC_ENABLE_PROMOTIONS': 'promotions',
       'SYNC_ENABLE_ORDERS': 'orders'
     };
@@ -183,7 +202,10 @@ class SyncConfig {
       skipExisting: this.config.skipExisting,
       updateExisting: this.config.updateExisting,
       failOnFirstError: this.config.failOnFirstError,
-      maxErrorsPerType: this.config.maxErrorsPerType
+      maxErrorsPerType: this.config.maxErrorsPerType,
+      maxServiceUnavailableErrors: this.config.maxServiceUnavailableErrors,
+      resumeEnabled: this.config.resumeEnabled,
+      resumeReset: this.config.resumeReset
     };
 
     // Type-specific configurations
@@ -206,11 +228,8 @@ class SyncConfig {
         batchSize: 150,
         enableParallelProcessing: true,
         maxConcurrentItems: 8
-      },
-      layouts: {
-        batchSize: 50,
-        enableParallelProcessing: false
       }
+      // layouts removed
     };
 
     return { ...baseConfig, ...(typeConfigs[syncType] || {}) };
@@ -256,20 +275,18 @@ class SyncConfig {
     }
 
     // Sync types validation
-    const validSyncTypes = ['branches', 'categories', 'menu_items', 'tables', 'layouts', 'promotions', 'orders'];
+    const validSyncTypes = ['branches', 'categories', 'menu_items', 'tables', 'promotions', 'orders'];
     for (const syncType of this.config.syncTypes) {
       if (!validSyncTypes.includes(syncType)) {
         errors.push(`Invalid sync type: ${syncType}`);
       }
     }
 
-    if (errors.length > 0) {
-      logger.error(`Configuration validation failed: ${errors.join(', ')}`);
-      return { valid: false, errors };
-    }
-
-    logger.success('Configuration validation passed');
-    return { valid: true, errors: [] };
+    return {
+      isValid: errors.length === 0,
+      errors,
+      config: this.config
+    };
   }
 
   /**

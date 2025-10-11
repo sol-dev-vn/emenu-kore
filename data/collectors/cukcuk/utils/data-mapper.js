@@ -170,9 +170,9 @@ class DataMapper {
     try {
       const menuItem = {
         name: cukcukMenuItem.Name || '',
-        code: cukcukMenuItem.Code || cukcukMenuItem.Id,
+        code: cukcukMenuItem.Code || cukcukMenuItem.Id || cukcukMenuItem.InventoryItemId,
         description: cukcukMenuItem.Description || `${cukcukMenuItem.Name || 'Unknown'} - Imported from CukCuk`,
-        external_id: cukcukMenuItem.Id,
+        external_id: cukcukMenuItem.InventoryItemId || cukcukMenuItem.Id || cukcukMenuItem.Code,
         external_source: 'cukcuk',
         is_active: !cukcukMenuItem.Inactive,
         price: parseFloat(cukcukMenuItem.Price || cukcukMenuItem.SellingPrice) || 0,
@@ -184,7 +184,7 @@ class DataMapper {
         print_group: cukcukMenuItem.PrintGroup || '',
         barcode: cukcukMenuItem.Barcode || '',
         image_url: cukcukMenuItem.Image || '',
-        sku: cukcukMenuItem.Code || cukcukMenuItem.Id,
+        sku: cukcukMenuItem.Code || cukcukMenuItem.Id || cukcukMenuItem.InventoryItemId,
         track_inventory: cukcukMenuItem.IsTrackInventory || false,
         allow_decimal: cukcukMenuItem.AllowDecimal || false,
         is_available: cukcukMenuItem.IsAvailable !== false,
