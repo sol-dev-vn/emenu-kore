@@ -260,29 +260,94 @@ const generateQRCode = (tableId, options = {}) => {
 
 ## 📱 Customer-Facing eMenu
 
-### Landing Page (/) - Welcome Experience
+### Landing Page (/) - Welcome Experience ✅ **IMPLEMENTED**
 **Root path landing page providing elegant entry point to the SOL eMenu system**
 
-#### Visual Design
+#### Visual Design ✅
 - **SOL Branding**: Full SOL logo prominently displayed (`web-emenu/public/logo_full.png`)
 - **Clean Layout**: Minimalist design with focus on ease of use
 - **Responsive Design**: Optimized for mobile and tablet devices
 - **Loading States**: Smooth transitions and loading animations
+- **Gradient Background**: Orange-to-red gradient matching SOL brand colors
 
-#### Core Features
+#### Core Features ✅
 - **QR Code Scanner**: Built-in camera-based QR code scanning capability
-  - Mobile-first scanning interface
+  - Mobile-first scanning interface using @yudiel/react-qr-scanner
   - Automatic QR code detection and processing
-  - Fallback manual table entry option
+  - **❌ Manual table entry removed** for streamlined QR-only workflow
 - **Welcome Message**: Brief introduction to SOL eMenu system
-- **Restaurant Information**: Location, hours, and contact details
-- **Language Selection**: Multi-language support (Vietnamese, English)
+- **Restaurant Information**: Compact footer with website, hotline, Zalo, and email links
+- **Language Selection**: Multi-language support (Vietnamese, English) with selector component
 
-#### User Experience Flow
-1. **Initial Landing**: Display SOL logo and welcome message
+#### User Experience Flow ✅
+1. **Initial Landing**: Display SOL logo and welcome message with language selector
 2. **Primary Action**: "Scan QR Code" button opens camera interface
-3. **Alternative Access**: Manual table number entry option
-4. **Direct Navigation**: Automatic redirect to menu upon successful scan
+3. **Direct Navigation**: Automatic redirect to menu upon successful scan
+4. **Error Handling**: Graceful handling of camera permissions and invalid QR codes
+
+#### Technical Implementation ✅
+- **Framework**: Next.js 15 with React 19 and TypeScript
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **State Management**: React hooks for scanner state and language
+- **Animations**: Custom fade-in and slide-up animations
+- **Responsive**: Mobile-first design with Tailwind CSS v4
+
+#### Multi-language Support 🚧 **IN PROGRESS**
+**Expanding language support for international customers**
+
+#### Supported Languages ✅ **CURRENT**
+- **Vietnamese** (vi) - Primary language for Vietnam market
+- **English** (en) - International standard
+
+#### Planned Languages 🔄 **ADDING**
+- **Japanese** (ja) - For Japanese tourists and expats
+- **Korean** (ko) - For Korean tourists and business visitors
+- **Mandarin Chinese** (zh) - For Chinese tourists
+- **Russian** (ru) - For Russian tourists
+
+#### Language Implementation
+```typescript
+// Language Support Structure
+const translations = {
+  en: { /* English translations */ },
+  vi: { /* Vietnamese translations */ },
+  ja: { /* Japanese translations */ },
+  ko: { /* Korean translations */ },
+  zh: { /* Mandarin Chinese translations */ },
+  ru: { /* Russian translations */ }
+};
+```
+
+#### Full-Screen QR Scanner 🚧 **IN PROGRESS**
+**Enhanced mobile QR scanning experience**
+
+#### Current Implementation ✅
+- Mobile-responsive QR scanner component
+- Camera permission handling
+- QR code detection and processing
+- Error handling for camera access
+
+#### Mobile Optimization 🔄 **IMPROVING**
+- **Full-screen interface** on mobile devices
+- **Immersive scanning** experience without UI distractions
+- **Better camera utilization** for improved QR detection
+- **Touch-friendly controls** optimized for mobile
+- **Responsive sizing** that adapts to screen dimensions
+
+#### Mobile QR Scanner Enhancement
+```css
+/* Full-screen mobile QR scanner */
+@media (max-width: 768px) {
+  .qr-scanner-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 50;
+  }
+}
+```
 
 #### Technical Implementation
 ```javascript
@@ -309,20 +374,28 @@ const LandingPage = () => {
 };
 ```
 
-### QR Code Direct Access (/qr?table=[table_id])
+### QR Code Direct Access (/qr?table=[table_id]) ✅ **IMPLEMENTED**
 **Direct menu access via QR code scanning**
 
-#### Route Structure
+#### Route Structure ✅
 - **URL Pattern**: `/qr?table=[table_id]`
-- **Table Validation**: Verify table exists and is accessible
-- **Branch Detection**: Automatic branch identification from table
-- **Menu Loading**: Load branch-specific menu and pricing
+- **Table Validation**: API endpoint to verify table exists and is accessible
+- **Branch Detection**: API endpoint to fetch branch information from table ID
+- **Menu Loading**: Placeholder for branch-specific menu and pricing
 
-#### User Experience
-1. **QR Code Scan**: Customer scans table QR code
-2. **Direct Access**: Immediate redirect to table-specific menu
-3. **Menu Display**: Branch-appropriate menu with table context
-4. **Order Flow**: Seamless ordering experience with table association
+#### User Experience ✅
+1. **QR Code Scan**: Customer scans table QR code on landing page
+2. **Direct Access**: Immediate redirect to table-specific menu page
+3. **Menu Display**: Branch-appropriate menu with table context (demo placeholder)
+4. **Header**: Shows table name, branch information, and change table option
+5. **Footer**: Simple copyright notice
+
+#### API Implementation ✅
+- **Branch API**: `/api/branches/[branchId]` - Fetch branch information
+- **Table API**: `/api/tables/[tableId]` - Fetch table information
+- **Error Handling**: Graceful handling of invalid table IDs and API errors
+- **Loading States**: Loading spinner during data fetching
+- **Toast Notifications**: Success/error feedback using Sonner
 
 ### Branch-Specific Experience
 - **Individualized Menus**: Each branch maintains custom menu and pricing
@@ -341,6 +414,19 @@ const LandingPage = () => {
 
 ## 🛠️ Technical Stack
 
+### Frontend Development ✅ **IMPLEMENTED**
+- **Framework**: Next.js 15 with React 19 and TypeScript
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **Styling**: Tailwind CSS v4 with custom design system
+- **QR Code Scanning**: @yudiel/react-qr-scanner for mobile camera access
+- **State Management**: React hooks and context API
+- **Notifications**: Sonner for toast notifications
+- **Form Handling**: React Hook Form with Zod validation
+- **Icons**: Lucide React for consistent iconography
+- **Animations**: Tailwind CSS transitions and custom animations
+- **Multi-language Support**: Vietnamese, English, Japanese, Korean, Mandarin, Russian
+- **Mobile Optimization**: Full-screen QR scanner interface for mobile devices
+
 ### Backend Infrastructure
 - **Headless CMS**: Directus with PostgreSQL database
   - Docker configuration: `docker/sol-kore-api-database.yaml`
@@ -353,6 +439,40 @@ const LandingPage = () => {
 - **Containerization**: Docker & Docker Compose
 - **Process Management**: PM2 for production deployments
 - **Network Tunneling**: Cloudflare Tunnel for secure external access
+- **Package Management**: npm with workspaces for monorepo structure
+- **Code Quality**: ESLint, Prettier, and TypeScript strict mode
+
+## 🎨 UI/UX Design System
+
+### Component Library
+- **Base Components**: shadcn/ui provides accessible, customizable UI components
+- **Design Tokens**: CSS custom properties for consistent spacing, colors, and typography
+- **Responsive Design**: Mobile-first approach with breakpoints for tablets and desktop
+- **Dark Mode Support**: Built-in theme switching capability
+
+### Color Palette
+- **Primary Colors**: Orange/Red gradient for SOL brand identity
+- **Neutral Colors**: Gray scale for text and backgrounds
+- **Semantic Colors**: Success (green), Warning (yellow), Error (red)
+- **Accessibility**: WCAG AA compliant contrast ratios
+
+### Typography
+- **Font Family**: Geist Sans (system font stack)
+- **Scale**: Responsive font sizes from xs to 4xl
+- **Weight**: Regular, Medium, Semibold, Bold for hierarchy
+- **Line Height**: Optimized for readability on mobile devices
+
+### Spacing System
+- **Base Unit**: 4px (0.25rem) for consistent spacing
+- **Scale**: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64px
+- **Components**: Consistent padding and margins across all components
+- **Responsiveness**: Adaptive spacing for different screen sizes
+
+### Animation Guidelines
+- **Micro-interactions**: Hover states, button presses, and loading states
+- **Page Transitions**: Smooth fade-in and slide-up animations
+- **Loading States**: Skeleton loaders and spinners for better UX
+- **Duration**: Fast (200ms) for micro-interactions, Slow (500ms) for page transitions
 
 ## 💾 Storage Architecture
 
