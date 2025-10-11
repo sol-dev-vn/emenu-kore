@@ -60,14 +60,18 @@ class DirectusClient {
     return headers;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}, skipAuth: boolean = false): Promise<T> {
     const url = `${this.config.url}${endpoint}`;
 
     try {
+      const baseHeaders: Record<string, string> = skipAuth
+        ? { 'Content-Type': 'application/json' }
+        : this.getHeaders();
+
       const response = await fetch(url, {
         ...options,
         headers: {
-          ...this.getHeaders(),
+          ...baseHeaders,
           ...options.headers,
         },
       });
@@ -102,7 +106,8 @@ class DirectusClient {
 
   // List configured OAuth providers
   async listAuthProviders(): Promise<{ data: string[] }> {
-    return this.request<{ data: string[] }>("/auth/oauth");
+    // Providers list should be readable without Authorization header
+    return this.request<{ data: string[] }>("/auth/oauth", {}, true);
   }
 
   // Request password reset email

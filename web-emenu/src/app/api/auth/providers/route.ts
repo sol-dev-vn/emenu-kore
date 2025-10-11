@@ -8,6 +8,7 @@ export async function GET() {
     return NextResponse.json({ providers });
   } catch (error) {
     console.error('List auth providers failed:', error);
-    return NextResponse.json({ error: 'Failed to list auth providers' }, { status: 500 });
+    // Gracefully degrade: return empty list so the login page can render without OAuth buttons
+    return NextResponse.json({ providers: [] });
   }
 }

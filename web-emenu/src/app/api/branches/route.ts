@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     const load = async () => directusClient.getItems('branches', {
       sort: ['name'],
       fields: [
-        'id', 'code', 'name', 'display_name', 'description', 'phone', 'email', 'address',
-        'tax_rate', 'service_rate', 'has_vat', 'has_service', 'external_id', 'is_active', 'updated_at'
+        // Minimal safe set to avoid permission errors until Directus roles are configured
+        'id', 'code', 'name', 'is_active', 'updated_at'
       ]
     });
 
@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
         }
       }
       if (!res) {
-        throw e;
+        // If we still can't load, degrade gracefully: return empty list with 200
+        console.warn('Branches route degraded gracefully due to auth/permission error:', msg);
+        return NextResponse.json({ data: [] }, { status: 200 });
       }
     }
 
@@ -52,8 +54,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Branches API error:', error);
     const msg = error instanceof Error ? error.message : String(error);
-    const isAuthError = /401|Unauthorized|token|expired|permission|forbidden/i.test(msg);
-    const status = isAuthError ? 401 : 500;
-    return NextResponse.json({ error: 'Failed to load branches' }, { status });
+    const isAuthOrPerm = /401|Unauthorized|token|expired|permission|forbidden/i.test(msg);
+    if (isAuthOrPerm) {
+      // Graceful fallback for auth/perm issues
+      return NextResponse.json({ data: [] }, { status: 200 });
+    }
+    return NextResponse.json({ error: 'Failed to load branches' }, { status: 500 });
   }
 }
