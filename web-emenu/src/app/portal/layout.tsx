@@ -65,6 +65,16 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   async function handleBranchSelect(branchId: string) {
     try {
+      // Store in local storage for persistence
+      if (branchId === 'none') {
+        localStorage.setItem('selected_branch', 'none');
+        document.cookie = 'selected_branch=none; path=/; max-age=31536000'; // 1 year
+      } else {
+        localStorage.setItem('selected_branch', branchId);
+        document.cookie = `selected_branch=${branchId}; path=/; max-age=31536000`; // 1 year
+      }
+
+      // Call impersonate API if needed
       if (branchId === 'none') {
         await fetch('/api/auth/impersonate', {
           method: 'POST',

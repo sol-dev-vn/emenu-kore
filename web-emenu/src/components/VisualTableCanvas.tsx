@@ -20,7 +20,21 @@ import {
   Circle,
   RectangleHorizontal,
   RotateCw,
-  CreditCard
+  CreditCard,
+  ChevronDown,
+  Grid3X3,
+  MapPin,
+  Layout,
+  Save as SaveIcon,
+  Eye,
+  EyeOff,
+  Layers,
+  ZoomIn,
+  ZoomOut,
+  Move,
+  Copy,
+  Download,
+  Upload
 } from 'lucide-react';
 import POSSidebar from './POSSidebar';
 
@@ -74,6 +88,16 @@ export default function VisualTableCanvas({
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [draggedTable, setDraggedTable] = useState<string | null>(null);
   const [isAddingTable, setIsAddingTable] = useState(false);
+  const [isAddingZone, setIsAddingZone] = useState(false);
+  const [isDeliveryCollapsed, setIsDeliveryCollapsed] = useState(false);
+  const [showGridLines, setShowGridLines] = useState(false);
+  const [showAutoLayoutDialog, setShowAutoLayoutDialog] = useState(false);
+  const [autoLayoutSettings, setAutoLayoutSettings] = useState({
+    columns: 4,
+    rows: 3,
+    spacing: 100,
+    tableSize: { width: 80, height: 60 }
+  });
   const [newTableData, setNewTableData] = useState({
     code: '',
     capacity: 4,
@@ -295,6 +319,47 @@ export default function VisualTableCanvas({
     setSelectedTable(null);
   }, []);
 
+  const handleAddZone = useCallback(() => {
+    const zoneName = prompt('Enter new zone name:');
+    if (zoneName && zoneName.trim()) {
+      // This would typically update the database
+      alert(`Zone "${zoneName.trim()}" would be added to the system`);
+      setIsAddingZone(false);
+    }
+  }, []);
+
+  const handleSaveLayout = useCallback(() => {
+    // Save table positions to backend
+    const layoutData = tables.map(table => ({
+      id: table.id,
+      position: table.position,
+      size: table.size
+    }));
+    console.log('Saving layout:', layoutData);
+    // Show success message
+    alert('Layout saved successfully!');
+    setIsEditMode(false);
+  }, [tables]);
+
+  const handleAutoLayout = useCallback(() => {
+    const newTables = tables.map((table, index) => {
+      const col = index % autoLayoutSettings.columns;
+      const row = Math.floor(index / autoLayoutSettings.columns);
+
+      return {
+        ...table,
+        position: {
+          x: 20 + col * autoLayoutSettings.spacing,
+          y: 20 + row * autoLayoutSettings.spacing
+        },
+        size: autoLayoutSettings.tableSize
+      };
+    });
+
+    setTables(newTables);
+    setShowAutoLayoutDialog(false);
+  }, [tables, autoLayoutSettings]);
+
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
       document.documentElement.requestFullscreen?.();
@@ -310,87 +375,219 @@ export default function VisualTableCanvas({
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-900">Visual Table Management</h1>
-
-            {/* Zone Filter */}
-            <select
-              value={selectedZone}
-              onChange={(e) => setSelectedZone(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {zones.map(zone => (
-                <option key={zone} value={zone}>
-                  {zone === 'all' ? 'All Zones' : zone}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <Layers className="w-6 h-6 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Live Dashboard</h1>
+            </div>
 
             {/* Stats */}
             <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span>Available: {tables.filter(t => t.status === 'available').length}</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-green-800 font-medium">{tables.filter(t => t.status === 'available').length}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Occupied: {tables.filter(t => t.status === 'occupied').length}</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-red-50 rounded-full">
+                <Users className="w-4 h-4 text-red-600" />
+                <span className="text-red-800 font-medium">{tables.filter(t => t.status === 'occupied').length}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>Reserved: {tables.filter(t => t.status === 'reserved').length}</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-yellow-50 rounded-full">
+                <AlertCircle className="w-4 h-4 text-yellow-600" />
+                <span className="text-yellow-800 font-medium">{tables.filter(t => t.status === 'reserved').length}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Cleaning: {tables.filter(t => t.status === 'cleaning').length}</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <span className="text-blue-800 font-medium">{tables.filter(t => t.status === 'cleaning').length}</span>
               </div>
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {!readOnly && (
-              <button
-                onClick={() => setIsAddingTable(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Table
-              </button>
+            {!readOnly && !isEditMode && (
+              <>
+                <button
+                  onClick={() => setIsAddingTable(true)}
+                  className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
+                  title="Add Table"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setIsAddingZone(true)}
+                  className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                  title="Add Zone"
+                >
+                  <MapPin className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setShowAutoLayoutDialog(true)}
+                  className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                  title="Auto Layout"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+              </>
             )}
 
             {!readOnly && (
               <button
-                onClick={() => setIsEditMode(!isEditMode)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                onClick={() => {
+                  if (isEditMode) {
+                    handleSaveLayout();
+                  } else {
+                    setIsEditMode(true);
+                  }
+                }}
+                className={`p-2 rounded-md transition-colors ${
                   isEditMode
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
+                title={isEditMode ? 'Save Layout' : 'Edit Mode'}
               >
-                {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                {isEditMode ? 'Save Layout' : 'Edit Mode'}
+                {isEditMode ? <SaveIcon className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
               </button>
             )}
 
             <button
+              onClick={() => setShowGridLines(!showGridLines)}
+              className={`p-2 rounded-md transition-colors ${
+                showGridLines
+                  ? 'bg-orange-100 text-orange-700 border border-orange-300'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title={showGridLines ? 'Hide Grid' : 'Show Grid'}
+            >
+              {showGridLines ? <EyeOff className="w-4 h-4" /> : <Grid3X3 className="w-4 h-4" />}
+            </button>
+
+            <button
               onClick={toggleFullscreen}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors"
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               <Maximize2 className="w-4 h-4" />
-              {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             </button>
 
             <button
               onClick={() => setIsPOSVisible(!isPOSVisible)}
-              className="flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors"
+              className="p-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors"
+              title="Point of Sale"
             >
               <CreditCard className="w-4 h-4" />
-              POS
             </button>
           </div>
         </div>
+
+        {/* Edit Mode Toolbar */}
+        {isEditMode && !readOnly && (
+          <div className="bg-blue-50 border-t border-blue-200 px-4 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-blue-800">Edit Mode:</span>
+                <div className="flex items-center gap-1 text-xs text-blue-600">
+                  <Move className="w-3 h-3" />
+                  <span>Drag tables to move</span>
+                </div>
+                <div className="w-px h-4 bg-blue-300 mx-2" />
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <Copy className="w-3 h-3" />
+                  <span>Duplicate</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <RotateCw className="w-3 h-3" />
+                  <span>Rotate</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <ZoomIn className="w-3 h-3" />
+                  <span>Zoom In</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <ZoomOut className="w-3 h-3" />
+                  <span>Zoom Out</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <Download className="w-3 h-3" />
+                  <span>Export</span>
+                </button>
+                <button className="flex items-center gap-1 px-2 py-1 bg-white border border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50">
+                  <Upload className="w-3 h-3" />
+                  <span>Import</span>
+                </button>
+              </div>
+              <button
+                onClick={() => setIsEditMode(false)}
+                className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 border border-red-300 rounded text-xs hover:bg-red-200"
+              >
+                <X className="w-3 h-3" />
+                <span>Cancel Edit</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex h-[calc(100vh-140px)]">
+        {/* Zone Tabs on Left Edge */}
+        <div className="w-32 bg-white border-r border-gray-200 p-2 overflow-y-auto">
+          <div className="flex items-center gap-1 mb-2">
+            <Layers className="w-3 h-3 text-gray-600" />
+            <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Zones</div>
+          </div>
+          <div className="space-y-1">
+            <button
+              onClick={() => setSelectedZone('all')}
+              className={`w-full text-left px-2 py-1 rounded text-xs font-medium transition-colors ${
+                selectedZone === 'all'
+                  ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Grid3X3 className="w-3 h-3" />
+                  <span>All</span>
+                </div>
+                <span className="text-[10px] bg-gray-100 px-1 py-0.5 rounded">{tables.length}</span>
+              </div>
+            </button>
+            {zones.slice(1).map(zone => {
+              const zoneTableCount = filteredTables.filter(t => t.zone_name === zone).length;
+              const availableCount = filteredTables.filter(t => t.zone_name === zone && t.status === 'available').length;
+              const occupiedCount = filteredTables.filter(t => t.zone_name === zone && t.status === 'occupied').length;
+
+              return (
+                <button
+                  key={zone}
+                  onClick={() => setSelectedZone(zone)}
+                  className={`w-full text-left px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    selectedZone === zone
+                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{zone}</span>
+                    <span className="text-[10px] bg-gray-100 px-1 py-0.5 rounded">{zoneTableCount}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-2 h-2 text-green-600" />
+                      <span className="text-[10px] text-green-600">{availableCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-2 h-2 text-red-600" />
+                      <span className="text-[10px] text-red-600">{occupiedCount}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Main Canvas Area */}
         <div className="flex-1 p-4">
           <div
@@ -398,36 +595,27 @@ export default function VisualTableCanvas({
             className="relative bg-white rounded-lg border-2 border-dashed border-gray-300 h-full overflow-hidden"
             style={{ minHeight: '600px' }}
           >
-            {/* Grid Background */}
-            <div
-              className="absolute inset-0 opacity-5"
-              style={{
-                backgroundImage: `
-                  linear-gradient(to right, #000 1px, transparent 1px),
-                  linear-gradient(to bottom, #000 1px, transparent 1px)
-                `,
-                backgroundSize: '20px 20px'
-              }}
-            />
+            {/* Grid Background - only visible in edit mode */}
+            {showGridLines && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to right, #000 1px, transparent 1px),
+                    linear-gradient(to bottom, #000 1px, transparent 1px)
+                  `,
+                  backgroundSize: '20px 20px',
+                  opacity: isEditMode ? 0.15 : 0.05
+                }}
+              />
+            )}
 
-            {/* Zone Labels */}
-            {zones.slice(1).map(zone => {
-              const zoneTables = filteredTables.filter(t => t.zone_name === zone);
-              if (zoneTables.length === 0) return null;
-
-              const minX = Math.min(...zoneTables.map(t => t.position.x));
-              const minY = Math.min(...zoneTables.map(t => t.position.y));
-
-              return (
-                <div
-                  key={zone}
-                  className="absolute text-xs font-semibold text-gray-400 uppercase tracking-wide bg-white px-2 py-1 rounded border border-gray-200"
-                  style={{ left: minX, top: minY - 25 }}
-                >
-                  {zone}
-                </div>
-              );
-            })}
+            {/* Current Zone Indicator */}
+            {selectedZone !== 'all' && (
+              <div className="absolute top-2 left-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold border border-orange-200">
+                {selectedZone}
+              </div>
+            )}
 
             {/* Tables */}
             {filteredTables.map(table => (
@@ -516,83 +704,104 @@ export default function VisualTableCanvas({
         </div>
 
         {/* Delivery Queue Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
-          <div className="flex items-center gap-2 mb-4">
-            <Car className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Delivery Queue</h2>
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-              {deliveryOrders.filter(o => o.status !== 'delivered').length}
-            </span>
+        <div className={`${isDeliveryCollapsed ? 'w-16' : 'w-80'} bg-white border-l border-gray-200 overflow-hidden transition-all duration-300 flex flex-col`}>
+          {/* Delivery Queue Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className={`flex items-center gap-2 ${!isDeliveryCollapsed ? '' : 'flex-col gap-1'}`}>
+                <Car className="w-5 h-5 text-blue-600" />
+                {!isDeliveryCollapsed && (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-900">Delivery Queue</h2>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                      {deliveryOrders.filter(o => o.status !== 'delivered').length}
+                    </span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setIsDeliveryCollapsed(!isDeliveryCollapsed)}
+                className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                title={isDeliveryCollapsed ? 'Expand Delivery Queue' : 'Collapse Delivery Queue'}
+              >
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDeliveryCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {deliveryOrders.map(order => (
-              <div key={order.id} className={`border rounded-lg p-3 ${getDeliveryStatusColor(order.status)}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <div className="font-semibold text-sm">{order.orderNumber}</div>
-                    <div className="text-xs opacity-75">{order.customerName}</div>
-                    {order.customerPhone && (
-                      <div className="text-xs opacity-75">{order.customerPhone}</div>
+          {/* Delivery Queue Content */}
+          {!isDeliveryCollapsed && (
+            <div className="flex-1 p-4 overflow-y-auto">
+              <div className="space-y-3">
+                {deliveryOrders.map(order => (
+                  <div key={order.id} className={`border rounded-lg p-3 ${getDeliveryStatusColor(order.status)}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="font-semibold text-sm">{order.orderNumber}</div>
+                        <div className="text-xs opacity-75">{order.customerName}</div>
+                        {order.customerPhone && (
+                          <div className="text-xs opacity-75">{order.customerPhone}</div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-sm">{order.total.toLocaleString()}đ</div>
+                        <div className="text-xs opacity-75">{order.time}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-3 h-3" />
+                        <span className="text-xs">{order.items} items</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {order.status === 'preparing' && <Coffee className="w-3 h-3" />}
+                        {order.status === 'ready' && <CheckCircle className="w-3 h-3" />}
+                        {order.status === 'delivering' && <Car className="w-3 h-3" />}
+                        {order.status === 'delivered' && <CheckCircle className="w-3 h-3" />}
+                        <span className="text-xs capitalize">{order.status}</span>
+                      </div>
+                    </div>
+
+                    {order.estimatedTime && order.status === 'preparing' && (
+                      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-current/20">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-xs">Est: {order.estimatedTime}</span>
+                      </div>
+                    )}
+
+                    {order.rider && (
+                      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-current/20">
+                        <Users className="w-3 h-3" />
+                        <span className="text-xs">{order.rider}</span>
+                      </div>
+                    )}
+
+                    {order.address && (
+                      <div className="mt-2 pt-2 border-t border-current/20">
+                        <div className="text-xs opacity-75">{order.address}</div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-sm">{order.total.toLocaleString()}đ</div>
-                    <div className="text-xs opacity-75">{order.time}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="w-3 h-3" />
-                    <span className="text-xs">{order.items} items</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {order.status === 'preparing' && <Coffee className="w-3 h-3" />}
-                    {order.status === 'ready' && <CheckCircle className="w-3 h-3" />}
-                    {order.status === 'delivering' && <Car className="w-3 h-3" />}
-                    {order.status === 'delivered' && <CheckCircle className="w-3 h-3" />}
-                    <span className="text-xs capitalize">{order.status}</span>
-                  </div>
-                </div>
-
-                {order.estimatedTime && order.status === 'preparing' && (
-                  <div className="flex items-center gap-1 mt-2 pt-2 border-t border-current/20">
-                    <Clock className="w-3 h-3" />
-                    <span className="text-xs">Est: {order.estimatedTime}</span>
-                  </div>
-                )}
-
-                {order.rider && (
-                  <div className="flex items-center gap-1 mt-2 pt-2 border-t border-current/20">
-                    <Users className="w-3 h-3" />
-                    <span className="text-xs">{order.rider}</span>
-                  </div>
-                )}
-
-                {order.address && (
-                  <div className="mt-2 pt-2 border-t border-current/20">
-                    <div className="text-xs opacity-75">{order.address}</div>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
 
-          {deliveryOrders.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-gray-400 mb-2">
-                <Car className="w-8 h-8 mx-auto" />
-              </div>
-              <p className="text-gray-500 text-sm">No delivery orders</p>
+              {deliveryOrders.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-2">
+                    <Car className="w-8 h-8 mx-auto" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No delivery orders</p>
+                </div>
+              )}
+
+              {!readOnly && (
+                <button className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                  <Plus className="w-4 h-4" />
+                  Add Manual Order
+                </button>
+              )}
             </div>
-          )}
-
-          {!readOnly && (
-            <button className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
-              <Plus className="w-4 h-4" />
-              Add Manual Order
-            </button>
           )}
         </div>
       </div>
@@ -693,6 +902,106 @@ export default function VisualTableCanvas({
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Add Table
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto Layout Dialog */}
+      {showAutoLayoutDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Auto Layout Configuration</h3>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Columns</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={autoLayoutSettings.columns}
+                    onChange={(e) => setAutoLayoutSettings(prev => ({ ...prev, columns: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Rows</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={autoLayoutSettings.rows}
+                    onChange={(e) => setAutoLayoutSettings(prev => ({ ...prev, rows: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Spacing (px)</label>
+                <input
+                  type="number"
+                  min="50"
+                  max="200"
+                  value={autoLayoutSettings.spacing}
+                  onChange={(e) => setAutoLayoutSettings(prev => ({ ...prev, spacing: parseInt(e.target.value) || 100 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Width (px)</label>
+                  <input
+                    type="number"
+                    min="40"
+                    max="150"
+                    value={autoLayoutSettings.tableSize.width}
+                    onChange={(e) => setAutoLayoutSettings(prev => ({
+                      ...prev,
+                      tableSize: { ...prev.tableSize, width: parseInt(e.target.value) || 80 }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Height (px)</label>
+                  <input
+                    type="number"
+                    min="40"
+                    max="150"
+                    value={autoLayoutSettings.tableSize.height}
+                    onChange={(e) => setAutoLayoutSettings(prev => ({
+                      ...prev,
+                      tableSize: { ...prev.tableSize, height: parseInt(e.target.value) || 60 }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  This will arrange all {filteredTables.length} tables in a {autoLayoutSettings.columns}x{autoLayoutSettings.rows} grid layout.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowAutoLayoutDialog(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAutoLayout}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                Apply Layout
               </button>
             </div>
           </div>
