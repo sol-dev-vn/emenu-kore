@@ -187,7 +187,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 <MessageSquare className="h-4 w-4" />
                 <span>IT Help Desk</span>
               </a>
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/faq">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="https://sol-crm.alphabits.team/hc/help-center?ref=portal" target="_blank" rel="noopener noreferrer">
                 <HelpCircle className="h-4 w-4" />
                 <span>FAQ</span>
               </a>
