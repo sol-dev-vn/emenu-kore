@@ -53,14 +53,24 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   async function handleBranchSelect(branchId: string) {
     try {
-      await fetch('/api/auth/impersonate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ branch_id: branchId })
-      });
-      setSelectedBranchId(branchId || null);
-      const br = branches.find(b => b.id === branchId);
-      setSelectedBranchName(br ? `${br.name} (${br.code})` : branchId || 'None');
+      if (branchId === 'none') {
+        await fetch('/api/auth/impersonate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ branch_id: null })
+        });
+        setSelectedBranchId(null);
+        setSelectedBranchName('None');
+      } else {
+        await fetch('/api/auth/impersonate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ branch_id: branchId })
+        });
+        setSelectedBranchId(branchId);
+        const br = branches.find(b => b.id === branchId);
+        setSelectedBranchName(br ? `${br.name} (${br.code})` : branchId);
+      }
     } catch (e) {
       console.error('Failed to set selected branch:', e);
     }
@@ -90,7 +100,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               </div>
             </div>
             <div className="mt-3">
-              <Select value={selectedBranchId || ''} onValueChange={handleBranchSelect}>
+              <Select value={selectedBranchId || 'none'} onValueChange={handleBranchSelect}>
                 <SelectTrigger className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-inner focus:outline-none focus:ring-2 focus:ring-rose-400">
                   <SelectValue>
                     <div className="flex items-center gap-2">
@@ -100,7 +110,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="" className="cursor-pointer hover:bg-gray-50">
+                  <SelectItem value="none" className="cursor-pointer hover:bg-gray-50">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">None (All)</span>
                     </div>
@@ -124,21 +134,33 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               <Home className="h-4 w-4" />
               <span>Dashboard</span>
             </a>
-            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/branch-settings">
-              <Settings className="h-4 w-4" />
-              <span>Branch Settings</span>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/sync-logs">
+              <History className="h-4 w-4" />
+              <span>Sync Logs</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/menu-management">
+              <Utensils className="h-4 w-4" />
+              <span>Menu Management</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/brands-branches">
+              <Building2 className="h-4 w-4" />
+              <span>Branches</span>
             </a>
             <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/tables-zones">
               <TableIcon className="h-4 w-4" />
-              <span>Table & Zones</span>
-            </a>
-            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/menu-combo">
-              <Utensils className="h-4 w-4" />
-              <span>Menu & Combo</span>
+              <span>Tables</span>
             </a>
             <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/promotions">
               <Megaphone className="h-4 w-4" />
-              <span>Promotions & Discount</span>
+              <span>Promotions</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/orders">
+              <TableIcon className="h-4 w-4" />
+              <span>Orders</span>
+            </a>
+            <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/reports">
+              <Settings className="h-4 w-4" />
+              <span>Reports</span>
             </a>
           </nav>
 
@@ -146,21 +168,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           <div className="mt-6">
             <div className="text-xs uppercase text-gray-400 mb-2">Master Settings</div>
             <nav className="flex flex-col gap-1 text-sm">
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/sync-history">
-                <History className="h-4 w-4" />
-                <span>Data Sync History</span>
-              </a>
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/brands-branches">
-                <Building2 className="h-4 w-4" />
-                <span>Brands & Branches</span>
-              </a>
               <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/staff">
                 <Users className="h-4 w-4" />
-                <span>Store Manager & Staff</span>
+                <span>Staff Management</span>
               </a>
               <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/master/roles">
                 <Shield className="h-4 w-4" />
-                <span>Permission & Roles</span>
+                <span>Permissions & Roles</span>
               </a>
             </nav>
           </div>

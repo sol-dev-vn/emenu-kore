@@ -69,6 +69,29 @@ class DataMapper {
         'Inactive': 'is_active',
         'LayoutType': 'layout_type',
         'BackgroundImage': 'background_image'
+      },
+      orders: {
+        'Id': 'external_id',
+        'BillCode': 'order_number',
+        'TableName': 'table_name',
+        'AreaName': 'zone_name',
+        'CustomerName': 'customer_name',
+        'CustomerPhone': 'customer_phone',
+        'CustomerEmail': 'customer_email',
+        'Status': 'status',
+        'Priority': 'priority',
+        'OrderType': 'order_type',
+        'SubTotal': 'subtotal',
+        'TaxAmount': 'tax_amount',
+        'DiscountAmount': 'discount_amount',
+        'ServiceCharge': 'service_charge',
+        'TotalAmount': 'total_amount',
+        'PaymentMethod': 'payment_method',
+        'PaymentStatus': 'payment_status',
+        'Note': 'notes',
+        'SpecialRequest': 'special_requests',
+        'OrderTime': 'date_created',
+        'UpdateTime': 'date_updated'
       }
     };
   }
@@ -381,6 +404,190 @@ class DataMapper {
   }
 
   /**
+   * Map CukCuk order data to Directus orders collection
+   */
+  mapOrder(cukcukOrder, branchMap = new Map()) {
+    try {
+      const order = {
+        order_number: cukcukOrder.BillCode || cukcukOrder.Code || cukcukOrder.Id,
+        table_id: cukcukOrder.TableId || cukcukOrder.MapObjectID || '',
+        table_name: cukcukOrder.TableName || cukcukOrder.MapObjectName || '',
+        zone_name: cukcukOrder.AreaName || cukcukOrder.ZoneName || '',
+        customer_name: cukcukOrder.CustomerName || '',
+        customer_phone: cukcukOrder.CustomerPhone || '',
+        customer_email: cukcukOrder.CustomerEmail || '',
+        status: this.mapOrderStatus(cukcukOrder.Status) || 'pending',
+        priority: this.mapOrderPriority(cukcukOrder.Priority) || 'normal',
+        order_type: this.mapOrderType(cukcukOrder.OrderType) || 'dine_in',
+        subtotal: parseFloat(cukcukOrder.SubTotal) || 0,
+        tax_amount: parseFloat(cukcukOrder.TaxAmount) || 0,
+        discount_amount: parseFloat(cukcukOrder.DiscountAmount) || 0,
+        service_charge: parseFloat(cukcukOrder.ServiceCharge) || 0,
+        total_amount: parseFloat(cukcukOrder.TotalAmount) || parseFloat(cukcukOrder.Amount) || 0,
+        payment_method: this.mapPaymentMethod(cukcukOrder.PaymentMethod) || '',
+        payment_status: this.mapPaymentStatus(cukcukOrder.PaymentStatus) || 'pending',
+        notes: cukcukOrder.Note || cukcukOrder.Description || '',
+        special_requests: cukcukOrder.SpecialRequest || '',
+        branch_id: cukcukOrder.BranchId || '',
+        staff_id: cukcukOrder.StaffId || '',
+        external_id: cukcukOrder.Id || cukcukOrder.BillId,
+        external_source: 'cukcuk',
+        estimated_time: parseInt(cukcukOrder.EstimatedTime) || null,
+        actual_time: parseInt(cukcukOrder.ActualTime) || null,
+        date_created: cukcukOrder.OrderTime || cukcukOrder.CreatedDate || new Date().toISOString(),
+        date_updated: cukcukOrder.UpdateTime || cukcukOrder.ModifiedDate || new Date().toISOString(),
+        // Additional fields for order items
+        order_items: this.mapOrderItems(cukcukOrder.OrderDetails || cukcukOrder.Items || []),
+        // Sync tracking
+        sync_status: 'synced',
+        last_sync_at: new Date().toISOString()
+      };
+
+      // Store complete CukCuk data for reference
+      order.external_data = {
+        original: cukcukOrder,
+        mapped_at: new Date().toISOString(),
+        mapper_version: '1.0.0'
+      };
+
+      // Map branch relation using branch external ID to primary key
+      if (cukcukOrder.BranchId && branchMap.has(cukcukOrder.BranchId)) {
+        order.branch_relation = branchMap.get(cukcukOrder.BranchId);
+        logger.debug(`Mapped order ${order.order_number} to branch ID: ${order.branch_relation}`);
+      }
+
+      // Add additional metadata
+      if (cukcukOrder.CustomerCount) {
+        order.customer_count = parseInt(cukcukOrder.CustomerCount) || 1;
+      }
+
+      if (cukcukOrder.GuestInfo) {
+        order.guest_info = cukcukOrder.GuestInfo;
+      }
+
+      if (cukcukOrder.PromotionCode) {
+        order.promotion_code = cukcukOrder.PromotionCode;
+      }
+
+      logger.debug(`Mapped order: ${order.order_number} (${order.external_id}) - Total: ${order.total_amount} VND`);
+      return order;
+    } catch (error) {
+      logger.error(`Failed to map order ${cukcukOrder.Id}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Map order items from CukCuk order details
+   */
+  mapOrderItems(orderDetails) {
+    if (!Array.isArray(orderDetails)) return [];
+
+    return orderDetails.map(item => ({
+      external_id: item.Id || item.ItemId,
+      item_code: item.ItemCode || item.Code,
+      item_name: item.ItemName || item.Name,
+      quantity: parseInt(item.Quantity) || 1,
+      unit_price: parseFloat(item.UnitPrice) || parseFloat(item.Price) || 0,
+      total_price: parseFloat(item.TotalPrice) || parseFloat(item.Amount) || 0,
+      notes: item.Note || '',
+      status: this.mapOrderItemStatus(item.Status) || 'ordered',
+      category_name: item.CategoryName || '',
+      external_data: {
+        original: item,
+        mapped_at: new Date().toISOString()
+      }
+    }));
+  }
+
+  /**
+   * Map CukCuk order status to Directus format
+   */
+  mapOrderStatus(cukcukStatus) {
+    const statusMap = {
+      'New': 'pending',
+      'Confirmed': 'confirmed',
+      'Preparing': 'preparing',
+      'Ready': 'ready',
+      'Served': 'served',
+      'Completed': 'completed',
+      'Cancelled': 'cancelled',
+      'Paid': 'completed',
+      'Unpaid': 'pending'
+    };
+    return statusMap[cukcukStatus] || 'pending';
+  }
+
+  /**
+   * Map CukCuk order priority to Directus format
+   */
+  mapOrderPriority(cukcukPriority) {
+    const priorityMap = {
+      'Urgent': 'urgent',
+      'High': 'high',
+      'Normal': 'normal',
+      'Low': 'low'
+    };
+    return priorityMap[cukcukPriority] || 'normal';
+  }
+
+  /**
+   * Map CukCuk order type to Directus format
+   */
+  mapOrderType(cukcukOrderType) {
+    const typeMap = {
+      'DineIn': 'dine_in',
+      'TakeAway': 'takeaway',
+      'Delivery': 'delivery',
+      'Pickup': 'takeaway'
+    };
+    return typeMap[cukcukOrderType] || 'dine_in';
+  }
+
+  /**
+   * Map CukCuk payment method to Directus format
+   */
+  mapPaymentMethod(cukcukPaymentMethod) {
+    const methodMap = {
+      'Cash': 'cash',
+      'Card': 'card',
+      'BankTransfer': 'bank_transfer',
+      'EWallet': 'ewallet',
+      'Credit': 'credit'
+    };
+    return methodMap[cukcukPaymentMethod] || '';
+  }
+
+  /**
+   * Map CukCuk payment status to Directus format
+   */
+  mapPaymentStatus(cukcukPaymentStatus) {
+    const statusMap = {
+      'Paid': 'paid',
+      'Unpaid': 'pending',
+      'Pending': 'pending',
+      'Failed': 'failed',
+      'Refunded': 'refunded',
+      'Partial': 'pending'
+    };
+    return statusMap[cukcukPaymentStatus] || 'pending';
+  }
+
+  /**
+   * Map CukCuk order item status to Directus format
+   */
+  mapOrderItemStatus(cukcukStatus) {
+    const statusMap = {
+      'Ordered': 'ordered',
+      'Preparing': 'preparing',
+      'Ready': 'ready',
+      'Served': 'served',
+      'Cancelled': 'cancelled'
+    };
+    return statusMap[cukcukStatus] || 'ordered';
+  }
+
+  /**
    * Generic field mapping function
    */
   mapFields(sourceData, mapping) {
@@ -452,6 +659,18 @@ class DataMapper {
           errors.push('Layout external_id is required');
         }
         break;
+
+      case 'order':
+        if (!data.order_number || data.order_number.trim() === '') {
+          errors.push('Order number is required');
+        }
+        if (!data.external_id || data.external_id.trim() === '') {
+          errors.push('Order external_id is required');
+        }
+        if (data.total_amount < 0) {
+          errors.push('Order total amount cannot be negative');
+        }
+        break;
     }
 
     if (errors.length > 0) {
@@ -487,6 +706,9 @@ class DataMapper {
             break;
           case 'layout':
             mapped = this.mapLayout(item, branchMap);
+            break;
+          case 'order':
+            mapped = this.mapOrder(item, branchMap);
             break;
           default:
             throw new Error(`Unknown mapping type: ${type}`);

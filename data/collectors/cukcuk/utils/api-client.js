@@ -362,6 +362,101 @@ class ApiClient {
     });
   }
 
+  async getCukCukOrders(dateFrom, dateTo = null, includeInactive = false) {
+    return this.withRetry(async () => {
+      const client = await this.initializeCukCukClient();
+
+      try {
+        // Get all branches first to fetch orders from all branches
+        const branchesResult = await client.branches.getAll({ includeInactive });
+        const branches = branchesResult?.Data || branchesResult?.data?.Data || [];
+
+        if (branches.length === 0) {
+          logger.warn('No branches found to fetch orders from');
+          return [];
+        }
+
+        logger.info(`Fetching orders from ${branches.length} branches since ${dateFrom}`);
+        let allOrders = [];
+
+        // Fetch orders from each branch
+        for (const branch of branches) {
+          try {
+            const requestParams = {
+              Page: 1,
+              Limit: 1000, // Increased limit for orders
+              BranchId: branch.Id,
+              DateFrom: dateFrom,
+              DateTo: dateTo || new Date().toISOString().split('T')[0],
+              IncludeInactive: includeInactive
+            };
+
+            // Try different API endpoints for orders
+            let branchOrders = [];
+
+            // Try 1: Direct API call to orders endpoint
+            try {
+              const response = await client.client.post('/api/v1/orders/paging', requestParams);
+              const payload = response?.data ?? response;
+              branchOrders = Array.isArray(payload?.Data)
+                ? payload.Data
+                : Array.isArray(payload?.data?.Data)
+                ? payload.data.Data
+                : [];
+            } catch (orderError) {
+              logger.debug(`Orders paging endpoint failed for branch ${branch.Id}: ${orderError.message}`);
+
+              // Try 2: Bills endpoint (often used for orders in POS systems)
+              try {
+                const response = await client.client.post('/api/v1/bills/paging', requestParams);
+                const payload = response?.data ?? response;
+                branchOrders = Array.isArray(payload?.Data)
+                  ? payload.Data
+                  : Array.isArray(payload?.data?.Data)
+                  ? payload.data.Data
+                  : [];
+              } catch (billError) {
+                logger.debug(`Bills paging endpoint failed for branch ${branch.Id}: ${billError.message}`);
+
+                // Try 3: Check if there's an orders service
+                if (client.orders && typeof client.orders.getList === 'function') {
+                  const result = await client.orders.getList({
+                    branchId: branch.Id,
+                    dateFrom,
+                    dateTo: dateTo || new Date().toISOString().split('T')[0],
+                    includeInactive
+                  });
+                  branchOrders = result.Data || result.data || result;
+                }
+              }
+            }
+
+            if (branchOrders.length > 0) {
+              // Add branch context to each order
+              const branchOrdersWithContext = branchOrders.map(order => ({
+                ...order,
+                BranchId: branch.Id,
+                BranchName: branch.Name
+              }));
+              allOrders = allOrders.concat(branchOrdersWithContext);
+              logger.debug(`Retrieved ${branchOrders.length} orders from branch ${branch.Name} (${branch.Id})`);
+            }
+
+          } catch (error) {
+            logger.warn(`Failed to fetch orders for branch ${branch.Name} (${branch.Id}): ${error.message}`);
+          }
+        }
+
+        logger.success(`Retrieved ${allOrders.length} total orders from CukCuk since ${dateFrom}`);
+        return allOrders;
+
+      } catch (error) {
+        logger.error(`Failed to fetch orders: ${error.message}`);
+        return [];
+      }
+    });
+  }
+
   // Directus API methods
   async testDirectusConnection() {
     return this.withRetry(async () => {

@@ -795,6 +795,144 @@ class CukCukSync {
   }
 
   /**
+   * Synchronize orders from CukCuk to Directus (last 7 days only)
+   */
+  async syncOrders() {
+    const syncType = 'orders';
+    const syncConfig = this.config.getSyncConfig(syncType);
+    const typeStats = this.getTypeStats(syncType);
+
+    if (!this.config.get('syncTypes').includes(syncType)) {
+      logger.info('Orders sync disabled, skipping...');
+      return;
+    }
+
+    logger.syncStart('Orders');
+    typeStats.startTime = new Date();
+
+    try {
+      // Calculate date range for last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const dateFrom = sevenDaysAgo.toISOString().split('T')[0];
+
+      logger.info(`Fetching orders from CukCuk (last 7 days: ${dateFrom} to ${new Date().toISOString().split('T')[0]})`);
+
+      // Fetch orders from CukCuk with date filter
+      const cukcukOrders = await this.apiClient.getCukCukOrders(dateFrom);
+      logger.info(`Found ${cukcukOrders.length} orders in CukCuk (last 7 days)`);
+
+      if (cukcukOrders.length === 0) {
+        logger.warn('No orders found to sync');
+        await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
+        return;
+      }
+
+      // Map data
+      const mappingResult = this.dataMapper.mapBatch(cukcukOrders, 'order');
+      logger.info(`Mapped ${mappingResult.successCount} orders successfully`);
+
+      if (mappingResult.errorCount > 0) {
+        logger.warn(`${mappingResult.errorCount} orders failed to map`);
+        mappingResult.errors.forEach(error => {
+          logger.error(`Mapping error: ${JSON.stringify(error)}`);
+        });
+      }
+
+      // Process orders
+      let processed = 0;
+      for (const orderData of mappingResult.results) {
+        try {
+          this.updateStats(syncType, 'processed');
+
+          // Check if order already exists
+          const existing = await this.apiClient.getDirectusItems('orders', {
+            external_id: { _eq: orderData.external_id }
+          }, 1);
+
+          if (existing.data && existing.data.length > 0) {
+            // Update existing order
+            await this.apiClient.updateDirectusItem('orders', existing.data[0].id, orderData);
+
+            // Update sync status and timestamp
+            await this.apiClient.updateDirectusItem('orders', existing.data[0].id, {
+              sync_status: 'synced',
+              date_updated: new Date().toISOString()
+            });
+
+            this.updateStats(syncType, 'updated');
+            logger.debug(`Updated order: ${orderData.order_number}`);
+          } else {
+            // Create new order with sync status
+            const createData = {
+              ...orderData,
+              sync_status: 'synced',
+              date_created: new Date().toISOString(),
+              date_updated: new Date().toISOString()
+            };
+            await this.apiClient.createDirectusItem('orders', createData);
+            this.updateStats(syncType, 'created');
+            logger.debug(`Created order: ${orderData.order_number}`);
+          }
+
+          processed++;
+          if (syncConfig.enableProgressLogging && processed % syncConfig.progressLogInterval === 0) {
+            logger.syncProgress('Order', processed, mappingResult.results.length);
+          }
+
+        } catch (error) {
+          this.updateStats(syncType, 'failed');
+
+          // Try to update sync status to failed if we have an existing record
+          try {
+            const existing = await this.apiClient.getDirectusItems('orders', {
+              external_id: { _eq: orderData.external_id }
+            }, 1);
+
+            if (existing.data && existing.data.length > 0) {
+              await this.apiClient.updateDirectusItem('orders', existing.data[0].id, {
+                sync_status: 'failed',
+                date_updated: new Date().toISOString()
+              });
+            }
+          } catch (updateError) {
+            // Ignore if we can't update the failed status
+          }
+
+          logger.error(`Failed to sync order "${orderData.order_number}": ${error.message}`);
+        }
+      }
+
+      typeStats.endTime = new Date();
+      const duration = typeStats.endTime - typeStats.startTime;
+      typeStats.duration = Math.round(duration / 1000);
+
+      logger.syncSuccess('Orders', typeStats);
+      logger.info(`Orders sync completed in ${Math.round(duration / 1000)}s (last 7 days)`);
+
+      // Create sync log with session information
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'completed', typeStats, null, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
+
+    } catch (error) {
+      typeStats.endTime = new Date();
+      if (typeStats.startTime) {
+        typeStats.duration = Math.round((typeStats.endTime - typeStats.startTime) / 1000);
+      }
+      const sessionStats = this.sessionLogger.getStats();
+      await this.apiClient.createSyncLog(syncType, 'failed', typeStats, error.message, {
+        sessionLog: this.sessionLogger.getSessionLogHTML(),
+        logFilePath: sessionStats.logFilePath
+      });
+      logger.syncError('Orders', error);
+      throw error;
+    }
+  }
+
+  /**
    * Synchronize layouts from CukCuk to Directus
    */
   async syncLayouts() {
@@ -942,6 +1080,9 @@ class CukCukSync {
       await this.syncMenuItems(branchMap);
       // await this.syncTables(branchMap); // temporarily disabled
       // await this.syncLayouts(branchMap); // removed per request
+
+      // Sync orders (last 7 days only)
+      await this.syncOrders();
 
       // Finalize
       this.stats.endTime = new Date();
