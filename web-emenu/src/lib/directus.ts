@@ -6,6 +6,19 @@ interface DirectusConfig {
   token: string;
 }
 
+interface Brand {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  display_name?: string;
+  logo?: string;
+  website?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface Branch {
   id: string;
   name: string;
@@ -25,6 +38,7 @@ interface Branch {
   has_vat: boolean;
   has_service: boolean;
   vat_rate: number;
+  brand_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -358,5 +372,5 @@ class DirectusClient {
 export const directusClient = new DirectusClient();
 
 // Export types
-export type { Branch, DirectusConfig };
+export type { Brand, Branch, DirectusConfig };
 export { DirectusClient };

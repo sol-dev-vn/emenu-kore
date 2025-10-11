@@ -126,8 +126,8 @@ class BranchService {
   getStatusBadgeClass(isActive: boolean): string {
     const baseClass = 'px-2 py-1 rounded-full text-xs font-medium ';
     return isActive
-      ? baseClass + 'bg-green-100 text-green-800'
-      : baseClass + 'bg-red-100 text-red-800';
+      ? baseClass + 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+      : baseClass + 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
   }
 
   /**

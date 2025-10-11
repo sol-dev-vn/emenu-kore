@@ -3,13 +3,18 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle, Sun, Moon, Monitor, Menu, ChevronLeft } from 'lucide-react';
+import { Home, Settings, Table as TableIcon, Utensils, Megaphone, History, Building2, Users, Shield, MessageSquare, HelpCircle, User, LogOut, ChevronDown, X, CheckCircle, Sun, Moon, Monitor, Menu, ChevronLeft, Languages } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter, useLocale } from 'next/navigation';
 
 interface BranchItem { id: string; name: string; code: string; display_name?: string; }
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations();
+  const router = useRouter();
+  const locale = useLocale();
   const [branches, setBranches] = useState<BranchItem[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedBranchName, setSelectedBranchName] = useState<string>('None');
