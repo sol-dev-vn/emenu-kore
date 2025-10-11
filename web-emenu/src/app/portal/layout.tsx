@@ -183,11 +183,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           <div className="mt-6">
             <div className="text-xs uppercase text-gray-400 mb-2">Support</div>
             <nav className="flex flex-col gap-1 text-sm">
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="#">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/help-desk">
                 <MessageSquare className="h-4 w-4" />
-                <span>IT Help Desk Chat</span>
+                <span>IT Help Desk</span>
               </a>
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="#">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-white/60 hover:text-black" href="/portal/faq">
                 <HelpCircle className="h-4 w-4" />
                 <span>FAQ</span>
               </a>
