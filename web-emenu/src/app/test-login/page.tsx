@@ -3,12 +3,26 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+declare global {
+  interface Window {
+    reinitializeAuth?: () => Promise<void>;
+    setAuthTokens?: (accessToken: string, refreshToken?: string | null) => void;
+    __authTokens?: { accessToken: string; refreshToken?: string | null };
+  }
+}
+
+interface LoginResponse {
+  success?: boolean;
+  data?: { access_token?: string; refresh_token?: string; expires?: number };
+  error?: string;
+}
+
 export default function TestLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('dev@sol.com.vn');
   const [password, setPassword] = useState('adminuser');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<LoginResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const testLogin = async () => {
@@ -33,7 +47,7 @@ export default function TestLoginPage() {
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
-      const data = await response.json();
+      const data: LoginResponse = await response.json();
       console.log('Response data:', data);
 
       if (!response.ok) {
@@ -42,6 +56,15 @@ export default function TestLoginPage() {
 
       setResult(data);
 
+      // Option B: Set tokens in-memory for frontend Authorization header usage
+      const accessToken = data?.data?.access_token;
+      const refreshToken = data?.data?.refresh_token;
+      if (accessToken) {
+        window.setAuthTokens?.(accessToken, refreshToken);
+        window.__authTokens = { accessToken, refreshToken };
+        console.log('Set in-memory tokens and window.__authTokens');
+      }
+
       // Check cookies after login
       setTimeout(() => {
         console.log('Cookies after login:', document.cookie);
@@ -49,6 +72,12 @@ export default function TestLoginPage() {
         console.log('Has refresh token:', document.cookie.includes('directus_refresh_token'));
         console.log('=== TEST LOGIN END ===');
       }, 100);
+
+      // Trigger auth reinitialize if available
+      if (window.reinitializeAuth) {
+        await window.reinitializeAuth();
+        console.log('Triggered window.reinitializeAuth');
+      }
 
     } catch (err) {
       console.error('Test login error:', err);
@@ -161,10 +190,10 @@ export default function TestLoginPage() {
           <h3 className="font-medium text-blue-800 mb-2">Instructions</h3>
           <ol className="text-sm text-blue-700 space-y-1">
             <li>1. Open browser developer console (F12)</li>
-            <li>2. Click "Test Login" to test the API call</li>
-            <li>3. Click "Check Cookies" to see what cookies are set</li>
-            <li>4. Click "Test Auth Context" to test auth re-initialization</li>
-            <li>5. Click "Go to Debug Page" to check auth state</li>
+            <li>2. Click &quot;Test Login&quot; to test the API call</li>
+            <li>3. Click &quot;Check Cookies&quot; to see what cookies are set</li>
+            <li>4. Click &quot;Test Auth Context&quot; to test auth re-initialization</li>
+            <li>5. Click &quot;Go to Debug Page&quot; to check auth state</li>
             <li>6. Watch console logs for detailed debugging info</li>
           </ol>
         </div>

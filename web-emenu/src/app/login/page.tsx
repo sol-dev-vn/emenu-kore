@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,10 +13,18 @@ import { toast } from 'sonner';
 declare global {
   interface Window {
     reinitializeAuth?: () => Promise<void>;
+    setAuthTokens?: (accessToken: string, refreshToken?: string | null) => void;
+    __authTokens?: { accessToken: string; refreshToken?: string | null };
   }
 }
 
 interface ErrorResponse { error?: string }
+interface LoginResponse {
+  success?: boolean;
+  data?: { access_token?: string; refresh_token?: string; expires?: number };
+  debug?: Record<string, unknown>;
+  error?: string;
+}
 
 function LoginPageContent() {
   const router = useRouter();
@@ -57,11 +65,24 @@ function LoginPageContent() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data: ErrorResponse = await res.json().catch(() => ({}));
+      const data: LoginResponse = await res.json().catch(() => ({} as LoginResponse));
       console.log('Login page - Response:', { status: res.status, data });
 
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid credentials');
+        const errData: ErrorResponse = data || {};
+        throw new Error(errData.error || 'Invalid credentials');
+      }
+
+      // Option B: Set in-memory tokens for Authorization header usage on frontend
+      const accessToken = data?.data?.access_token;
+      const refreshToken = data?.data?.refresh_token;
+      if (accessToken) {
+        console.log('Login page - Setting in-memory tokens via window.setAuthTokens');
+        window.setAuthTokens?.(accessToken, refreshToken);
+        // Persist tokens across navigation for AuthProvider to pick up
+        window.__authTokens = { accessToken, refreshToken };
+      } else {
+        console.warn('Login page - No access_token in response data');
       }
 
       // Check cookies immediately after response

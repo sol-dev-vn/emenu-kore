@@ -23,14 +23,6 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production'
     });
 
-    const response = NextResponse.json({
-      success: true,
-      debug: {
-        tokensReceived: !!access_token && !!refresh_token,
-        env: process.env.NODE_ENV
-      }
-    });
-
     // Enhanced: Handle both localhost and production domains properly
     const host = request.headers.get('host') || '';
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
@@ -69,6 +61,20 @@ export async function POST(request: NextRequest) {
       path: '/',
       maxAge: oneDay,
       domain: cookieDomain || undefined // Let browser handle domain for localhost
+    });
+
+    // Prepare JSON response including tokens for Option B
+    const response = NextResponse.json({
+      success: true,
+      data: {
+        access_token,
+        refresh_token,
+        expires,
+      },
+      debug: {
+        tokensReceived: !!access_token && !!refresh_token,
+        env: process.env.NODE_ENV
+      }
     });
 
     response.cookies.set('directus_access_token', access_token, {
