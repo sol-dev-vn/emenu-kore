@@ -1,6 +1,6 @@
 <script lang="ts">
   export let data: {
-    branches: Array<{ id?: string | number; name?: string; title?: string; description?: string; status?: string }>;
+    branches: Array<{ id?: string | number; name?: string; title?: string; description?: string; status?: string; address?: string }>;
     error?: string | null;
   };
 
@@ -43,7 +43,7 @@
 						<h3 class="text-xl font-semibold text-gray-900 mb-2">
 							{branch.name || branch.title || 'Untitled Branch'}
 						</h3>
-						{#if branch.description}
+						{#if branch.address}
 							<p class="text-gray-600 mb-4">{branch.description}</p>
 						{/if}
 						{#if branch.status}

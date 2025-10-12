@@ -410,7 +410,7 @@ class CukCukSync {
   /**
    * Synchronize menu items from CukCuk to Directus
    */
-  async syncMenuItems() {
+  async syncMenuItems(branchMap = new Map()) {
     const syncType = 'menu_items';
     const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
@@ -506,8 +506,8 @@ class CukCukSync {
         return;
       }
 
-      // Map data
-      const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item');
+      // Map data with branch mapping
+      const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} menu items successfully`);
 
       if (mappingResult.errorCount > 0) {
@@ -667,7 +667,7 @@ class CukCukSync {
   /**
    * Synchronize tables from CukCuk to Directus
    */
-  async syncTables() {
+  async syncTables(branchMap = new Map()) {
     const syncType = 'tables';
     const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
@@ -691,8 +691,8 @@ class CukCukSync {
         return;
       }
 
-      // Map data
-      const mappingResult = this.dataMapper.mapBatch(cukcukTables, 'table');
+      // Map data with branch mapping
+      const mappingResult = this.dataMapper.mapBatch(cukcukTables, 'table', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} tables successfully`);
 
       if (mappingResult.errorCount > 0) {
@@ -797,7 +797,7 @@ class CukCukSync {
   /**
    * Synchronize orders from CukCuk to Directus (last 48 hours only)
    */
-  async syncOrders() {
+  async syncOrders(branchMap = new Map()) {
     const syncType = 'orders';
     const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
@@ -827,8 +827,8 @@ class CukCukSync {
         return;
       }
 
-      // Map data
-      const mappingResult = this.dataMapper.mapBatch(cukcukOrders, 'order');
+      // Map data with branch mapping
+      const mappingResult = this.dataMapper.mapBatch(cukcukOrders, 'order', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} orders successfully`);
 
       if (mappingResult.errorCount > 0) {
@@ -1070,18 +1070,16 @@ class CukCukSync {
     try {
       await this.initialize();
 
-      // Skip branches and tables per temporary disable; remove layouts entirely
-      // const branchMap = await this.syncBranches();
-      const branchMap = new Map();
+      // Enable branch synchronization to build proper branchMap for relations
+      const branchMap = await this.syncBranches();
       await this.syncCategories(branchMap);
 
-      logger.debug('Starting menu_items synchronization (branches disabled, layouts removed)');
+      logger.debug('Starting menu_items synchronization with branch relations enabled');
       await this.syncMenuItems(branchMap);
-      // await this.syncTables(branchMap); // temporarily disabled
-      // await this.syncLayouts(branchMap); // removed per request
+      await this.syncTables(branchMap); // re-enabled tables sync
 
       // Sync orders (last 48 hours only)
-      await this.syncOrders();
+      await this.syncOrders(branchMap);
 
       // Finalize
       this.stats.endTime = new Date();
