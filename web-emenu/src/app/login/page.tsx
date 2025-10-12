@@ -57,7 +57,7 @@ function LoginPageContent() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json().catch(() => ({} as any));
+      const data: ErrorResponse = await res.json().catch(() => ({}));
       console.log('Login page - Response:', { status: res.status, data });
 
       if (!res.ok) {
@@ -73,14 +73,18 @@ function LoginPageContent() {
 
       toast.success('Logged in successfully');
 
-      // Wait a moment for cookies to be set, then trigger auth re-initialization
+      // Trigger auth re-initialize immediately when available
+      if (window.reinitializeAuth) {
+        console.log('Login page - Triggering auth reinitialize (immediate)');
+        window.reinitializeAuth();
+      }
+
+      // Also schedule a short delayed reinitialize to ensure cookies propagate
       setTimeout(() => {
-        console.log('Login page - Triggering auth reinitialize');
-        console.log('Login page - Cookies before reinitialize:', document.cookie);
-        if (window.reinitializeAuth) {
-          window.reinitializeAuth();
-        }
-      }, 100);
+        console.log('Login page - Triggering auth reinitialize (delayed)');
+        console.log('Login page - Cookies before delayed reinitialize:', document.cookie);
+        window.reinitializeAuth?.();
+      }, 150);
 
       const redirect = search.get('redirect') || '/portal';
       router.push(redirect);

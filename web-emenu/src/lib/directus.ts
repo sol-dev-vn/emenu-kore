@@ -165,11 +165,26 @@ class DirectusClient {
 
   // List configured OAuth providers
   async listAuthProviders(): Promise<{ data: string[] }> {
-    // Try modern identity providers endpoint; fallback to empty list on 404
+    const url = `${this.config.url}/auth/oauth`;
     try {
-      return this.request<{ data: string[] }>("/auth/identity-providers", {}, true);
-    } catch (e) {
-      console.warn('Identity providers endpoint not available; OAuth disabled');
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        // Quietly handle 404 (endpoint not available) without logging
+        if (res.status === 404) {
+          return { data: [] };
+        }
+        // For other non-OK statuses, degrade gracefully without throwing
+        return { data: [] };
+      }
+
+      const json = await res.json().catch(() => ({ data: [] }));
+      const providers = Array.isArray(json?.data) ? json.data : [];
+      return { data: providers };
+    } catch {
+      // Network or other error: degrade gracefully without logging an error
       return { data: [] };
     }
   }

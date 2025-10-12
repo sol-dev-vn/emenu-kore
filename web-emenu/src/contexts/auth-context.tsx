@@ -1,5 +1,12 @@
 'use client';
 
+// Augment Window type to avoid using `any` when attaching helpers
+declare global {
+  interface Window {
+    reinitializeAuth?: () => Promise<void>;
+  }
+}
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { directusClient } from '@/lib/directus';
 import type { User as DirectusUser } from '@/lib/directus';
@@ -63,45 +70,63 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Check if we have a valid session
   const checkSession = async (): Promise<boolean> => {
     try {
-      const accessToken = getAccessToken();
-      const refreshToken = getRefreshToken();
+      console.debug('Auth: Checking session via internal API (/api/auth/me)');
 
-      console.debug('Auth: Checking session...');
-      console.debug('Auth: Access token exists:', !!accessToken);
-      console.debug('Auth: Refresh token exists:', !!refreshToken);
-
-      if (!accessToken) {
-        console.warn('Auth: No access token found');
+      // Prefer server-side session validation so we can use HttpOnly cookies
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (res.ok) {
+        const json = await res.json().catch(() => ({ data: null }));
+        if (json && json.data) {
+          console.debug('Auth: /api/auth/me returned user:', json.data.email);
+          setCurrentUser(json.data);
+          return true;
+        }
+        console.warn('Auth: /api/auth/me returned no user data');
         return false;
       }
 
-      // Set the access token on the client
-      directusClient.setAccessToken(accessToken);
-      console.debug('Auth: Set access token on Directus client');
+      if (res.status === 401) {
+        console.warn('Auth: /api/auth/me responded 401 (Unauthorized)');
+        return false;
+      }
 
-      // Try to get current user to validate token
+      // If internal route failed unexpectedly, fall back to client-side token check
+      console.warn('Auth: /api/auth/me failed, falling back to client-side token check');
+    } catch (err) {
+      console.warn('Auth: Error calling /api/auth/me, falling back:', err);
+    }
+
+    // Fallback path: try reading non-HttpOnly cookies (dev-only) and hitting Directus directly
+    try {
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
+
+      console.debug('Auth (fallback): Access token exists:', !!accessToken);
+      console.debug('Auth (fallback): Refresh token exists:', !!refreshToken);
+
+      if (!accessToken) {
+        console.warn('Auth (fallback): No access token found');
+        return false;
+      }
+
+      directusClient.setAccessToken(accessToken);
       const userRes = await directusClient.getCurrentUser();
       if (userRes?.data) {
-        console.debug('Auth: Successfully retrieved user data:', userRes.data.email);
+        console.debug('Auth (fallback): Retrieved user:', userRes.data.email);
         setCurrentUser(userRes.data);
         return true;
       }
-
-      return false;
     } catch (err) {
-      console.warn('Session validation failed:', err);
+      console.warn('Auth (fallback): Session validation failed:', err);
 
-      // If access token is invalid, try to refresh
+      // Try refresh if possible
       const refreshToken = getRefreshToken();
       if (refreshToken) {
         try {
           const refreshRes = await directusClient.refresh(refreshToken);
           if (refreshRes?.data?.access_token) {
-            // Update the access token cookie
             document.cookie = `directus_access_token=${refreshRes.data.access_token}; path=/; max-age=${refreshRes.data.expires}`;
             directusClient.setAccessToken(refreshRes.data.access_token);
-
-            // Try getting user again
             const userRes = await directusClient.getCurrentUser();
             if (userRes?.data) {
               setCurrentUser(userRes.data);
@@ -109,12 +134,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           }
         } catch (refreshErr) {
-          console.warn('Token refresh failed:', refreshErr);
+          console.warn('Auth (fallback): Token refresh failed:', refreshErr);
         }
       }
-
-      return false;
     }
+
+    return false;
   };
 
   // Refresh user data
@@ -150,22 +175,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     setError(null);
 
-    try {
-      // Add delay to ensure cookies are available
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      const isValid = await checkSession();
-      if (!isValid) {
-        setError('No valid session found');
+    const attempt = async () => {
+      try {
+        const isValid = await checkSession();
+        if (!isValid) {
+          setError('No valid session found');
+          setCurrentUser(null);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Authentication re-initialization failed';
+        setError(errorMessage);
         setCurrentUser(null);
+        return false;
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Authentication re-initialization failed';
-      setError(errorMessage);
-      setCurrentUser(null);
-    } finally {
-      setIsLoading(false);
+    };
+
+    // Small retry/backoff to allow HttpOnly cookies to be set by the server
+    // Attempts at ~150ms, ~350ms, ~700ms intervals
+    const delays = [150, 350, 700];
+    let success = false;
+
+    // Initial tiny delay to let cookies propagate
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    for (const delay of delays) {
+      success = await attempt();
+      if (success) break;
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+
+    setIsLoading(false);
   };
 
   // Logout function
@@ -240,6 +281,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => clearInterval(interval);
   }, [currentUser]);
+
+  // Expose reinitializeAuth globally so non-context pages (e.g., login) can trigger it
+  useEffect(() => {
+    window.reinitializeAuth = reinitializeAuth;
+    return () => {
+      try { delete window.reinitializeAuth; } catch { /* noop */ }
+    };
+  }, [reinitializeAuth]);
 
   const value: AuthContextType = {
     currentUser,

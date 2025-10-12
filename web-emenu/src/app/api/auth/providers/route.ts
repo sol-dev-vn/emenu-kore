@@ -6,8 +6,7 @@ export async function GET() {
     const res = await directusClient.listAuthProviders();
     const providers = Array.isArray(res?.data) ? res.data : [];
     return NextResponse.json({ providers });
-  } catch (error) {
-    console.error('List auth providers failed:', error);
+  } catch {
     // Gracefully degrade: return empty list so the login page can render without OAuth buttons
     return NextResponse.json({ providers: [] });
   }
