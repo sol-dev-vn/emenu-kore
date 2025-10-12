@@ -63,7 +63,7 @@ export default function TablesZonesPage() {
       const token = typeof document !== 'undefined'
         ? document.cookie
             .split('; ')
-            .find((row) => row.startsWith('access_token='))
+            .find((row) => row.startsWith('directus_access_token='))
             ?.split('=')[1]
         : undefined;
       if (token) directusClient.setAccessToken(token);
