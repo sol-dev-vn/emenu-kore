@@ -42,32 +42,89 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 
     const external_id = branch.external_id ?? null
 
-    // Fetch menu items belonging to this branch using external_id (legacy fallback)
-    // TODO: Switch back to branch_id once Directus collection schema is updated
-    const menu_items = await directus.request(
-      readItems('menu_items', {
-        filter: external_id ? { external_id: { _eq: external_id } } : undefined,
-        limit: -1,
-        sort: ['sort', 'name']
-      })
-    ).catch(() => [])
+    // Fetch menu items using the new branch_id relationship
+    let menu_items = [];
+    try {
+      console.log(`Fetching menu items for branch ${branch.name} (${branch.id})`);
 
-    // Group menu items by category
-    const menuItemsByCategory = categories.map(category => ({
-      ...category,
-      menu_items: menu_items.filter(item => item.category_id === category.id)
-    })).filter(category => category.menu_items.length > 0)
+      // First try: Get menu items specifically linked to this branch
+      const branch_menu_items = await directus.request(
+        readItems('menu_items', {
+          filter: { branch_id: { _eq: branch.id } },
+          fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
+          limit: -1,
+          sort: ['sort', 'name']
+        })
+      ).catch(() => []);
 
-    // Add uncategorized items if any
-    const uncategorizedItems = menu_items.filter(item => !item.category_id)
-    if (uncategorizedItems.length > 0) {
-      menuItemsByCategory.push({
-        id: 'uncategorized',
-        name: 'Other Items',
-        description: 'Items without category',
-        menu_items: uncategorizedItems
-      })
+      if (branch_menu_items && branch_menu_items.length > 0) {
+        menu_items = branch_menu_items;
+        console.log(`Found ${menu_items.length} branch-specific menu items`);
+      } else {
+        // If no branch-specific items, get all items as fallback
+        console.log('No branch-specific menu items found, showing all menu items as fallback');
+        menu_items = await directus.request(
+          readItems('menu_items', {
+            fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
+            limit: -1,
+            sort: ['sort', 'name']
+          })
+        ).catch(() => []);
+      }
+    } catch (err) {
+      console.error('Error fetching menu items for branch:', err);
+      // Fallback to all menu items
+      menu_items = await directus.request(
+        readItems('menu_items', {
+          fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
+          limit: -1,
+          sort: ['sort', 'name']
+        })
+      ).catch(() => []);
     }
+
+    // Group menu items by category using the new category_id relationship
+    const menuItemsByCategory = [];
+    const categoryMap = new Map();
+
+    // Create a map of categories and their menu items
+    menu_items.forEach(item => {
+      const category = item.category_id;
+      if (category) {
+        if (!categoryMap.has(category.id)) {
+          categoryMap.set(category.id, {
+            id: category.id,
+            name: category.name,
+            description: category.description || `${category.name} menu items`,
+            menu_items: []
+          });
+        }
+        categoryMap.get(category.id).menu_items.push(item);
+      } else {
+        // Items without a category go to "Uncategorized"
+        if (!categoryMap.has('uncategorized')) {
+          categoryMap.set('uncategorized', {
+            id: 'uncategorized',
+            name: 'Uncategorized',
+            description: 'Menu items without a category',
+            menu_items: []
+          });
+        }
+        categoryMap.get('uncategorized').menu_items.push(item);
+      }
+    });
+
+    // Convert map to array and sort by category name
+    categoryMap.forEach(category => {
+      menuItemsByCategory.push(category);
+    });
+
+    // Sort categories: put "Uncategorized" at the end, others alphabetically
+    menuItemsByCategory.sort((a, b) => {
+      if (a.id === 'uncategorized') return 1;
+      if (b.id === 'uncategorized') return -1;
+      return a.name.localeCompare(b.name);
+    });
 
     // Fetch zones for this branch (using external_id fallback due to permissions)
     const zones = await directus.request(

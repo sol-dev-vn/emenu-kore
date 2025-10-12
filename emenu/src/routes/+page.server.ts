@@ -14,34 +14,64 @@ export const load: PageServerLoad = async ({ fetch }) => {
       sort: ['name']
     }));
 
-    // Enhanced branches with counts
+    // Get total menu items count (used as fallback for branches without specific menus)
+    let totalMenuItemsCount = 0;
+    try {
+      const allMenuItems = await directus.request(readItems('menu_items', {
+        limit: -1,
+        fields: ['id']
+      }));
+      totalMenuItemsCount = allMenuItems.length;
+    } catch (err) {
+      console.error('Error getting total menu items count:', err);
+      totalMenuItemsCount = 0;
+    }
+
+    // Enhanced branches with counts using the new branch_id relationship
     const enrichedBranches = await Promise.all(
       branches.map(async (branch) => {
         try {
-          // Count menu items for this branch (using external_id fallback for now)
-          const menuItemsCount = branch.external_id
-            ? await directus.request(readItems('menu_items', {
-                filter: { external_id: { _eq: branch.external_id } },
-                limit: 0,
-                aggregate: { count: '*' }
-              })).then(result => result?.[0]?.count || 0).catch(() => 0)
-            : 0;
+          // Get branch-specific menu items count using the new relationship
+          let menuItemsCount = 0;
+          try {
+            const branchMenuItems = await directus.request(readItems('menu_items', {
+              filter: { branch_id: { _eq: branch.id } },
+              fields: ['id'],
+              limit: -1
+            }));
+            menuItemsCount = branchMenuItems?.length || 0;
+            console.log(`Branch ${branch.name} has ${menuItemsCount} specific menu items`);
+          } catch (err) {
+            console.warn(`Could not get branch-specific menu count for ${branch.name}:`, err);
+            // Fallback to total count if there's an error
+            menuItemsCount = totalMenuItemsCount;
+          }
 
-          // Count categories (global, not branch-specific)
-          const categoriesCount = await directus.request(readItems('categories', {
-            filter: { is_active: { _eq: true } },
-            limit: 0,
-            aggregate: { count: '*' }
-          })).then(result => result?.[0]?.count || 0).catch(() => 0);
+          // Fallback to total count if no branch-specific items found
+          if (menuItemsCount === 0) {
+            menuItemsCount = totalMenuItemsCount;
+          }
 
-          // Count tables for this branch (using external_id fallback for now)
-          const tablesCount = branch.external_id
-            ? await directus.request(readItems('tables', {
-                filter: { external_id: { _eq: branch.external_id } },
-                limit: 0,
-                aggregate: { count: '*' }
-              })).then(result => result?.[0]?.count || 0).catch(() => 0)
-            : 0;
+          // Get categories count (using all categories since they are typically global)
+          let categoriesCount = 0;
+          try {
+            const allCategories = await directus.request(readItems('categories', {
+              filter: { is_active: { _eq: true } },
+              fields: ['id'],
+              limit: -1
+            }));
+            categoriesCount = allCategories?.length || 0;
+          } catch (err) {
+            console.warn(`Could not get categories count:`, err);
+            categoriesCount = 0;
+          }
+
+          // Count tables for this branch using branch.id (proper relationship)
+          const tablesCount = await directus.request(readItems('tables', {
+            filter: { branch_id: { _eq: branch.id } },
+            fields: ['id'],
+            limit: -1
+          })).then(result => result?.length || 0).catch(() => 0);
 
           return {
             ...branch,

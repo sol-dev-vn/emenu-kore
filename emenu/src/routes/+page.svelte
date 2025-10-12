@@ -84,6 +84,7 @@
 										{branch.menu_items_count || 0}
 									</div>
 									<div class="text-xs text-gray-500">Menu Items</div>
+									<div class="text-xs text-gray-500 font-medium">Global Menu</div>
 								</div>
 								<div class="text-center">
 									<div class="text-2xl font-bold text-green-600">
@@ -106,7 +107,7 @@
 							{/if}
 
 							<div class="mt-4 flex items-center text-sm text-blue-600 hover:text-blue-800">
-								<span>View Menu</span>
+								<span>View {branch.menu_items_count || 0} Menu Items</span>
 								<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
 								</svg>
