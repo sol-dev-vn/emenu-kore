@@ -10,8 +10,8 @@
 # Improtant files and folder structure
 - deploy/ecosystem.config.js : PM2 process configuration for API service and CukCuk data collector.
 - api-service: Core Directus installation for Authentication, Admin Portal, and custom plugins | Directus + PostgreSQL.
-- web-emenu: Mobile-responsive eMenu platform with real-time data synchronization | React/Next.js + Cukcuk API.
-- data: Data dictionary, schemas, and documentation.
+- emenu: Mobile-responsive eMenu platform with real-time data synchronization | SvelteKit + Directus API.
+- data: Data dictionary, schemas, and documentation. Cukcuk Data collector sync job.
 - docs: Technical documentation, API specs, deployment guides.
 - docker: Docker Compose configuration for CasaOS existing deployment.
 
