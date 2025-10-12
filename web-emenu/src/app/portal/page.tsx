@@ -19,7 +19,7 @@ interface DashboardStats {
     in_progress: number;
     pending: number;
   };
-  last_sync?: { id: string; status: string; started_at: string; finished_at?: string } | null;
+  last_sync?: { id: string; status: string; started_at: string; completed_at?: string } | null;
 }
 
 export default function PortalDashboard() {
@@ -37,7 +37,7 @@ export default function PortalDashboard() {
           directusClient.count('menu_items'),
           directusClient.count('categories'),
           directusClient.getSyncLogStats(),
-          directusClient.getSyncLogs({ sort: ['-date_created'], limit: 1, fields: ['id','status','started_at','finished_at'] })
+          directusClient.getSyncLogs({ sort: ['-date_created'], limit: 1, fields: ['id','status','started_at','completed_at'] })
         ]);
 
         const lastSyncData: SyncLogItem[] = Array.isArray(lastSyncResult.data) ? (lastSyncResult.data as SyncLogItem[]) : [];
@@ -53,7 +53,7 @@ export default function PortalDashboard() {
             id: lastSyncItem.id,
             status: lastSyncItem.status,
             started_at: lastSyncItem.started_at,
-            finished_at: lastSyncItem.finished_at
+            completed_at: lastSyncItem.completed_at
           } : null
         });
       } catch (e) {
@@ -129,8 +129,8 @@ export default function PortalDashboard() {
                 <div className="mt-2 text-gray-600">
                   Started: {new Date(stats.last_sync.started_at).toLocaleString()}
                 </div>
-                {stats.last_sync.finished_at && (
-                  <div className="text-gray-600">Finished: {new Date(stats.last_sync.finished_at).toLocaleString()}</div>
+                {stats.last_sync.completed_at && (
+                  <div className="text-gray-600">Finished: {new Date(stats.last_sync.completed_at).toLocaleString()}</div>
                 )}
               </div>
             ) : (
@@ -189,5 +189,5 @@ interface SyncLogItem {
   id: string;
   status: string;
   started_at: string;
-  finished_at?: string;
+  completed_at?: string;
 }
