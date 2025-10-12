@@ -7,7 +7,21 @@ export async function GET(request: NextRequest) {
     const refresh_token = url.searchParams.get('refresh_token');
     const redirect = url.searchParams.get('redirect') || '/portal';
 
-    const secure = process.env.NODE_ENV === 'production';
+    const host = request.headers.get('host') || '';
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+    const isProductionDomain = host.includes('sol-menu.alphabits.team') ||
+                             host.includes('kore.sol.com.vn') ||
+                             host.includes('sol-kore.alphabits.team');
+    const secure = (process.env.NODE_ENV === 'production' && !isLocalhost) || isProductionDomain;
+
+    const hostname = host.split(':')[0];
+    let cookieDomain: string | undefined;
+    if (hostname.endsWith('.alphabits.team')) {
+      cookieDomain = '.alphabits.team';
+    } else if (hostname === 'sol.com.vn' || hostname.endsWith('.sol.com.vn')) {
+      cookieDomain = '.sol.com.vn';
+    }
+
     const oneDay = 60 * 60 * 24;
 
     // If tokens are present, set cookies on our domain for session
@@ -19,6 +33,7 @@ export async function GET(request: NextRequest) {
         sameSite: 'lax',
         path: '/',
         maxAge: oneDay,
+        domain: cookieDomain,
       });
       response.cookies.set('directus_refresh_token', refresh_token, {
         httpOnly: true,
@@ -26,6 +41,7 @@ export async function GET(request: NextRequest) {
         sameSite: 'lax',
         path: '/',
         maxAge: oneDay,
+        domain: cookieDomain,
       });
       return response;
     }

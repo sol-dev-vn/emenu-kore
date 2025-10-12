@@ -41,13 +41,23 @@ export async function POST(request: NextRequest) {
     // Set Secure flag for production domains and HTTPS
     const secure = (process.env.NODE_ENV === 'production' && !isLocalhost) || isProductionDomain;
 
+    // Compute cookie domain for cross-subdomain sessions
+    const hostname = host.split(':')[0];
+    let cookieDomain: string | undefined;
+    if (hostname.endsWith('.alphabits.team')) {
+      cookieDomain = '.alphabits.team';
+    } else if (hostname === 'sol.com.vn' || hostname.endsWith('.sol.com.vn')) {
+      cookieDomain = '.sol.com.vn';
+    }
+
     console.log('Login API - Cookie settings:', {
       secure,
       host,
       isLocalhost,
       isProductionDomain,
       env: process.env.NODE_ENV,
-      finalSecure: secure
+      finalSecure: secure,
+      domain: cookieDomain || 'default'
     });
     // Force session to last 1 day regardless of access token expires
     const oneDay = 60 * 60 * 24;
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       path: '/',
       maxAge: oneDay,
-      domain: undefined // Let browser handle domain
+      domain: cookieDomain || undefined // Let browser handle domain for localhost
     });
 
     response.cookies.set('directus_access_token', access_token, {
@@ -67,6 +77,7 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       path: '/',
       maxAge: oneDay,
+      domain: cookieDomain,
     });
 
     response.cookies.set('directus_refresh_token', refresh_token, {
@@ -75,6 +86,7 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       path: '/',
       maxAge: oneDay,
+      domain: cookieDomain,
     });
 
     console.log('Login API - Response ready with cookies');

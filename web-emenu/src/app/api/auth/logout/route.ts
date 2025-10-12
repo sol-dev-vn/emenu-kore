@@ -13,13 +13,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const host = request.headers.get('host') || '';
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+    const isProductionDomain = host.includes('sol-menu.alphabits.team') ||
+                             host.includes('kore.sol.com.vn') ||
+                             host.includes('sol-kore.alphabits.team');
+    const secure = (process.env.NODE_ENV === 'production' && !isLocalhost) || isProductionDomain;
+
+    const hostname = host.split(':')[0];
+    let cookieDomain: string | undefined;
+    if (hostname.endsWith('.alphabits.team')) {
+      cookieDomain = '.alphabits.team';
+    } else if (hostname === 'sol.com.vn' || hostname.endsWith('.sol.com.vn')) {
+      cookieDomain = '.sol.com.vn';
+    }
+
     const response = NextResponse.json({ success: true });
     const opts = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax' as const,
       path: '/',
       maxAge: 0,
+      domain: cookieDomain,
     };
 
     response.cookies.set('directus_access_token', '', opts);
