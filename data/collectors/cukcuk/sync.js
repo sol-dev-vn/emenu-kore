@@ -795,7 +795,7 @@ class CukCukSync {
   }
 
   /**
-   * Synchronize orders from CukCuk to Directus (last 7 days only)
+   * Synchronize orders from CukCuk to Directus (last 48 hours only)
    */
   async syncOrders() {
     const syncType = 'orders';
@@ -811,16 +811,15 @@ class CukCukSync {
     typeStats.startTime = new Date();
 
     try {
-      // Calculate date range for last 7 days
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const dateFrom = sevenDaysAgo.toISOString().split('T')[0];
+      // Calculate date range for last 48 hours
+      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const dateFrom = fortyEightHoursAgo.toISOString().split('T')[0];
 
-      logger.info(`Fetching orders from CukCuk (last 7 days: ${dateFrom} to ${new Date().toISOString().split('T')[0]})`);
+      logger.info(`Fetching orders from CukCuk (last 48 hours: ${dateFrom} to ${new Date().toISOString().split('T')[0]})`);
 
       // Fetch orders from CukCuk with date filter
       const cukcukOrders = await this.apiClient.getCukCukOrders(dateFrom);
-      logger.info(`Found ${cukcukOrders.length} orders in CukCuk (last 7 days)`);
+      logger.info(`Found ${cukcukOrders.length} orders in CukCuk (last 48 hours)`);
 
       if (cukcukOrders.length === 0) {
         logger.warn('No orders found to sync');
@@ -908,7 +907,7 @@ class CukCukSync {
       typeStats.duration = Math.round(duration / 1000);
 
       logger.syncSuccess('Orders', typeStats);
-      logger.info(`Orders sync completed in ${Math.round(duration / 1000)}s (last 7 days)`);
+      logger.info(`Orders sync completed in ${Math.round(duration / 1000)}s (last 48 hours)`);
 
       // Create sync log with session information
       const sessionStats = this.sessionLogger.getStats();
@@ -1081,7 +1080,7 @@ class CukCukSync {
       // await this.syncTables(branchMap); // temporarily disabled
       // await this.syncLayouts(branchMap); // removed per request
 
-      // Sync orders (last 7 days only)
+      // Sync orders (last 48 hours only)
       await this.syncOrders();
 
       // Finalize

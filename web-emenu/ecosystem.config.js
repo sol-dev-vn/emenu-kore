@@ -1,13 +1,16 @@
 // PM2 Ecosystem Configuration for SOL eMenu Web Application
 // Production and development environment configuration
 
+const WEB_EMENU_DIR = __dirname;
+const ROOT_DIR = __dirname + '/..';
+
 module.exports = {
   apps: [
     {
       name: 'web-emenu',
       script: 'npm',
       args: 'start',
-      cwd: '/Users/dev/code/emenu-kore/web-emenu',
+      cwd: WEB_EMENU_DIR,
 
       // Environment Configuration
       env: {
@@ -35,9 +38,9 @@ module.exports = {
       max_memory_restart: '512M',
 
       // Logging Configuration
-      log_file: '/Users/dev/code/emenu-kore/logs/web-emenu.log',
-      out_file: '/Users/dev/code/emenu-kore/logs/web-emenu-out.log',
-      error_file: '/Users/dev/code/emenu-kore/logs/web-emenu-error.log',
+      log_file: WEB_EMENU_DIR + '/web-emenu.log',
+      out_file: WEB_EMENU_DIR + '/web-emenu-out.log',
+      error_file: WEB_EMENU_DIR + '/web-emenu-error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
 
       // Application Configuration
@@ -79,7 +82,7 @@ module.exports = {
       name: 'cukcuk-sync',
       script: 'node',
       args: 'data/collectors/cukcuk/sync.js',
-      cwd: '/Users/dev/code/emenu-kore',
+      cwd: ROOT_DIR,
 
       // Environment Configuration
       env: {
@@ -101,9 +104,9 @@ module.exports = {
       max_memory_restart: '256M',
 
       // Logging Configuration
-      log_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync.log',
-      out_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync-out.log',
-      error_file: '/Users/dev/code/emenu-kore/logs/cukcuk-sync-error.log',
+      log_file: ROOT_DIR + '/cukcuk-sync.log',
+      out_file: ROOT_DIR + '/cukcuk-sync-out.log',
+      error_file: ROOT_DIR + '/cukcuk-sync-error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
 
       // Application Configuration
