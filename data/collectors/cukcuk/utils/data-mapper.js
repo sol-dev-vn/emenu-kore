@@ -269,8 +269,8 @@ class DataMapper {
 
       // Map branch relation using branch external ID to primary key
       if (cukcukMenuItem.BranchId && branchMap.has(cukcukMenuItem.BranchId)) {
-        menuItem.branch_relation = branchMap.get(cukcukMenuItem.BranchId);
-        logger.debug(`Mapped menu item ${menuItem.name} to branch ID: ${menuItem.branch_relation}`);
+        menuItem.branch_id = branchMap.get(cukcukMenuItem.BranchId);
+        logger.debug(`Mapped menu item ${menuItem.name} to branch ID: ${menuItem.branch_id}`);
       }
 
       // Map category relationship using category external ID to primary key
@@ -340,6 +340,12 @@ class DataMapper {
         sync_status: 'synced',
         last_sync_at: new Date().toISOString()
       };
+
+      // Map branch relation using branch external ID to primary key
+      if (cukcukTable.BranchId && branchMap.has(cukcukTable.BranchId)) {
+        table.branch_relation = branchMap.get(cukcukTable.BranchId);
+        logger.debug(`Mapped table ${table.name} to branch ID: ${table.branch_relation}`);
+      }
 
       // Store branch info for display purposes
       if (cukcukTable.BranchId && branchMap.has(cukcukTable.BranchId)) {

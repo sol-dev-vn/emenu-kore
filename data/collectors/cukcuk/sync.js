@@ -520,6 +520,8 @@ class CukCukSync {
         return;
       }
 
+      logger.info(`Processing menu items per branch with branch mapping (${branchMap.size} branches mapped, ${categoryMap.size} categories mapped)`);
+
       // Map data with branch and category mapping
       const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item', branchMap, categoryMap);
       logger.info(`Mapped ${mappingResult.successCount} menu items successfully`);
@@ -553,7 +555,7 @@ class CukCukSync {
             });
 
             this.updateStats(syncType, 'updated');
-            logger.debug(`Updated menu item: ${menuItemData.name}`);
+            logger.debug(`Updated menu item: ${menuItemData.name} (branch_id: ${menuItemData.branch_id || 'none'}, category_id: ${menuItemData.category_id || 'none'})`);
           } else {
             // Create new menu item with sync status
             const createData = {
@@ -563,7 +565,7 @@ class CukCukSync {
             };
             await this.apiClient.createDirectusItem('menu_items', createData);
             this.updateStats(syncType, 'created');
-            logger.debug(`Created menu item: ${menuItemData.name}`);
+            logger.debug(`Created menu item: ${menuItemData.name} (branch_id: ${menuItemData.branch_id || 'none'}, category_id: ${menuItemData.category_id || 'none'})`);
           }
 
           processed++;
@@ -705,6 +707,8 @@ class CukCukSync {
         return;
       }
 
+      logger.info(`Processing tables per branch with branch mapping (${branchMap.size} branches mapped)`);
+
       // Map data with branch mapping
       const mappingResult = this.dataMapper.mapBatch(cukcukTables, 'table', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} tables successfully`);
@@ -738,7 +742,7 @@ class CukCukSync {
             });
 
             this.updateStats(syncType, 'updated');
-            logger.debug(`Updated table: ${tableData.name}`);
+            logger.debug(`Updated table: ${tableData.name} (branch_relation: ${tableData.branch_relation || 'none'})`);
           } else {
             // Create new table with sync status
             const createData = {
@@ -748,7 +752,7 @@ class CukCukSync {
             };
             await this.apiClient.createDirectusItem('tables', createData);
             this.updateStats(syncType, 'created');
-            logger.debug(`Created table: ${tableData.name}`);
+            logger.debug(`Created table: ${tableData.name} (branch_relation: ${tableData.branch_relation || 'none'})`);
           }
 
           processed++;

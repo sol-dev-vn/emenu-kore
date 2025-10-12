@@ -42,45 +42,28 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 
     const external_id = branch.external_id ?? null
 
-    // Fetch menu items using the new branch_id relationship
+    // Fetch menu items for this specific branch only
     let menu_items = [];
     try {
       console.log(`Fetching menu items for branch ${branch.name} (${branch.id})`);
 
-      // First try: Get menu items specifically linked to this branch
-      const branch_menu_items = await directus.request(
+      // Get menu items specifically linked to this branch
+      menu_items = await directus.request(
         readItems('menu_items', {
           filter: { branch_id: { _eq: branch.id } },
           fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
           limit: -1,
           sort: ['sort', 'name']
         })
-      ).catch(() => []);
+      ).catch(() => {
+        console.error(`Failed to fetch menu items for branch ${branch.id}`);
+        return [];
+      });
 
-      if (branch_menu_items && branch_menu_items.length > 0) {
-        menu_items = branch_menu_items;
-        console.log(`Found ${menu_items.length} branch-specific menu items`);
-      } else {
-        // If no branch-specific items, get all items as fallback
-        console.log('No branch-specific menu items found, showing all menu items as fallback');
-        menu_items = await directus.request(
-          readItems('menu_items', {
-            fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
-            limit: -1,
-            sort: ['sort', 'name']
-          })
-        ).catch(() => []);
-      }
+      console.log(`Found ${menu_items.length} menu items for branch ${branch.name}`);
     } catch (err) {
       console.error('Error fetching menu items for branch:', err);
-      // Fallback to all menu items
-      menu_items = await directus.request(
-        readItems('menu_items', {
-          fields: ['*', { category_id: ['*', 'name', 'code'] }, { branch_id: ['*', 'name', 'code'] }],
-          limit: -1,
-          sort: ['sort', 'name']
-        })
-      ).catch(() => []);
+      menu_items = [];
     }
 
     // Group menu items by category using the new category_id relationship
@@ -126,19 +109,20 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
       return a.name.localeCompare(b.name);
     });
 
-    // Fetch zones for this branch (using external_id fallback due to permissions)
+    // Fetch zones for this branch only
     const zones = await directus.request(
       readItems('zones', {
-        filter: external_id ? { external_id: { _eq: external_id } } : { branch_id: { _eq: id } },
+        filter: { branch_id: { _eq: id } },
         limit: -1,
         sort: ['sort', 'name']
       })
     ).catch(() => [])
 
-    // Fetch tables for this branch (using external_id fallback due to permissions)
+    // Fetch tables for this branch only
     const tables = await directus.request(
       readItems('tables', {
-        filter: external_id ? { external_id: { _eq: external_id } } : { branch_id: { _eq: id } },
+        filter: { branch_relation: { _eq: id } },
+        fields: ['*', { branch_relation: ['*', 'name', 'code'] }],
         limit: -1,
         sort: ['name']
       })

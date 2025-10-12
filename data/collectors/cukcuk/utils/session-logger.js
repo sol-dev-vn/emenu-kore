@@ -19,6 +19,10 @@ class SessionLogger {
     this.buffer = [];
     this.isEnabled = options.enabled !== false;
     this.syncLogId = null;
+    this.fileBuffer = [];
+    this.bufferSize = options.bufferSize || 100; // Write every 100 entries
+    this.writeInterval = options.writeInterval || 5000; // Or every 5 seconds
+    this.lastWrite = Date.now();
     this.originalConsole = {
       log: console.log,
       error: console.error,
@@ -116,21 +120,38 @@ class SessionLogger {
     };
 
     this.buffer.push(logEntry);
+    this.fileBuffer.push(logEntry);
 
-    // Also write to file immediately for safety
-    this.writeToFile(logEntry);
+    // Write to file when buffer is full or interval has passed
+    const now = Date.now();
+    if (this.fileBuffer.length >= this.bufferSize || (now - this.lastWrite) >= this.writeInterval) {
+      this.flushBuffer();
+    }
+  }
+
+  async flushBuffer() {
+    if (!this.isEnabled || this.fileBuffer.length === 0) return;
+
+    try {
+      const logLines = this.fileBuffer.map(entry =>
+        `[${entry.timestamp}] [${entry.level.toUpperCase()}] ${entry.message}\n`
+      ).join('');
+
+      await fs.appendFile(this.getLogFilePath(), logLines, 'utf8');
+      this.fileBuffer = [];
+      this.lastWrite = Date.now();
+    } catch (error) {
+      // Fallback to original console if file writing fails
+      this.originalConsole.error('Failed to write to session log file:', error.message);
+    }
   }
 
   async writeToFile(logEntry) {
     if (!this.isEnabled) return;
 
-    try {
-      const logLine = `[${logEntry.timestamp}] [${logEntry.level.toUpperCase()}] ${logEntry.message}\n`;
-      await fs.appendFile(this.getLogFilePath(), logLine, 'utf8');
-    } catch (error) {
-      // Fallback to original console if file writing fails
-      this.originalConsole.error('Failed to write to session log file:', error.message);
-    }
+    // For backwards compatibility, but this method should rarely be called now
+    this.fileBuffer.push(logEntry);
+    await this.flushBuffer();
   }
 
   /**
@@ -238,6 +259,9 @@ class SessionLogger {
     ];
 
     footer.forEach(line => this.capture('log', line));
+
+    // Flush any remaining buffer
+    await this.flushBuffer();
 
     // Restore original console methods
     Object.assign(console, this.originalConsole);

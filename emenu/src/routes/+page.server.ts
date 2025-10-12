@@ -9,9 +9,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
     .with(rest());
 
   try {
-    // Fetch branches with basic info
+    // Fetch branches with basic info and brand information
     const branches = await directus.request(readItems('branches', {
-      sort: ['name']
+      sort: ['name'],
+      fields: ['*', 'brand_id']
     }));
 
     // Get total menu items count (used as fallback for branches without specific menus)
@@ -43,13 +44,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
             console.log(`Branch ${branch.name} has ${menuItemsCount} specific menu items`);
           } catch (err) {
             console.warn(`Could not get branch-specific menu count for ${branch.name}:`, err);
-            // Fallback to total count if there's an error
-            menuItemsCount = totalMenuItemsCount;
-          }
-
-          // Fallback to total count if no branch-specific items found
-          if (menuItemsCount === 0) {
-            menuItemsCount = totalMenuItemsCount;
+            menuItemsCount = 0;
           }
 
           // Get categories count (using all categories since they are typically global)
@@ -66,9 +61,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
             categoriesCount = 0;
           }
 
-          // Count tables for this branch using branch.id (proper relationship)
+          // Count tables for this branch using branch_relation field
           const tablesCount = await directus.request(readItems('tables', {
-            filter: { branch_id: { _eq: branch.id } },
+            filter: { branch_relation: { _eq: branch.id } },
             fields: ['id'],
             limit: -1
           })).then(result => result?.length || 0).catch(() => 0);
