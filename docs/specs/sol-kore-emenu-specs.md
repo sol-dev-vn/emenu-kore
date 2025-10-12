@@ -264,7 +264,7 @@ const generateQRCode = (tableId, options = {}) => {
 **Root path landing page providing elegant entry point to the SOL eMenu system**
 
 #### Visual Design ✅
-- **SOL Branding**: Full SOL logo prominently displayed (`web-emenu/public/logo_full.png`)
+- **SOL Branding**: Full SOL logo prominently displayed
 - **Clean Layout**: Minimalist design with focus on ease of use
 - **Responsive Design**: Optimized for mobile and tablet devices
 - **Loading States**: Smooth transitions and loading animations
@@ -284,13 +284,6 @@ const generateQRCode = (tableId, options = {}) => {
 2. **Primary Action**: "Scan QR Code" button opens camera interface
 3. **Direct Navigation**: Automatic redirect to menu upon successful scan
 4. **Error Handling**: Graceful handling of camera permissions and invalid QR codes
-
-#### Technical Implementation ✅
-- **Framework**: Next.js 15 with React 19 and TypeScript
-- **UI Components**: shadcn/ui with Radix UI primitives
-- **State Management**: React hooks for scanner state and language
-- **Animations**: Custom fade-in and slide-up animations
-- **Responsive**: Mobile-first design with Tailwind CSS v4
 
 #### Multi-language Support 🚧 **IN PROGRESS**
 **Expanding language support for international customers**

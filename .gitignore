@@ -139,3 +139,24 @@ junit.xml
 *.backup
 *.bak
 *.old
+
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# Paraglide
+src/lib/paraglide
+
+# SQLite
+*.db
+
+*storybook.log
+storybook-static
+project.inlang
+
+web-emenu/

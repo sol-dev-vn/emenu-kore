@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="%paraglide.lang%">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<!-- Enhanced Favicon and App Icons -->
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+		<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+
+		<!-- Global SEO Defaults -->
+		<meta name="robots" content="index, follow" />
+		<meta name="googlebot" content="index, follow" />
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="theme-color" content="#6366f1" />
+		<meta name="msapplication-TileColor" content="#6366f1" />
+
+		%sveltekit.head%
+
+		<!-- Theme initialization script to prevent flash of unstyled content -->
+		<script>
+			(function () {
+				function getSystemTheme() {
+					return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+
+				function resolveTheme(mode) {
+					if (mode === 'auto') {
+						return getSystemTheme();
+					}
+					return mode;
+				}
+
+				const stored = localStorage.getItem('theme-mode');
+				const themeMode =
+					stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
+				const resolvedTheme = resolveTheme(themeMode);
+
+				if (resolvedTheme === 'dark') {
+					document.documentElement.classList.add('dark');
+				}
+			})();
+		</script>
+
+		<script type="text/javascript">
+			(function (m, e, t, r, i, k, a) {
+				m[i] =
+					m[i] ||
+					function () {
+						(m[i].a = m[i].a || []).push(arguments);
+					};
+				m[i].l = 1 * new Date();
+				for (var j = 0; j < document.scripts.length; j++) {
+					if (document.scripts[j].src === r) {
+						return;
+					}
+				}
+				((k = e.createElement(t)),
+					(a = e.getElementsByTagName(t)[0]),
+					(k.async = 1),
+					(k.src = r),
+					a.parentNode.insertBefore(k, a));
+			})(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=104082211', 'ym');
+			ym(104082211, 'init', {
+				ssr: true,
+				webvisor: true,
+				clickmap: true,
+				ecommerce: 'dataLayer',
+				accurateTrackBounce: true,
+				trackLinks: true
+			});
+		</script>
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<noscript
+			><div>
+				<img
+					src="https://mc.yandex.ru/watch/104082211"
+					style="position: absolute; left: -9999px"
+					alt=""
+				/></div
+		></noscript>
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
