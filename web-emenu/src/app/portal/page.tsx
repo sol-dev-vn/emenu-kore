@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
+import { directusClient } from '@/lib/directus';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,31 @@ export default function PortalDashboard() {
     async function loadStats() {
       try {
         setLoading(true);
-        const res = await fetch('/api/dashboard');
-        const json = await res.json();
-        setStats(json?.data || null);
+        const [branchesCount, tablesCount, menuItemsCount, categoriesCount, syncStats, lastSyncResult] = await Promise.all([
+          directusClient.count('branches'),
+          directusClient.count('tables'),
+          directusClient.count('menu_items'),
+          directusClient.count('categories'),
+          directusClient.getSyncLogStats(),
+          directusClient.getSyncLogs({ sort: ['-date_created'], limit: 1, fields: ['id','status','started_at','finished_at'] })
+        ]);
+
+        const lastSyncData: SyncLogItem[] = Array.isArray(lastSyncResult.data) ? (lastSyncResult.data as SyncLogItem[]) : [];
+        const lastSyncItem: SyncLogItem | null = lastSyncData.length > 0 ? lastSyncData[0] : null;
+
+        setStats({
+          branches: branchesCount,
+          tables: tablesCount,
+          menu_items: menuItemsCount,
+          categories: categoriesCount,
+          sync_stats: syncStats,
+          last_sync: lastSyncItem ? {
+            id: lastSyncItem.id,
+            status: lastSyncItem.status,
+            started_at: lastSyncItem.started_at,
+            finished_at: lastSyncItem.finished_at
+          } : null
+        });
       } catch (e) {
         setError('Failed to load dashboard stats');
       } finally {
@@ -153,4 +176,11 @@ export default function PortalDashboard() {
       </div>
     </div>
   );
+}
+
+interface SyncLogItem {
+  id: string;
+  status: string;
+  started_at: string;
+  finished_at?: string;
 }

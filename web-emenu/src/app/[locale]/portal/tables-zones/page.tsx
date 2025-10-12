@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { directusClient } from '@/lib/directus';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,23 +59,43 @@ export default function TablesZonesPage() {
 
   const loadTables = async () => {
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '100',
+      // Read access token from cookie and set for Directus client
+      const token = typeof document !== 'undefined'
+        ? document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('directus_access_token='))
+            ?.split('=')[1]
+        : undefined;
+      if (token) directusClient.setAccessToken(token);
+
+      const filter: Record<string, unknown> = {};
+      if (zoneFilter) filter.zone_name = { _eq: zoneFilter };
+      if (searchQuery) filter.name = { _icontains: searchQuery };
+      if (activeFilter) filter.is_active = { _eq: activeFilter === 'true' };
+
+      const result = await directusClient.getItems<TableItem>('tables', {
+        page,
+        limit: 100,
+        sort: ['zone_name', 'name'],
+        filter,
+        fields: [
+          'id', 'name', 'code', 'description', 'zone_id', 'zone_name', 'capacity',
+          'table_type', 'shape', 'position_x', 'position_y', 'width', 'height', 'rotation',
+          'is_mergeable', 'is_reserved', 'is_available', 'is_active', 'branch_id', 'external_id',
+          'external_source', 'sync_status', 'created_at', 'updated_at'
+        ],
       });
 
-      if (zoneFilter) params.append('zone', zoneFilter);
-      if (searchQuery) params.append('search', searchQuery);
-      if (activeFilter) params.append('active', activeFilter);
+      setTables(result.data || []);
 
-      const res = await fetch(`/api/tables?${params}`);
-      const json = await res.json();
-      if (json.success) {
-        setTables(json.data || []);
-        setZones(json.zones || []);
-      } else {
-        setError(json.error || 'Failed to load tables');
-      }
+      // Fetch unique zones for filtering
+      const zonesResult = await directusClient.getItems<{ zone_name: string }>('tables', {
+        fields: ['zone_name'],
+        filter: { zone_name: { _nnull: true } },
+        groupBy: ['zone_name'],
+      });
+      const uniqueZones = (zonesResult.data || []).map(z => z.zone_name).filter(Boolean);
+      setZones(uniqueZones);
     } catch (e) {
       setError('Failed to load tables');
     }

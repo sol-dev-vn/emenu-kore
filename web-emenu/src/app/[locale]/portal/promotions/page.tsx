@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { directusClient } from '@/lib/directus';
 
 interface Promotion {
   id: string;
@@ -42,22 +43,61 @@ export default function PromotionsPage() {
 
   const loadPromotions = async () => {
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '20',
+      // Read access token from cookie and set for Directus client
+      const token = typeof document !== 'undefined'
+        ? document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('directus_access_token='))
+            ?.split('=')[1]
+        : undefined;
+      if (token) directusClient.setAccessToken(token);
+
+      const filter: Record<string, unknown> = {};
+      if (activeFilter) {
+        filter.is_active = { _eq: activeFilter === 'true' };
+      }
+      if (typeFilter) {
+        filter.type = { _eq: typeFilter };
+      }
+      if (searchQuery) {
+        filter._or = [
+          { name: { _icontains: searchQuery } },
+          { code: { _icontains: searchQuery } },
+          { description: { _icontains: searchQuery } },
+        ];
+      }
+
+      const result = await directusClient.getItems<Promotion>('promotions', {
+        page,
+        limit: 20,
+        sort: ['-start_date', 'name'],
+        filter,
+        fields: [
+          'id',
+          'name',
+          'code',
+          'description',
+          'type',
+          'discount_value',
+          'minimum_amount',
+          'start_date',
+          'end_date',
+          'is_active',
+          'applicable_items',
+          'applicable_categories',
+          'usage_limit',
+          'usage_count',
+          'image_url',
+          'branch_id',
+          'external_source',
+          'external_id',
+          'sync_status',
+          'created_at',
+          'updated_at',
+        ],
       });
 
-      if (searchQuery) params.append('search', searchQuery);
-      if (activeFilter) params.append('active', activeFilter);
-      if (typeFilter) params.append('type', typeFilter);
-
-      const res = await fetch(`/api/promotions?${params}`);
-      const json = await res.json();
-      if (json.success) {
-        setPromotions(json.data || []);
-      } else {
-        setError(json.error || 'Failed to load promotions');
-      }
+      setPromotions(result.data || []);
     } catch (e) {
       setError('Failed to load promotions');
     }

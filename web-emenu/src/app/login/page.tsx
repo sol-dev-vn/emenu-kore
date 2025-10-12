@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+// Removed directusClient import; using internal API routes only
 
 interface ErrorResponse { error?: string }
 
@@ -18,9 +19,18 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<string[]>([]);
   const [resetLoading, setResetLoading] = useState(false);
+  const [isMobilePhone, setIsMobilePhone] = useState(false);
 
   useEffect(() => {
-    // Load available OAuth providers
+    // Detect mobile phones and restrict login UI
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const isPhoneUA = /iPhone|Android(.+)Mobile|Windows Phone|IEMobile|BlackBerry|Opera Mini/i.test(ua);
+    const isSmallViewport = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false;
+    setIsMobilePhone(isPhoneUA && isSmallViewport);
+  }, []);
+
+  useEffect(() => {
+    // Load available OAuth providers via internal API (gracefully handles absence)
     fetch('/api/auth/providers')
       .then((res) => res.json())
       .then((data) => {
@@ -42,6 +52,7 @@ function LoginPageContent() {
         const data: ErrorResponse = await res.json().catch(() => ({} as ErrorResponse));
         throw new Error(data.error || 'Invalid credentials');
       }
+
       toast.success('Logged in successfully');
       const redirect = search.get('redirect') || '/portal';
       router.push(redirect);
@@ -76,6 +87,31 @@ function LoginPageContent() {
     }
   }
 
+  const handleSSO = (provider: string) => {
+    // Use internal API route to start OAuth and handle callback cookie setting
+    router.push(`/api/auth/oauth/${encodeURIComponent(provider)}`);
+  };
+
+  if (isMobilePhone) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md shadow-sm">
+          <CardHeader>
+            <CardTitle>Portal Not Available on Mobile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">
+              This portal is designed for tablets and desktops. Please use a larger screen device to sign in and manage your restaurant.
+            </p>
+            <div className="mt-4">
+              <Button variant="outline" onClick={() => router.push('/')}>Go to Home</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar - Pre-auth */}
@@ -95,11 +131,11 @@ function LoginPageContent() {
           <div className="mt-4">
             <div className="text-xs uppercase text-gray-400 mb-2">Quick Links</div>
             <div className="flex flex-col gap-1 text-sm">
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-white/60 hover:text-black" href="#">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg:white/60 hover:text-black" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4"/><path d="M3 15a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4"/><path d="M7 11V7a5 5 0 1 1 10 0v4"/></svg>
                 <span>Support</span>
               </a>
-              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-white/60 hover:text-black" href="#">
+              <a className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg:white/60 hover:text:black" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10a9 9 0 1 1-18 0"/><path d="M12 6v6l4 2"/></svg>
                 <span>Contact</span>
               </a>
@@ -144,7 +180,7 @@ function LoginPageContent() {
               </div>
             </form>
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex items:center justify-between">
               <Button variant="link" type="button" onClick={handleForgotPassword} disabled={resetLoading}>
                 {resetLoading ? 'Sending...' : 'Forgot Password?'}
               </Button>
@@ -155,7 +191,7 @@ function LoginPageContent() {
                 <div className="text-sm text-gray-600 mb-2">Or sign in with</div>
                 <div className="flex flex-wrap gap-2">
                   {providers.map((p) => (
-                    <Button key={p} variant="outline" type="button" onClick={() => router.push(`/api/auth/oauth/${p}`)}>
+                    <Button key={p} variant="outline" type="button" onClick={() => handleSSO(p)}>
                       {p}
                     </Button>
                   ))}

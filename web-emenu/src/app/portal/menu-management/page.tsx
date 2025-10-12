@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { directusClient } from '@/lib/directus';
 
 interface MenuItem {
   id: number;
@@ -66,24 +67,52 @@ export default function MenuManagementPage() {
     );
   };
 
+  const getCookie = (name: string): string | undefined => {
+    if (typeof document === 'undefined') return undefined;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : undefined;
+  };
+
   const loadMenuItems = async () => {
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '20',
+      const token = getCookie('access_token');
+      if (token) directusClient.setAccessToken(token);
+
+      const filter: Record<string, unknown> = {};
+      if (categoryFilter) filter.category_name = { _eq: categoryFilter };
+      if (searchQuery) filter.name = { _icontains: searchQuery };
+      if (activeFilter) filter.is_active = { _eq: activeFilter === 'true' };
+
+      const result = await directusClient.getItems('menu_items', {
+        page,
+        limit: 20,
+        sort: ['name'],
+        filter,
+        fields: [
+          'id',
+          'name',
+          'code',
+          'description',
+          'price',
+          'category_name',
+          'category_code',
+          'unit_name',
+          'is_active',
+          'is_available',
+          'image_url',
+          'track_inventory',
+          'allergen_info',
+          'dietary_restrictions',
+          'preparation_time',
+          'spice_level',
+          'external_id',
+          'sync_status',
+          'created_at',
+          'updated_at'
+        ]
       });
 
-      if (categoryFilter) params.append('category', categoryFilter);
-      if (searchQuery) params.append('search', searchQuery);
-      if (activeFilter) params.append('active', activeFilter);
-
-      const res = await fetch(`/api/menu-items?${params}`);
-      const json = await res.json();
-      if (json.success) {
-        setMenuItems(json.data || []);
-      } else {
-        setError(json.error || 'Failed to load menu items');
-      }
+      setMenuItems((result.data || []) as MenuItem[]);
     } catch (e) {
       setError('Failed to load menu items');
     }
@@ -91,11 +120,14 @@ export default function MenuManagementPage() {
 
   const loadCategories = async () => {
     try {
-      const res = await fetch('/api/categories');
-      const json = await res.json();
-      if (json.success) {
-        setCategories(json.data || []);
-      }
+      const token = getCookie('access_token');
+      if (token) directusClient.setAccessToken(token);
+
+      const result = await directusClient.getItems('categories', {
+        sort: ['name'],
+        fields: ['id', 'name', 'code', 'is_active']
+      });
+      setCategories((result.data || []) as Category[]);
     } catch (e) {
       console.error('Failed to load categories:', e);
     }
@@ -510,15 +542,15 @@ export default function MenuManagementPage() {
                               <div className="font-medium text-gray-900 truncate">
                                 {item.name}
                               </div>
-                              {item.spice_level && (
+                              {typeof item.spice_level === 'number' && (
                                 <div className="flex items-center mt-1">
                                   <span className="text-xs">Spice: </span>
                                   <div className="flex ml-1">
-                                    {[...Array(5)].map((_, i) => (
+                                    {Array.from({ length: 5 }).map((_, i) => (
                                       <div
                                         key={i}
                                         className={`w-1.5 h-1.5 rounded-full mx-px ${
-                                          i < item.spice_level ? 'bg-red-500' : 'bg-gray-300'
+                                          i < (item.spice_level ?? 0) ? 'bg-red-500' : 'bg-gray-300'
                                         }`}
                                       />
                                     ))}
