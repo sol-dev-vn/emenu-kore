@@ -18,7 +18,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     setMounted(true);
   }, []);
-
   const [branches, setBranches] = useState<BranchItem[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedBranchName, setSelectedBranchName] = useState<string>('None');
@@ -29,6 +28,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const [deliveryQueueCollapsed, setDeliveryQueueCollapsed] = useState(true);
   const pathname = usePathname();
 
+  // Remove conditional early return; gate content in JSX instead
   // Auto-collapse sidebar when on Live Dashboard
   useEffect(() => {
     setIsSidebarCollapsed(pathname === '/portal/visual-tables');
@@ -36,11 +36,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   async function handleLogout() {
     try {
+      // Read refresh token from cookie
       const match = document.cookie.match(/(?:^|; )directus_refresh_token=([^;]+)/);
       const refreshToken = match ? decodeURIComponent(match[1]) : '';
       if (refreshToken) {
         await directusClient.logout(refreshToken);
       }
+      // Clear auth cookies
       document.cookie = 'directus_access_token=; path=/; max-age=0';
       document.cookie = 'directus_refresh_token=; path=/; max-age=0';
     } catch (e) {
@@ -65,14 +67,17 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     async function loadData() {
       try {
+        // Load theme
         loadTheme();
 
+        // Read and set access token from cookie for client-side Directus calls
         const tokenMatch = document.cookie.match(/(?:^|; )directus_access_token=([^;]+)/);
         const accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
         if (accessToken) {
           directusClient.setAccessToken(accessToken);
         }
 
+        // Load current user via Directus
         try {
           const userRes = await directusClient.getCurrentUser();
           if (userRes?.data) {
@@ -82,6 +87,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           console.warn('Failed to load current user:', err);
         }
 
+        // Load branches via Directus
         try {
           const res = await directusClient.getBranches();
           const list: BranchItem[] = Array.isArray(res?.data)
@@ -98,6 +104,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       }
     }
     loadData();
+    // Also read cookie on focus to reflect external changes
     const onFocus = () => readSelectedBranchCookie();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
@@ -110,18 +117,21 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   async function handleBranchSelect(branchId: string) {
     try {
+      // Store in local storage for persistence
       if (branchId === 'none') {
         localStorage.setItem('selected_branch', 'none');
-        document.cookie = 'selected_branch=none; path=/; max-age=31536000';
+        document.cookie = 'selected_branch=none; path=/; max-age=31536000'; // 1 year
         setSelectedBranchId(null);
         setSelectedBranchName('None');
       } else {
         localStorage.setItem('selected_branch', branchId);
-        document.cookie = `selected_branch=${branchId}; path=/; max-age=31536000`;
+        document.cookie = `selected_branch=${branchId}; path=/; max-age=31536000`; // 1 year
         setSelectedBranchId(branchId);
         const br = branches.find(b => b.id === branchId);
         setSelectedBranchName(br ? `${br.display_name || br.name} (${br.code})` : branchId);
       }
+
+      // No server-side impersonation call needed; cookie/localStorage controls branch selection
     } catch (e) {
       console.error('Failed to set selected branch:', e);
     }
@@ -345,12 +355,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   </div>
                 </div>
               </div>
-          </aside>
++             </div>
+           </aside>
 
-          {/* Main content */}
-          <main className={`${isSidebarCollapsed ? 'ml-16' : 'ml-72'} flex-1`}>
-            {children}
-          </main>
+           {/* Main content */}
+           <main className={`${isSidebarCollapsed ? 'ml-16' : 'ml-72'} flex-1`}> 
+             {children}
+           </main>
         </>
       )}
     </div>
