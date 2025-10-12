@@ -17,16 +17,18 @@ module.exports = {
         NODE_ENV: 'development',
         PORT: 3520,
         NEXT_PUBLIC_DIRECTUS_URL: 'https://sol-kore.alphabits.team',
-        DIRECTUS_TOKEN: '39Omtm9x8eE3dOYxsI1iXk3MPZ9L235y',
-        NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
-        NEXT_PUBLIC_APP_VERSION: '1.0.0'
+        NEXT_PUBLIC_SOL_MENU_URL: 'https://sol-menu.alphabits.team',
+        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN,
+        NEXT_PUBLIC_APP_NAME: 'SOL eMenu DEV',
+        NEXT_PUBLIC_APP_VERSION: '0.1.0'
       },
 
       env_production: {
         NODE_ENV: 'production',
         PORT: 3520,
-        NEXT_PUBLIC_DIRECTUS_URL: 'https://kore.sol.com.vn',
-        DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN,
+        NEXT_PUBLIC_DIRECTUS_URL: 'https://sol-kore.alphabits.team',
+        NEXT_PUBLIC_SOL_MENU_URL: 'https://sol-menu.alphabits.team',
+        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN,
         NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
         NEXT_PUBLIC_APP_VERSION: '1.0.0'
       },
@@ -74,7 +76,8 @@ module.exports = {
         ignore_watch: ['node_modules', '.next', 'logs'],
         env: {
           NODE_ENV: 'development',
-          PORT: 3520
+          PORT: 3520,
+          NEXT_PUBLIC_SOL_MENU_URL: 'https://sol-menu.alphabits.team'
         }
       }
     },
@@ -94,7 +97,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         DIRECTUS_URL: 'https://kore.sol.com.vn',
-        DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN
+        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN
       },
 
       // Process Configuration

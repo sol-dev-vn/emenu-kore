@@ -57,10 +57,17 @@ export default function PortalDashboard() {
           } : null
         });
       } catch (e) {
-        setError('Failed to load dashboard stats');
-      } finally {
-        setLoading(false);
+      const errorMessage = e instanceof Error ? e.message : 'Failed to load dashboard stats';
+
+      // Special handling for permission errors
+      if (errorMessage.includes('403') || errorMessage.includes('permission')) {
+        setError('You do not have permission to access some dashboard data. Please contact your administrator.');
+      } else {
+        setError(errorMessage);
       }
+    } finally {
+      setLoading(false);
+    }
     }
     loadStats();
   }, []);

@@ -9,6 +9,13 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 // Removed directusClient import; using internal API routes only
 
+// Global function to trigger auth re-initialization
+declare global {
+  interface Window {
+    reinitializeAuth?: () => Promise<void>;
+  }
+}
+
 interface ErrorResponse { error?: string }
 
 function LoginPageContent() {
@@ -43,20 +50,42 @@ function LoginPageContent() {
     e.preventDefault();
     setLoading(true);
     try {
+      console.log('Login page - Submitting login request');
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+
+      const data = await res.json().catch(() => ({} as any));
+      console.log('Login page - Response:', { status: res.status, data });
+
       if (!res.ok) {
-        const data: ErrorResponse = await res.json().catch(() => ({} as ErrorResponse));
         throw new Error(data.error || 'Invalid credentials');
       }
 
+      // Check cookies immediately after response
+      console.log('Login page - Cookies after login:', document.cookie);
+      console.log('Login page - Looking for Directus cookies:', {
+        hasAccessToken: document.cookie.includes('directus_access_token'),
+        hasRefreshToken: document.cookie.includes('directus_refresh_token')
+      });
+
       toast.success('Logged in successfully');
+
+      // Wait a moment for cookies to be set, then trigger auth re-initialization
+      setTimeout(() => {
+        console.log('Login page - Triggering auth reinitialize');
+        console.log('Login page - Cookies before reinitialize:', document.cookie);
+        if (window.reinitializeAuth) {
+          window.reinitializeAuth();
+        }
+      }, 100);
+
       const redirect = search.get('redirect') || '/portal';
       router.push(redirect);
     } catch (err) {
+      console.error('Login page - Error:', err);
       toast.error(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);

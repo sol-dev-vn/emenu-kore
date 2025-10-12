@@ -63,8 +63,9 @@ class DirectusClient {
       token: process.env.DIRECTUS_TOKEN || ''
     };
 
-    if (!this.config.token) {
-      console.warn('Directus token not configured. Please set DIRECTUS_TOKEN in environment variables.');
+    // Only warn about missing static token if we're not in a browser environment
+    if (typeof window === 'undefined' && !this.config.token) {
+      console.warn('Directus token not configured. Please set DIRECTUS_TOKEN in environment variables for server-side requests.');
     }
   }
 
@@ -73,13 +74,40 @@ class DirectusClient {
     this.config.token = token;
   }
 
+  private getAccessToken(): string | null {
+    // First check if we have a dynamically set token
+    if (this.config.token) {
+      return this.config.token;
+    }
+
+    // Then check cookies for browser environment
+    if (typeof window !== 'undefined') {
+      const match = document.cookie.match(/(?:^|; )directus_access_token=([^;]+)/);
+      if (match) {
+        return decodeURIComponent(match[1]);
+      }
+    }
+
+    return null;
+  }
+
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
-    if (this.config.token) {
-      headers['Authorization'] = `Bearer ${this.config.token}`;
+    const accessToken = this.getAccessToken();
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+      // Debug: Log when token is used
+      if (typeof window !== 'undefined') {
+        console.debug('Directus: Using access token for API request');
+      }
+    } else {
+      // Debug: Log when no token is available
+      if (typeof window !== 'undefined') {
+        console.warn('Directus: No access token available for API request');
+      }
     }
 
     return headers;
@@ -104,6 +132,12 @@ class DirectusClient {
       if (!response.ok) {
         interface DirectusErrorResponse { errors?: Array<{ message?: string }> }
         const errorData: DirectusErrorResponse = await response.json().catch(() => ({} as DirectusErrorResponse));
+
+        // Special handling for permission errors
+        if (response.status === 403) {
+          console.warn(`Permission denied for ${endpoint}. User may lack required permissions in Directus.`);
+        }
+
         throw new Error(
           `Directus API Error: ${response.status} ${response.statusText} - ${
             errorData.errors?.[0]?.message || 'Unknown error'

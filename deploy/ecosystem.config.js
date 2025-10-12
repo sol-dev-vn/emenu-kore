@@ -99,7 +99,7 @@ module.exports = {
         PORT: 3520,
         NEXT_PUBLIC_DIRECTUS_URL: 'https://kore.sol.com.vn',
         DIRECTUS_URL: 'https://kore.sol.com.vn',
-        DIRECTUS_TOKEN: process.env.PRODUCTION_DIRECTUS_TOKEN,
+        DIRECTUS_TOKEN: process.env.DIRECTUS_TOKEN,
         NEXT_PUBLIC_APP_NAME: 'SOL eMenu',
         NEXT_PUBLIC_APP_VERSION: '1.0.0',
         NEXT_PUBLIC_API_BASE_URL: 'https://kore.sol.com.vn'
