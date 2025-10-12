@@ -294,7 +294,7 @@ class CukCukSync {
 
     if (!this.config.get('syncTypes').includes(syncType)) {
       logger.info('Category sync disabled, skipping...');
-      return;
+      return new Map(); // Return empty category map
     }
 
     logger.syncStart('Categories');
@@ -308,15 +308,17 @@ class CukCukSync {
       if (cukcukCategories.length === 0) {
         logger.warn('No categories found to sync');
         await this.apiClient.createSyncLog(syncType, 'completed', { created: 0, updated: 0, failed: 0 });
-        return;
+        return new Map(); // Return empty category map
       }
 
       // Map data with branch mapping
       const mappingResult = this.dataMapper.mapBatch(cukcukCategories, 'category', branchMap);
       logger.info(`Mapped ${mappingResult.successCount} categories successfully`);
 
-      // Process categories
+      // Process categories and build category map
       let processed = 0;
+      const categoryMap = new Map(); // Will store external_id -> primary_key mapping
+
       for (const categoryData of mappingResult.results) {
         try {
           this.updateStats(syncType, 'processed');
@@ -326,6 +328,7 @@ class CukCukSync {
             external_id: { _eq: categoryData.external_id }
           }, 1);
 
+          let categoryId;
           if (existing.data && existing.data.length > 0) {
             // Update existing category
             await this.apiClient.updateDirectusItem('categories', existing.data[0].id, categoryData);
@@ -336,6 +339,7 @@ class CukCukSync {
               last_sync_at: new Date().toISOString()
             });
 
+            categoryId = existing.data[0].id;
             this.updateStats(syncType, 'updated');
             logger.debug(`Updated category: ${categoryData.name}`);
           } else {
@@ -345,9 +349,15 @@ class CukCukSync {
               sync_status: 'synced',
               last_sync_at: new Date().toISOString()
             };
-            await this.apiClient.createDirectusItem('categories', createData);
+            const result = await this.apiClient.createDirectusItem('categories', createData);
+            categoryId = result.data.id;
             this.updateStats(syncType, 'created');
             logger.debug(`Created category: ${categoryData.name}`);
+          }
+
+          // Store mapping for menu items sync
+          if (categoryData.external_id) {
+            categoryMap.set(categoryData.external_id, categoryId);
           }
 
           processed++;
@@ -384,6 +394,7 @@ class CukCukSync {
 
       logger.syncSuccess('Categories', typeStats);
       logger.info(`Category sync completed in ${Math.round(duration / 1000)}s`);
+      logger.info(`Built category map with ${categoryMap.size} mappings for menu items sync`);
 
       // Create sync log with session information
       const sessionStats = this.sessionLogger.getStats();
@@ -391,6 +402,9 @@ class CukCukSync {
         sessionLog: this.sessionLogger.getSessionLogHTML(),
         logFilePath: sessionStats.logFilePath
       });
+
+      // Return category map for menu items sync
+      return categoryMap;
 
     } catch (error) {
       typeStats.endTime = new Date();
@@ -410,7 +424,7 @@ class CukCukSync {
   /**
    * Synchronize menu items from CukCuk to Directus
    */
-  async syncMenuItems(branchMap = new Map()) {
+  async syncMenuItems(branchMap = new Map(), categoryMap = new Map()) {
     const syncType = 'menu_items';
     const syncConfig = this.config.getSyncConfig(syncType);
     const typeStats = this.getTypeStats(syncType);
@@ -506,8 +520,8 @@ class CukCukSync {
         return;
       }
 
-      // Map data with branch mapping
-      const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item', branchMap);
+      // Map data with branch and category mapping
+      const mappingResult = this.dataMapper.mapBatch(cukcukMenuItems, 'menu_item', branchMap, categoryMap);
       logger.info(`Mapped ${mappingResult.successCount} menu items successfully`);
 
       if (mappingResult.errorCount > 0) {
@@ -1072,10 +1086,10 @@ class CukCukSync {
 
       // Enable branch synchronization to build proper branchMap for relations
       const branchMap = await this.syncBranches();
-      await this.syncCategories(branchMap);
+      const categoryMap = await this.syncCategories(branchMap);
 
-      logger.debug('Starting menu_items synchronization with branch relations enabled');
-      await this.syncMenuItems(branchMap);
+      logger.debug('Starting menu_items synchronization with branch and category relations enabled');
+      await this.syncMenuItems(branchMap, categoryMap);
       await this.syncTables(branchMap); // re-enabled tables sync
 
       // Sync orders (last 48 hours only)

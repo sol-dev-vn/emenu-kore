@@ -189,7 +189,7 @@ class DataMapper {
   /**
    * Map CukCuk menu item data to Directus menu_items collection
    */
-  mapMenuItem(cukcukMenuItem, branchMap = new Map()) {
+  mapMenuItem(cukcukMenuItem, branchMap = new Map(), categoryMap = new Map()) {
     try {
       const menuItem = {
         name: cukcukMenuItem.Name || '',
@@ -271,6 +271,12 @@ class DataMapper {
       if (cukcukMenuItem.BranchId && branchMap.has(cukcukMenuItem.BranchId)) {
         menuItem.branch_relation = branchMap.get(cukcukMenuItem.BranchId);
         logger.debug(`Mapped menu item ${menuItem.name} to branch ID: ${menuItem.branch_relation}`);
+      }
+
+      // Map category relationship using category external ID to primary key
+      if (cukcukMenuItem.CategoryID && categoryMap.has(cukcukMenuItem.CategoryID)) {
+        menuItem.category_id = categoryMap.get(cukcukMenuItem.CategoryID);
+        logger.debug(`Mapped menu item ${menuItem.name} to category ID: ${menuItem.category_id}`);
       }
 
       // Add nutritional info if available
@@ -684,7 +690,7 @@ class DataMapper {
   /**
    * Batch map array of items
    */
-  mapBatch(items, type, branchMap = new Map()) {
+  mapBatch(items, type, branchMap = new Map(), categoryMap = new Map()) {
     const results = [];
     const errors = [];
 
@@ -699,7 +705,7 @@ class DataMapper {
             mapped = this.mapCategory(item, branchMap);
             break;
           case 'menu_item':
-            mapped = this.mapMenuItem(item, branchMap);
+            mapped = this.mapMenuItem(item, branchMap, categoryMap);
             break;
           case 'table':
             mapped = this.mapTable(item, branchMap);
