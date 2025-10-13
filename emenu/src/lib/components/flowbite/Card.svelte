@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Card as CardType } from 'flowbite-svelte';
-	import { Card } from 'flowbite-svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	// Enhanced card props with SOL theming
 	export let href: string | undefined = undefined;
@@ -11,8 +10,8 @@
 	export let interactive = false;
 	export let cssClass: string = '';
 
-	$: isLink = href && !interactive;
-	$: Component = isLink ? 'a' : interactive ? 'button' : 'div';
+	const dispatcher = createEventDispatcher();
+
 	$: cardClass = `
 		bg-white dark:bg-gray-800
 		border border-gray-200 dark:border-gray-700
@@ -23,21 +22,51 @@
 		rounded-lg
 		${cssClass}
 	`;
+
+	function handleClick() {
+		if (interactive) {
+			dispatcher('click');
+		}
+	}
 </script>
 
-<Component
-	href={href}
-	class={cardClass}
-	{...$$restProps}
->
-	{#if img}
-		<img
-			src={img}
-			alt={imgAlt}
-			class="{horizontal ? 'h-full w-48 object-cover rounded-l-lg' : 'w-full h-48 object-cover rounded-t-lg'}"
-		/>
-	{/if}
-	<div class={horizontal && img ? 'flex-1' : ''}>
-		<slot />
+{#if href && !interactive}
+	<a href={href} class={cardClass} {...$$restProps}>
+		{#if img}
+			<img
+				src={img}
+				alt={imgAlt}
+				class="{horizontal ? 'h-full w-48 object-cover rounded-l-lg' : 'w-full h-48 object-cover rounded-t-lg'}"
+			/>
+		{/if}
+		<div class={horizontal && img ? 'flex-1' : ''}>
+			<slot />
+		</div>
+	</a>
+{:else if interactive}
+	<button type="button" class={cardClass} onclick={handleClick} {...$$restProps}>
+		{#if img}
+			<img
+				src={img}
+				alt={imgAlt}
+				class="{horizontal ? 'h-full w-48 object-cover rounded-l-lg' : 'w-full h-48 object-cover rounded-t-lg'}"
+			/>
+		{/if}
+		<div class={horizontal && img ? 'flex-1' : ''}>
+			<slot />
+		</div>
+	</button>
+{:else}
+	<div class={cardClass} {...$$restProps}>
+		{#if img}
+			<img
+				src={img}
+				alt={imgAlt}
+				class="{horizontal ? 'h-full w-48 object-cover rounded-l-lg' : 'w-full h-48 object-cover rounded-t-lg'}"
+			/>
+		{/if}
+		<div class={horizontal && img ? 'flex-1' : ''}>
+			<slot />
+		</div>
 	</div>
-</Component>
+{/if}
