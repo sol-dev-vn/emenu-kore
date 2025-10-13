@@ -1,0 +1,9 @@
+{"mcpServers":{
+    "directus": {
+      "type": "http",
+      "url": "https://sol-kore.alphabits.team/mcp",
+      "headers": {
+        "Authorization": "Bearer 39Omtm9x8eE3dOYxsI1iXk3MPZ9L235y"
+      }
+    }
+}}
