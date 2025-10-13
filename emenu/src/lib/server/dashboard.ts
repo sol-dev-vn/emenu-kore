@@ -1,4 +1,4 @@
-import directus from './directus.js';
+import directus from '../directus.js';
 import { readItems } from '@directus/sdk';
 
 export interface DashboardStats {

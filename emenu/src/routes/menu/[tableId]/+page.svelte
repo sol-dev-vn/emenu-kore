@@ -9,18 +9,18 @@
 	import Badge from '$lib/components/flowbite/Badge.svelte';
 	import MenuCard from '$lib/components/MenuCard.svelte';
 
-	export let params: { tableId: string };
+	let { params } = $props();
 	let tableId = params.tableId;
-	let isLoading = true;
-	let error: string | null = null;
-	let showContent = false;
+	let isLoading = $state(true);
+	let error: string | null = $state(null);
+	let showContent = $state(false);
 
 	// Menu data
-	let menuData = {
+	let menuData = $state({
 		categories: [],
 		items: [],
 		tableInfo: null
-	};
+	});
 
 	// UI state
 	let selectedCategory = $state(null);
@@ -672,46 +672,47 @@
 												<div class="flex-1">
 													<h4 class="font-medium text-gray-900 dark:text-white">{cartItem.name}</h4>
 													<p class="text-sm text-gray-600 dark:text-gray-400">{formatPrice(cartItem.price)} each</p>
-												<div class="flex items-center space-x-2 mt-2">
-													<Button
-														color="secondary"
-														size="sm"
-														outline={true}
-														onclick={() => updateCartQuantity(cartItem.id, cartItem.quantity - 1)}
-														disabled={cartItem.quantity <= 1}
-													>
-														<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-														</svg>
-													</Button>
-													<span class="text-lg font-medium text-gray-900 dark:text-white w-8 text-center">{cartItem.quantity}</span>
-													<Button
-														color="secondary"
-														size="sm"
-														outline={true}
-														onclick={() => updateCartQuantity(cartItem.id, cartItem.quantity + 1)}
-													>
-														<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-														</svg>
-													</Button>
+													<div class="flex items-center space-x-2 mt-2">
+														<Button
+															color="secondary"
+															size="sm"
+															outline={true}
+															onclick={() => updateCartQuantity(cartItem.id, cartItem.quantity - 1)}
+															disabled={cartItem.quantity <= 1}
+														>
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+															</svg>
+														</Button>
+														<span class="text-lg font-medium text-gray-900 dark:text-white w-8 text-center">{cartItem.quantity}</span>
+														<Button
+															color="secondary"
+															size="sm"
+															outline={true}
+															onclick={() => updateCartQuantity(cartItem.id, cartItem.quantity + 1)}
+														>
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+															</svg>
+														</Button>
+													</div>
 												</div>
+												<div class="text-right mt-2">
+													<p class="font-bold text-cyan-600 dark:text-cyan-400">{formatPrice(cartItem.price * cartItem.quantity)}</p>
+												</div>
+												<Button
+													color="danger"
+													size="sm"
+													outline={true}
+													onclick={() => removeFromCart(cartItem.id)}
+													class="mt-2"
+												>
+													<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m0 0V5a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2h-2.28a1 1 0 01-.948-.684l-1.498-4.493a1 1 0 01.502-.1l9.749 4.735z"></path>
+													</svg>
+													Remove
+												</Button>
 											</div>
-											<div class="text-right mt-2">
-												<p class="font-bold text-cyan-600 dark:text-cyan-400">{formatPrice(cartItem.price * cartItem.quantity)}</p>
-											</div>
-											<Button
-												color="danger"
-												size="sm"
-												outline={true}
-												onclick={() => removeFromCart(cartItem.id)}
-												class="mt-2"
-											>
-												<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m0 0V5a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2h-2.28a1 1 0 01-.948-.684l-1.498-4.493a1 1 0 01.502-.1l9.749 4.735z"></path>
-												</svg>
-												Remove
-											</Button>
 										</div>
 									{/each}
 								</div>

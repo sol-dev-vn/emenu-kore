@@ -5,7 +5,7 @@
 	// Enhanced badge props with SOL theming
 	export let color: 'cyan' | 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' = 'cyan';
 	export let size: 'xs' | 'sm' = 'sm';
-	export let class: string = '';
+	export let cssClass: string = '';
 
 	$: colorMapping = {
 		cyan: 'cyan',
@@ -25,7 +25,7 @@
 <Badge
 	color={flowbiteColor}
 	{size}
-	class="transition-all duration-200 {class}"
+	class="transition-all duration-200 {cssClass}"
 	{...$$restProps}
 >
 	<slot />

@@ -3,7 +3,7 @@
 	export let blur = true;
 	export let showSpinner = true;
 	export let spinnerSize = 'md';
-	export let class: string = '';
+	export let cssClass: string = '';
 	export let contentClass: string = '';
 
 	$: blurClass = blur && loading ? 'blur-sm opacity-75' : '';
@@ -11,7 +11,7 @@
 	$: spinnerSizeClass = spinnerSize === 'sm' ? 'w-4 h-4' : spinnerSize === 'md' ? 'w-6 h-6' : spinnerSize === 'lg' ? 'w-8 h-8' : 'w-6 h-6';
 </script>
 
-<div class="relative {class}">
+<div class="relative {cssClass}">
 	<div class="{transitionClass} {blurClass} {contentClass}">
 		<slot />
 	</div>

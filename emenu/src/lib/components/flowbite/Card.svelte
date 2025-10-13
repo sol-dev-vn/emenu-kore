@@ -9,7 +9,7 @@
 	export let horizontal = false;
 	export let noPadding = false;
 	export let interactive = false;
-	export let class: string = '';
+	export let cssClass: string = '';
 
 	$: isLink = href && !interactive;
 	$: Component = isLink ? 'a' : interactive ? 'button' : 'div';
@@ -21,7 +21,7 @@
 		${interactive ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''}
 		${noPadding ? '' : 'p-6'}
 		rounded-lg
-		${class}
+		${cssClass}
 	`;
 </script>
 

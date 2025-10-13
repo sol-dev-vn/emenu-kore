@@ -7,7 +7,7 @@
 	import Card from '$lib/components/flowbite/Card.svelte';
 	import Button from '$lib/components/flowbite/Button.svelte';
 	import Badge from '$lib/components/flowbite/Badge.svelte';
-	import { TableService } from '$lib/server/tableService';
+	import type { TableService } from '$lib/server/tableService';
 	import { getTableSyncClient, type TableSyncEvent, initializeTableSync } from '$lib/client/tableSync';
 	import { tableSyncStore } from '$lib/client/tableSync';
 	import type { Table, Zone, TableMetrics } from '$lib/types/table';

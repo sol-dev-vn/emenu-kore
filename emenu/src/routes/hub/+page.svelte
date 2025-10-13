@@ -2,11 +2,11 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import directusAuth, { type DirectusUser } from '$lib/server/auth';
+	import type { DirectusUser } from '$lib/server/auth';
 	import Card from '$lib/components/flowbite/Card.svelte';
 	import Button from '$lib/components/flowbite/Button.svelte';
 	import Badge from '$lib/components/flowbite/Badge.svelte';
-	import { formatRelativeTime, getActivityIcon } from '$lib/server/dashboard';
+	import type { DashboardStats, ActivityItem } from '$lib/server/dashboard';
 	import RealTimeMetrics from '$lib/components/RealTimeMetrics.svelte';
 	import ActivityFeed from '$lib/components/ActivityFeed.svelte';
 	import PerformanceAnalytics from '$lib/components/PerformanceAnalytics.svelte';
@@ -113,7 +113,15 @@
 
 	function formatActivityTime(activity: any): string {
 		if (activity.timestamp) {
-			return formatRelativeTime(new Date(activity.timestamp));
+			const now = new Date();
+			const activityTime = new Date(activity.timestamp);
+			const diffMs = now.getTime() - activityTime.getTime();
+			const diffMins = Math.floor(diffMs / 60000);
+
+			if (diffMins < 1) return 'Just now';
+			if (diffMins < 60) return `${diffMins}m ago`;
+			if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+			return `${Math.floor(diffMins / 1440)}d ago`;
 		}
 		return activity.time;
 	}

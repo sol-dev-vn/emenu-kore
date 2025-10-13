@@ -106,7 +106,6 @@
 		if (newMetrics) metrics = newMetrics;
 		if (newStats) initialStats = newStats;
 	}
-	}
 
 	function formatValue(value: number, unit: string): string {
 		switch (unit) {

@@ -4,10 +4,10 @@
 	export let showHeader = true;
 	export let showAvatar = false;
 	export let lines = 3;
-	export let class: string = '';
+	export let cssClass: string = '';
 </script>
 
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 p-6 {class}">
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 p-6 {cssClass}">
 	{#if showHeader}
 		<div class="flex items-center space-x-4 mb-4">
 			{#if showAvatar}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { setContext, onCleanup } from 'svelte';
+	import { setContext } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 
 	// Create a theme store
@@ -15,32 +15,36 @@
 	$: isDark = ($theme === 'dark' || ($theme === 'system' && systemTheme === 'dark'));
 
 	onMount(() => {
-		mounted = true;
+		// Only run browser-specific code in the browser
+		if (typeof window !== 'undefined') {
+			mounted = true;
 
-		// Check system preference
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-		systemTheme = mediaQuery.matches ? 'dark' : 'light';
+			// Check system preference
+			const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+			systemTheme = mediaQuery.matches ? 'dark' : 'light';
 
-		// Listen for system theme changes
-		const handleChange = (e: MediaQueryListEvent) => {
-			systemTheme = e.matches ? 'dark' : 'light';
-		};
+			// Listen for system theme changes
+			const handleChange = (e: MediaQueryListEvent) => {
+				systemTheme = e.matches ? 'dark' : 'light';
+			};
 
-		mediaQuery.addEventListener('change', handleChange);
+			mediaQuery.addEventListener('change', handleChange);
 
-		// Load saved theme from localStorage
-		const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null;
-		if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-			theme.set(savedTheme);
+			// Load saved theme from localStorage
+			const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null;
+			if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+				theme.set(savedTheme);
+			}
+
+			// Return cleanup function
+			return () => {
+				mediaQuery.removeEventListener('change', handleChange);
+			};
 		}
-
-		onCleanup(() => {
-			mediaQuery.removeEventListener('change', handleChange);
-		});
 	});
 
 	// Apply theme to document
-	$: if (mounted) {
+	$: if (mounted && typeof document !== 'undefined') {
 		if (isDark) {
 			document.documentElement.classList.add('dark');
 		} else {
@@ -58,7 +62,7 @@
 
 	// Save theme to localStorage when it changes
 	theme.subscribe(value => {
-		if (mounted) {
+		if (mounted && typeof localStorage !== 'undefined') {
 			localStorage.setItem('theme', value);
 		}
 	});

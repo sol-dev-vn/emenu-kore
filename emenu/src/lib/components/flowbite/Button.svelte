@@ -9,7 +9,7 @@
 	export let disabled = false;
 	export let loading = false;
 	export let pill = false;
-	export let class: string = '';
+	export let cssClass: string = '';
 
 	$: colorMapping = {
 		cyan: outline ? 'cyan' : 'cyan',
@@ -27,13 +27,12 @@
 </script>
 
 <Button
-	{color}
 	color={flowbiteColor}
 	{size}
 	{outline}
 	{disabled}
 	{pill}
-	class="transition-all duration-200 hover:scale-105 active:scale-95 {class}"
+	class="transition-all duration-200 hover:scale-105 active:scale-95 {cssClass}"
 	{...$$restProps}
 >
 	{#if loading}

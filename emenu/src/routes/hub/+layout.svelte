@@ -2,14 +2,15 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import directusAuth, { type DirectusUser } from '$lib/server/auth';
+	import type { DirectusUser } from '$lib/server/auth';
 	import ThemeToggle from '$lib/components/theme/ThemeToggle.svelte';
 	import Button from '$lib/components/flowbite/Button.svelte';
 	import Card from '$lib/components/flowbite/Card.svelte';
 	import Badge from '$lib/components/flowbite/Badge.svelte';
 	import BranchSelector from '$lib/components/BranchSelector.svelte';
 
-	let currentUser: DirectusUser | null = null;
+	export let data;
+	let currentUser: DirectusUser | null = data.user;
 	let isLoading = true;
 	let showUserDropdown = false;
 	let showBranchSelector = false;
@@ -25,25 +26,15 @@
 	};
 
 	onMount(async () => {
-		try {
-			const user = await directusAuth.initAuth();
-			if (!user) {
-				// Not authenticated, redirect to login
-				goto(`/auth/login?redirect=${encodeURIComponent($page.url.pathname)}`);
-				return;
-			}
-			currentUser = user;
-		} catch (error) {
-			console.error('Auth check failed:', error);
-			goto(`/auth/login?redirect=${encodeURIComponent($page.url.pathname)}`);
-		} finally {
-			isLoading = false;
-		}
+		// Client-side auth check will be handled by server-side auth middleware
+		// The user should already be authenticated if they reach this page
+		isLoading = false;
 	});
 
 	async function handleLogout() {
 		try {
-			await directusAuth.logout();
+			// Call logout endpoint
+			await fetch('/auth/logout', { method: 'POST' });
 			goto('/auth/login');
 		} catch (error) {
 			console.error('Logout failed:', error);

@@ -1,54 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import directusAuth, { type DirectusUser } from '$lib/server/auth';
+	import { enhance } from '$app/forms';
+	import { type DirectusUser } from '$lib/server/auth';
 
-	let email = '';
-	let phone = '';
-	let password = '';
 	let loginMethod: 'email' | 'phone' = 'email';
 	let isLoading = false;
-	let errorMessage = '';
 	let showPassword = false;
-
-	async function handleLogin() {
-		if (!password.trim()) {
-			errorMessage = 'Password is required';
-			return;
-		}
-
-		isLoading = true;
-		errorMessage = '';
-
-		try {
-			let user: DirectusUser;
-
-			if (loginMethod === 'email') {
-				if (!email.trim()) {
-					errorMessage = 'Email is required';
-					isLoading = false;
-					return;
-				}
-				user = await directusAuth.login(email.trim(), password);
-			} else {
-				if (!phone.trim()) {
-					errorMessage = 'Phone number is required';
-					isLoading = false;
-					return;
-				}
-				user = await directusAuth.loginWithPhone(phone.trim(), password);
-			}
-
-			// Redirect to hub or intended page
-			const redirectTo = $page.url.searchParams.get('redirect') || '/hub';
-			goto(redirectTo);
-		} catch (error) {
-			console.error('Login error:', error);
-			errorMessage = 'Invalid credentials. Please try again.';
-		} finally {
-			isLoading = false;
-		}
-	}
 
 	function formatPhoneNumber(event: Event) {
 		const input = event.target as HTMLInputElement;
@@ -65,7 +23,6 @@
 		}
 
 		input.value = value;
-		phone = value;
 	}
 
 	function togglePasswordVisibility() {
@@ -113,7 +70,21 @@
 				</button>
 			</div>
 
-			<form on:submit|preventDefault={handleLogin} class="space-y-6">
+			<form
+				method="POST"
+				action="?/login"
+				use:enhance={() => {
+					isLoading = true;
+					return async ({ result, form }) => {
+						isLoading = false;
+						if (result.type === 'success') {
+							const redirectTo = $page.url.searchParams.get('redirect') || '/hub';
+							goto(redirectTo);
+						}
+					};
+				}}
+				class="space-y-6"
+			>
 				<!-- Email/Phone Input -->
 				<div>
 					<label for="identifier" class="block text-sm font-medium text-gray-700 mb-2">
@@ -122,18 +93,18 @@
 					{#if loginMethod === 'email'}
 						<input
 							id="identifier"
+							name="email"
 							type="email"
 							placeholder="your.email@sol.com.vn"
-							bind:value={email}
 							class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all"
 							required
 						/>
 					{:else}
 						<input
 							id="identifier"
+							name="phone"
 							type="tel"
 							placeholder="+84 XXX XXX XXX"
-							bind:value={phone}
 							on:input={formatPhoneNumber}
 							class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all"
 							required
@@ -149,9 +120,9 @@
 					<div class="relative">
 						<input
 							id="password"
+							name="password"
 							type={showPassword ? 'text' : 'password'}
 							placeholder="Enter your password"
-							bind:value={password}
 							class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all"
 							required
 						/>
@@ -174,13 +145,7 @@
 					</div>
 				</div>
 
-				<!-- Error Message -->
-				{#if errorMessage}
-					<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-						{errorMessage}
-					</div>
-				{/if}
-
+	
 				<!-- Submit Button -->
 				<button
 					type="submit"

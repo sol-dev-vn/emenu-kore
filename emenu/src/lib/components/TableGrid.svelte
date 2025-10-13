@@ -110,8 +110,7 @@
 				{@const statusConfig = getStatusBadge(table.status)}
 				<Card
 					hover={true}
-					class="cursor-pointer transition-all duration-200 transform hover:scale-105"
-					class:selected={selectedTable === table.id ? 'ring-2 ring-cyan-500' : ''}
+					cssClass="cursor-pointer transition-all duration-200 transform hover:scale-105 {selectedTable === table.id ? 'ring-2 ring-cyan-500' : ''}"
 					onclick={() => handleTableClick(table)}
 				>
 					<div class="p-4">
@@ -219,8 +218,7 @@
 							{@const statusConfig = getStatusBadge(table.status)}
 							<Card
 								hover={true}
-								class="cursor-pointer transition-all duration-200 transform hover:scale-105"
-								class:selected={selectedTable === table.id ? 'ring-2 ring-cyan-500' : ''}
+								cssClass="cursor-pointer transition-all duration-200 transform hover:scale-105 {selectedTable === table.id ? 'ring-2 ring-cyan-500' : ''}"
 								onclick={() => handleTableClick(table)}
 							>
 								<div class="p-3">

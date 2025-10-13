@@ -58,7 +58,10 @@
 							src={getImageUrl(item.image)}
 							alt={item.name}
 							class="w-full h-full object-cover"
-							onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+							onerror={(e) => {
+								e.target.style.display='none';
+								e.target.nextElementSibling.style.display='flex';
+							}}
 						/>
 						<div class="w-full h-full flex items-center justify-center" style="display: none;">
 							<span class="text-6xl">🍽️</span>

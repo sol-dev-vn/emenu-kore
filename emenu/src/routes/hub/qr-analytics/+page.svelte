@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import directusAuth, { type DirectusUser } from '$lib/server/auth';
+	import type { DirectusUser } from '$lib/server/auth';
 	import Card from '$lib/components/flowbite/Card.svelte';
 	import Button from '$lib/components/flowbite/Button.svelte';
 	import Badge from '$lib/components/flowbite/Badge.svelte';
