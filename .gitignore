@@ -161,6 +161,5 @@ project.inlang
 
 data/collectors/cukcuk/data/raw/*.json
 emenu/playwright-report/
-emenu/
 emenu-old/
 emenu-hub/

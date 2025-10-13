@@ -14,57 +14,90 @@ SOL.com.vn is a leading Japanese culinary brand in Vietnam, operating 30+ indepe
 
 This monorepo contains all digital infrastructure for SOL.com.vn's restaurant operations:
 
-| Project | Description | Technology Stack |
-|---------|-------------|------------------|
-| **emenu-hub** | Mobile-responsive eMenu platform with real-time data synchronization | React/Next.js + Cukcuk API |
-| **data** | Data dictionary, schemas, and documentation | Markdown |
-| **docs** | Technical documentation, API specs, deployment guides | Markdown |
+| Project | Description | Technology Stack | Status |
+|---------|-------------|------------------|---------|
+| **emenu** | 🆕 Next.js-based eMenu platform with Directus CMS integration | Next.js 15 + React 19 + TypeScript + Directus | ✅ **Active** |
+| **emenu-old** | Legacy SvelteKit eMenu application (archived) | SvelteKit + Node.js | 📦 **Archived** |
+| **data** | Data dictionary, schemas, and documentation | Markdown | ✅ **Active** |
+| **docs** | Technical documentation, API specs, deployment guides | Markdown | ✅ **Active** |
 
 ## 📋 Quick Start
 
 ### Prerequisites
-- Node.js 22+
-- PostgreSQL 16+
+- Node.js 18+ (recommended: Node.js 22+)
+- pnpm (recommended package manager)
+- PM2 (for production deployment)
 
-### Installation
+### 🆕 eMenu Next.js Application (Current Active Project)
+
+#### Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/sol-comvn/emenu-kore.git
 cd emenu-kore
 
-# Install dependencies for all projects
-npm run install:all
+# Navigate to the active eMenu project
+cd emenu
 
-# Or install individually
-cd api-service && npm install
-cd ../web-emenu && npm install
-cd ../web && npm install
+# Install dependencies
+pnpm install
+
+# Copy environment variables
+cp .env.example .env
+# Update .env with your Directus configuration
 ```
 
-### Development Setup
+#### Development
 
 ```bash
-# Start development environment
-npm run dev
+# Start development server (default port: 3000)
+pnpm run dev
 
-# Start individual services
-npm run dev:api      # API service (Directus)
-npm run dev:emenu    # eMenu platform
-npm run dev:web      # Corporate website
+# Start on custom port (e.g., 3520)
+pnpm run dev -- --port 3520
 ```
 
-### Docker Setup
+#### Production Deployment with PM2
 
 ```bash
-# Build and start all services
-docker-compose up -d
+# From the root directory, deploy with PM2
+pm2 start ecosystem.config.js
+
+# Check status
+pm2 status
 
 # View logs
-docker-compose logs -f
+pm2 logs emenu-dev
 
-# Stop services
-docker-compose down
+# Stop application
+pm2 stop emenu-dev
+```
+
+The application is currently deployed at: **http://localhost:3520**
+
+### Legacy Projects (Archived)
+
+The previous SvelteKit-based eMenu application has been archived in `emenu-old/` directory for reference.
+
+## 🏗️ Technical Architecture (Current)
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   emenu/        │    │   Directus CMS   │    │  PostgreSQL DB  │
+│   (Next.js)     │◄──►│   (Headless)     │◄──►│                 │
+│   - React 19    │    │   - Content Mgmt │    │   - Data Store  │
+│   - TypeScript  │    │   - API Layer   │    │   - User Auth   │
+│   - Tailwind    │    │   - Real-time   │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────┐    ┌──────────────────┐
+│   PM2 Runtime   │    │   Admin Portal   │
+│   (Production)  │    │   (Directus)     │
+│   - Port 3520   │    │   - Content UI   │
+│   - Auto-restart│    │   - User Mgmt    │
+└─────────────────┘    └──────────────────┘
 ```
 
 ## 📚 Documentation
@@ -91,28 +124,147 @@ Our current restaurant locations include:
 
 🌐 [Visit our website](https://www.sol.com.vn) for complete restaurant information
 
-## 🔧 Technical Architecture
+## 🔧 Current eMenu Technology Stack
 
+### Frontend (Next.js 15)
+- **Framework**: Next.js 15.2.4 with App Router
+- **UI Library**: React 19.1.0
+- **Styling**: Tailwind CSS + Shadcn/UI components
+- **Language**: TypeScript 5.8.3
+- **State Management**: React Hooks + Server Components
+- **Development**: Turbopack for fast HMR
+
+### Backend (Directus Headless CMS)
+- **CMS**: Directus (Cloud/Self-hosted)
+- **Database**: PostgreSQL
+- **API**: RESTful API with real-time capabilities
+- **Authentication**: JWT-based auth system
+- **Content Modeling**: Flexible schema management
+
+### Deployment & Infrastructure
+- **Process Manager**: PM2 v6.0.13
+- **Runtime**: Node.js
+- **Environment**: Development mode on port 3520
+- **Logs**: Centralized logging with PM2
+- **Auto-restart**: Enabled for high availability
+
+### Key Features
+- ✅ **Modern Stack**: Latest Next.js 15 with React 19
+- ✅ **Type Safety**: Full TypeScript implementation
+- ✅ **CMS Integration**: Directus headless CMS
+- ✅ **Responsive Design**: Mobile-first approach
+- ✅ **Performance**: Turbopack for development optimization
+- ✅ **SEO Optimized**: Next.js built-in SEO features
+- ✅ **Visual Editing**: Directus live preview support
+
+## 🚀 Deployment Status
+
+**Current Deployment**: ✅ **ACTIVE**
+- **URL**: http://localhost:3520
+- **Environment**: Development
+- **Process**: `emenu-dev` (PM2)
+- **Status**: Online and running
+- **Last Deployed**: October 13, 2025
+
+### PM2 Process Information
+```bash
+# Process Details
+Name: emenu-dev
+Mode: fork
+PID: 89481
+Status: online
+CPU: 0%
+Memory: 60.0MB
+Uptime: 4s
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   web-emenu     │    │   api-service    │    │  PostgreSQL DB  │
-│   (Frontend)    │◄──►│   (Directus)     │◄──►│                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐
-│   Cukcuk API    │    │   Admin Portal   │
-│   (External)    │    │   (Directus)     │
-└─────────────────┘    └──────────────────┘
+
+## ⚙️ Environment Configuration
+
+### Required Environment Variables
+
+Create a `.env` file in the `emenu/` directory:
+
+```bash
+# Directus Configuration
+NEXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
+DIRECTUS_PUBLIC_TOKEN=your-public-token
+DIRECTUS_FORM_TOKEN=your-form-token
+
+# Application Settings
+NEXT_PUBLIC_SITE_URL=http://localhost:3520
+DRAFT_MODE_SECRET=your-draft-mode-secret
+NEXT_PUBLIC_ENABLE_VISUAL_EDITING=true
 ```
+
+### PM2 Configuration
+
+The `ecosystem.config.js` file contains the PM2 configuration:
+
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'emenu-dev',
+      script: 'npm',
+      args: 'run dev -- --port 3520',
+      cwd: './emenu',
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3520
+      }
+    }
+  ]
+};
+```
+
+## 🔄 Migration Notes
+
+### Recent Changes (October 2025)
+- ✅ **Migrated** from SvelteKit to Next.js 15
+- ✅ **Implemented** Directus CMS integration
+- ✅ **Added** TypeScript support throughout
+- ✅ **Deployed** with PM2 process manager
+- ✅ **Updated** to modern React 19 and Tailwind CSS
+- ✅ **Archived** legacy code in `emenu-old/`
+
+### Migration Benefits
+- 🚀 **Better Performance**: Next.js App Router and Turbopack
+- 🛡️ **Type Safety**: Full TypeScript implementation
+- 🎨 **Modern UI**: Shadcn/UI components with Tailwind CSS
+- 🔧 **Better DX**: Improved development experience
+- 📱 **Mobile-First**: Responsive design approach
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Development Workflow
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Setup** environment:
+   ```bash
+   cd emenu
+   pnpm install
+   cp .env.example .env
+   # Update .env with your configuration
+   ```
+4. **Develop** your feature:
+   ```bash
+   pnpm run dev
+   ```
+5. **Test** your changes thoroughly
+6. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+7. **Push** to the branch (`git push origin feature/amazing-feature`)
+8. **Open** a Pull Request
+
+### Code Standards
+- Use TypeScript for new code
+- Follow ESLint and Prettier configurations
+- Test on mobile devices
+- Ensure accessibility standards
+- Update documentation as needed
 
 ## 📞 Contact & Support
 
