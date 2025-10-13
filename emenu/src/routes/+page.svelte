@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  // QR Scanner functionality removed - using manual entry only
+
   export let data: {
     branches: Array<{
       id?: string | number;
@@ -38,31 +42,80 @@
     count: branches.filter(b => b.brand_id === brandId).length
   }));
 
-  let scannerStream: MediaStream | null = null;
   let scanning = false;
+  let manualTableId = '';
+  let scanError: string | null = null;
+  let qrKey = 0; // Force re-render when needed
 
-  async function startScanner() {
-    try {
-      scanning = true;
-      scannerStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      const video = document.getElementById('qr-video') as HTMLVideoElement;
-      if (video) {
-        video.srcObject = scannerStream;
-      }
-    } catch (error) {
-      console.error('Camera access denied:', error);
-      scanning = false;
+  async function handleQRScan(result: any) {
+    if (result && result[0]?.rawValue) {
+      const qrData = result[0].rawValue;
+      await processQRCode(qrData);
     }
   }
 
-  function stopScanner() {
-    if (scannerStream) {
-      scannerStream.getTracks().forEach(track => track.stop());
-      scannerStream = null;
+  async function processQRCode(qrData: string) {
+    try {
+      scanError = null;
+
+      // Extract table ID from QR URL or direct value
+      let tableId: string | null = null;
+
+      if (qrData.includes('/qr/')) {
+        // URL format: http://sol-menu.alphabits.team/qr/[table-id]
+        const parts = qrData.split('/qr/');
+        if (parts.length > 1) {
+          tableId = parts[1].split('?')[0]; // Remove query parameters if any
+        }
+      } else {
+        // Direct table ID
+        tableId = qrData;
+      }
+
+      if (tableId) {
+        // Validate table ID format (numeric)
+        if (/^\d+$/.test(tableId)) {
+          stopScanning();
+          await goto(`/qr/${tableId}`);
+        } else {
+          scanError = 'Invalid QR code format. Please scan a valid table QR code.';
+        }
+      } else {
+        scanError = 'Could not read QR code. Please try again.';
+      }
+    } catch (error) {
+      console.error('QR scan processing error:', error);
+      scanError = 'Failed to process QR code. Please try again.';
     }
+  }
+
+  function startScanning() {
+    scanning = true;
+    scanError = null;
+    // QR Scanner temporarily disabled - showing manual entry only
+  }
+
+  function stopScanning() {
     scanning = false;
+  }
+
+  async function handleManualSubmit() {
+    if (!manualTableId.trim()) {
+      scanError = 'Please enter a table number.';
+      return;
+    }
+
+    if (/^\d+$/.test(manualTableId.trim())) {
+      scanError = null;
+      await goto(`/qr/${manualTableId.trim()}`);
+    } else {
+      scanError = 'Invalid table number. Please enter a valid numeric table ID.';
+    }
+  }
+
+  function handleError(error: any) {
+    console.error('QR scanner error:', error);
+    scanError = 'Camera access denied or unavailable. Please use manual entry.';
   }
 </script>
 
@@ -134,27 +187,41 @@
 			{/each}
 		</div>
 
-		<!-- QR Scanner Modal (when active) -->
+		<!-- Manual Table Entry Modal (when active) -->
 		{#if scanning}
 			<div class="md:hidden bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 flex flex-col items-center justify-center">
 				<div class="relative w-full max-w-xs">
-					<video
-						id="qr-video"
-						class="w-full rounded-lg"
-						autoplay
-						playsinline
-					></video>
-					<div class="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none"></div>
-					<div class="absolute inset-0 flex items-center justify-center">
-						<div class="w-32 h-32 border-2 border-white rounded-lg"></div>
+					<div class="text-center mb-4">
+						<p class="text-gray-600 mb-2">Enter table number manually:</p>
+						<form on:submit|preventDefault={handleManualSubmit} class="space-y-3">
+							<input
+								type="text"
+								bind:value={manualTableId}
+								placeholder="Table #"
+								class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+							<button
+								type="submit"
+								class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+							>
+								Go to Table
+							</button>
+						</form>
+					</div>
+					{#if scanError}
+						<div class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+							{scanError}
+						</div>
+					{/if}
+					<div class="mt-4">
+						<button
+							on:click={stopScanner}
+							class="w-full px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium"
+						>
+							Cancel
+						</button>
 					</div>
 				</div>
-				<button
-					on:click={stopScanner}
-					class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium"
-				>
-					Cancel
-				</button>
 			</div>
 		{:else}
 			<!-- Info Section (when not scanning) -->
@@ -168,29 +235,40 @@
 		{/if}
 	</div>
 
-	<!-- Desktop QR Scanner Modal -->
+	<!-- Desktop Manual Table Entry Modal -->
 	{#if scanning}
-		<div class="hidden md:flex fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50" on:click={stopScanner}>
-			<div class="bg-white rounded-2xl p-6 max-w-md mx-4" on:click|stopPropagation>
-				<div class="relative mb-4">
-					<video
-						id="qr-video"
-						class="w-full rounded-lg"
-						autoplay
-						playsinline
-					></video>
-					<div class="absolute inset-0 border-4 border-blue-500 rounded-lg pointer-events-none"></div>
-					<div class="absolute inset-0 flex items-center justify-center">
-						<div class="w-48 h-48 border-4 border-white rounded-lg"></div>
-					</div>
+		<div class="hidden md:flex fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title" on:click={stopScanner} on:keydown={(e) => { if (e.key === 'Escape') stopScanner(); }}>
+			<div class="bg-white rounded-2xl p-6 max-w-lg mx-4 w-full" on:click|stopPropagation>
+				<div class="text-center mb-6">
+					<h2 id="modal-title" class="text-xl font-semibold text-gray-900 mb-2">Table Access</h2>
+					<p class="text-gray-600 mb-4">Enter your table number to access the menu</p>
+					<form on:submit|preventDefault={handleManualSubmit} class="space-y-4">
+						<input
+							type="text"
+							bind:value={manualTableId}
+							placeholder="Table #"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							autofocus
+						/>
+						<button
+							type="submit"
+							class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+						>
+							Go to Table
+						</button>
+					</form>
 				</div>
+				{#if scanError}
+					<div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+						{scanError}
+					</div>
+				{/if}
 				<div class="text-center">
-					<p class="text-gray-600 mb-4">Position QR code within the frame</p>
 					<button
 						on:click={stopScanner}
-						class="px-6 py-3 bg-red-500 text-white rounded-lg font-medium"
+						class="px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
 					>
-						Cancel Scanning
+						Cancel
 					</button>
 				</div>
 			</div>
