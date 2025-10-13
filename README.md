@@ -16,9 +16,7 @@ This monorepo contains all digital infrastructure for SOL.com.vn's restaurant op
 
 | Project | Description | Technology Stack |
 |---------|-------------|------------------|
-| **api-service** | Core Directus installation for Authentication, Admin Portal, and custom plugins | Directus + PostgreSQL |
-| **web-emenu** | Mobile-responsive eMenu platform with real-time data synchronization | React/Next.js + Cukcuk API |
-| **web** | Corporate website and marketing platform | Next.js |
+| **emenu-hub** | Mobile-responsive eMenu platform with real-time data synchronization | React/Next.js + Cukcuk API |
 | **data** | Data dictionary, schemas, and documentation | Markdown |
 | **docs** | Technical documentation, API specs, deployment guides | Markdown |
 
