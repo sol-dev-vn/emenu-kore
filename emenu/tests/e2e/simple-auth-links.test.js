@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 // Test configuration
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3520';
@@ -48,17 +48,51 @@ async function runTests() {
     // Submit form
     await page.click('button[type="submit"]');
     
-    // Wait for navigation to hub
-    await page.waitForURL(`${BASE_URL}/hub`);
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
     
-    // Verify successful login
-    const dashboardTitle = await page.textContent('h1');
-    console.log(`  Dashboard title: ${dashboardTitle}`);
+    // Check current URL
+    const currentUrl = page.url();
+    console.log(`  Current URL after login: ${currentUrl}`);
     
-    if (dashboardTitle && dashboardTitle.includes('Dashboard')) {
-      console.log('✅ Authentication successful');
+    // Check if we're on the hub page or still on login
+    if (currentUrl.includes('/hub')) {
+      // Verify successful login
+      const dashboardTitle = await page.textContent('h1');
+      console.log(`  Dashboard title: ${dashboardTitle}`);
+      
+      if (dashboardTitle && dashboardTitle.includes('Dashboard')) {
+        console.log('✅ Authentication successful');
+      } else {
+        // Check for error messages
+        const errorElement = await page.locator('.text-red-800, .error-message').first();
+        if (await errorElement.count() > 0) {
+          const errorMessage = await errorElement.textContent();
+          console.log(`  Error message: ${errorMessage}`);
+        }
+        
+        // Take a screenshot for debugging
+        await page.screenshot({ path: 'test-results/screenshots/dashboard-error.png' });
+        console.log('❌ Authentication failed - Dashboard not loaded correctly');
+        return;
+      }
+    } else if (currentUrl.includes('/auth/login')) {
+      // Still on login page, check for error messages
+      const errorElement = await page.locator('.text-red-800, .error-message').first();
+      if (await errorElement.count() > 0) {
+        const errorMessage = await errorElement.textContent();
+        console.log(`  Login error: ${errorMessage}`);
+      } else {
+        console.log('  Login failed but no error message shown');
+      }
+      
+      // Take a screenshot for debugging
+      await page.screenshot({ path: 'test-results/screenshots/login-error.png' });
+      console.log('❌ Authentication failed - Still on login page');
+      return;
     } else {
-      console.log('❌ Authentication failed - Dashboard not found');
+      // Unexpected URL
+      console.log(`❌ Authentication failed - Redirected to unexpected URL: ${currentUrl}`);
       return;
     }
     

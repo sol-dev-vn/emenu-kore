@@ -160,3 +160,4 @@ storybook-static
 project.inlang
 
 data/collectors/cukcuk/data/raw/*.json
+emenu/playwright-report/

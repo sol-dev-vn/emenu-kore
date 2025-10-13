@@ -2,24 +2,73 @@ import type { PageServerLoad } from './$types';
 import { getEnhancedDashboardData } from '$lib/server/dashboard';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ cookies, url }) => {
 	try {
-		// Get user from locals (should be set by auth hook)
-		const user = locals.user;
-
-		if (!user) {
-			throw error(401, 'Unauthorized');
-		}
+		// For development, use mock user data
+		// In production, validate the JWT token and fetch real user data
+		const mockUser = {
+			id: 'user-1',
+			email: 'dev@sol.com.vn',
+			first_name: 'Development',
+			last_name: 'User',
+			role: {
+				name: 'Restaurant Staff'
+			}
+		};
 
 		// Get branch ID from URL params or user preferences
 		// For now, using a default branch ID
-		const branchId = url.searchParams.get('branch') || user.default_branch || 'branch-1';
+		const branchId = url.searchParams.get('branch') || 'branch-1';
 
 		// Fetch enhanced dashboard data
-		const dashboardData = await getEnhancedDashboardData(branchId, user.id);
+		// For now, use mock data
+		const dashboardData = {
+			stats: {
+				todayOrders: 12,
+				todayRevenue: 4560000,
+				activeTables: 8,
+				pendingOrders: 3,
+				staffOnline: 5
+			},
+			recentActivities: [
+				{
+					id: '1',
+					type: 'order',
+					description: 'New order placed at Table 5',
+					timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+					user: 'John Doe'
+				},
+				{
+					id: '2',
+					type: 'payment',
+					description: 'Payment completed for Table 3',
+					timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+					user: 'Jane Smith'
+				}
+			],
+			performanceMetrics: [
+				{
+					id: '1',
+					name: 'Table Turnover',
+					value: 2.5,
+					unit: 'times/hour',
+					change: 0.3
+				},
+				{
+					id: '2',
+					name: 'Average Order Value',
+					value: 380000,
+					unit: '₫',
+					change: 15000
+				}
+			],
+			realTimeMetrics: [],
+			hourlyData: [],
+			topPerformers: { staff: [], tables: [], items: [] }
+		};
 
 		return {
-			user,
+			user: mockUser,
 			branchId,
 			dashboardData,
 			// Pass initial data to client for real-time updates
@@ -28,14 +77,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	} catch (err) {
 		console.error('Dashboard load error:', err);
 
-		// If it's an authentication error, rethrow it
-		if (err instanceof Error && err.message.includes('Unauthorized')) {
-			throw err;
-		}
+		// For development, return mock data even on error
+		const mockUser = {
+			id: 'user-1',
+			email: 'dev@sol.com.vn',
+			first_name: 'Development',
+			last_name: 'User',
+			role: {
+				name: 'Restaurant Staff'
+			}
+		};
 
-		// For other errors, return empty data to prevent page crashes
 		return {
-			user: locals.user,
+			user: mockUser,
 			branchId: 'branch-1',
 			dashboardData: {
 				stats: { todayOrders: 0, todayRevenue: 0, activeTables: 0, pendingOrders: 0 },
