@@ -1,28 +1,44 @@
 import { redirect } from '@sveltejs/kit';
+import { directusAuth, type DirectusUser } from '$lib/server/auth';
 import type { ServerLoad } from '@sveltejs/kit';
 
 export const load: ServerLoad = async ({ cookies, url }) => {
-	// Check for authentication token
-	const authToken = cookies.get('auth_token');
+	// Check for Directus authentication token
+	const token = cookies.get('directus_token');
 
 	// If no auth token, redirect to login with return URL
-	if (!authToken) {
+	if (!token) {
 		throw redirect(302, '/auth/login?returnTo=' + encodeURIComponent(url.pathname));
 	}
 
-	// For development, we'll use mock user data
-	// In production, validate the JWT token and fetch real user data
-	const mockUser = {
-		id: 'user-1',
-		email: 'dev@sol.com.vn',
-		first_name: 'Development',
-		last_name: 'User',
-		role: {
-			name: 'Restaurant Staff'
-		}
-	};
+	try {
+		// Set token for Directus client and get current user
+		await directusAuth.loginWithToken(token);
+		const user = await directusAuth.getCurrentUser();
 
-	return {
-		user: mockUser
-	};
+		if (!user) {
+			// User not found, clear token and redirect
+			cookies.delete('directus_token', { path: '/' });
+			throw redirect(302, '/auth/login?returnTo=' + encodeURIComponent(url.pathname));
+		}
+
+		return {
+			user: {
+				id: user.id,
+				email: user.email,
+				first_name: user.first_name,
+				last_name: user.last_name,
+				phone: user.phone,
+				avatar: user.avatar,
+				role: user.role,
+				roles: user.roles
+			}
+		};
+	} catch (error) {
+		console.error('Authentication error:', error);
+		// Clear invalid token and redirect to login
+		cookies.delete('directus_token', { path: '/' });
+		cookies.delete('directus_refresh_token', { path: '/' });
+		throw redirect(302, '/auth/login?returnTo=' + encodeURIComponent(url.pathname));
+	}
 };

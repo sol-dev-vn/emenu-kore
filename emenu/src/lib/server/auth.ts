@@ -58,6 +58,11 @@ class DirectusAuth {
       this.token = response.access_token;
       this.refreshToken = response.refresh_token || null;
 
+      // Set token for Directus client
+      if (this.token) {
+        directus.setToken(this.token);
+      }
+
       // Store tokens securely (in a real app, use httpOnly cookies)
       if (typeof window !== 'undefined') {
         localStorage.setItem('directus_token', this.token);
@@ -73,6 +78,11 @@ class DirectusAuth {
       console.error('Login failed:', error);
       throw new Error('Authentication failed');
     }
+  }
+
+  async loginWithToken(token: string): Promise<void> {
+    this.token = token;
+    directus.setToken(token);
   }
 
   async loginWithPhone(phone: string, password: string): Promise<DirectusUser> {
@@ -164,6 +174,10 @@ class DirectusAuth {
 
   getToken(): string | null {
     return this.token;
+  }
+
+  getRefreshToken(): string | null {
+    return this.refreshToken;
   }
 
   getUser(): DirectusUser | null {

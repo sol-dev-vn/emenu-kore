@@ -61,7 +61,33 @@
 	}
 
 	function getUserRole(user: DirectusUser): string {
-		return user.role?.name || user.roles?.[0]?.name || 'Staff';
+		// Return primary role or first available role
+		if (user.role?.name) {
+			return user.role.name;
+		}
+		if (user.roles && user.roles.length > 0) {
+			return user.roles[0].name;
+		}
+		return 'Staff';
+	}
+
+	function getUserTitle(user: DirectusUser): string {
+		// If user has a title field, return it
+		// Otherwise derive from role or return a generic title
+		const role = getUserRole(user);
+		if (role.includes('Manager')) return 'Restaurant Manager';
+		if (role.includes('Admin')) return 'Administrator';
+		if (role.includes('Staff')) return 'Staff Member';
+		if (role.includes('Waiter')) return 'Waiter';
+		if (role.includes('Chef')) return 'Chef';
+		if (role.includes('Host')) return 'Host';
+		return role;
+	}
+
+	function formatPhoneNumber(phone: string): string {
+		if (!phone) return '';
+		// Format phone number for display
+		return phone.replace(/(\+\d{2})(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
 	}
 
 	// Close dropdown when clicking outside
@@ -284,21 +310,123 @@
 
 					<!-- User Info Widget (Bottom of Sidebar) -->
 					<div class="absolute bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800">
-						<Card class="text-center p-4">
-							<div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-semibold mx-auto mb-3 shadow-lg">
-								{getUserInitials(currentUser)}
+						<Card class="p-3">
+							<!-- User Profile Section -->
+							<div class="flex items-center space-x-3 mb-3">
+								<div class="relative">
+									{#if currentUser.avatar}
+										<img
+											src={currentUser.avatar}
+											alt={getUserDisplayName(currentUser)}
+											class="w-10 h-10 rounded-full object-cover border-2 border-cyan-200 dark:border-cyan-800"
+										/>
+									{:else}
+										<div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+											{getUserInitials(currentUser)}
+										</div>
+									{/if}
+									<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
+										<div class="w-2 h-2 bg-white rounded-full"></div>
+									</div>
+								</div>
+								<div class="flex-1 min-w-0">
+									<p class="text-sm font-medium text-gray-900 dark:text-white truncate">{getUserDisplayName(currentUser)}</p>
+									<p class="text-xs text-gray-600 dark:text-gray-400 truncate">{getUserRole(currentUser)}</p>
+								</div>
 							</div>
-							<p class="text-sm font-medium text-gray-900 dark:text-white">{getUserDisplayName(currentUser)}</p>
-							<p class="text-xs text-gray-600 dark:text-gray-400">{getUserRole(currentUser)}</p>
-							<div class="mt-3 flex items-center justify-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-								<span class="flex items-center">
-									<div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-									Online
-								</span>
-								<span>•</span>
-								<span>Active</span>
+
+							<!-- User Details -->
+							<div class="space-y-2 text-xs">
+								<div class="flex items-center text-gray-600 dark:text-gray-400">
+									<svg class="w-3 h-3 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M21 13.255A10.057 10.057 0 0112 4c-4.95 0-9.255 2.84-11.205 6.817-.1.307-.269-.658-.405-.98-.045-.307-.082-.627-.082-.948 0-.321.037-.641.082-.948.05-.322.15-.658.295-.98.05-.322.14-.658.295-.98C5.68 8.536 4.895 7.28 4.895 10c0 2.721.785 5.464 2.347 7.485.45.322.082.642.082.948 0 .321-.037.641-.082.948-.05.322-.15-.658-.295-.98-.05-.322-.14-.658-.295-.98C16.315 12.464 17.105 9.721 17.105 7c0-2.721-.785-5.464-2.347-7.485z"></path>
+									</svg>
+									<span class="truncate">{getUserTitle(currentUser)}</span>
+								</div>
+								{#if currentUser.email}
+									<div class="flex items-center text-gray-600 dark:text-gray-400">
+										<svg class="w-3 h-3 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+										</svg>
+										<span class="truncate">{currentUser.email}</span>
+									</div>
+								{/if}
+								{#if currentUser.phone}
+									<div class="flex items-center text-gray-600 dark:text-gray-400">
+										<svg class="w-3 h-3 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z"></path>
+										</svg>
+										<span class="truncate">{formatPhoneNumber(currentUser.phone)}</span>
+									</div>
+								{/if}
+							</div>
+
+							<!-- User Actions -->
+							<div class="flex items-center justify-between pt-2 border-t dark:border-gray-700 mt-3">
+								<div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+									<span class="flex items-center">
+										<div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+										Active
+									</span>
+								</div>
+								<button
+									onclick={() => (showUserDropdown = !showUserDropdown)}
+									class="text-cyan-600 hover:text-cyan-800 dark:text-cyan-400 dark:hover:text-cyan-200 transition-colors"
+									title="User menu"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+									</svg>
+								</button>
 							</div>
 						</Card>
+
+						<!-- User Dropdown Menu (appears above the widget) -->
+						{#if showUserDropdown}
+							<div class="absolute bottom-full left-0 right-4 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+								<div class="py-2">
+									<div class="px-4 py-2 border-b dark:border-gray-700">
+										<p class="text-sm font-medium text-gray-900 dark:text-white">{getUserDisplayName(currentUser)}</p>
+										<p class="text-xs text-gray-600 dark:text-gray-400">{getUserRole(currentUser)}</p>
+									</div>
+									<a
+										href="/hub/profile"
+										class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+									>
+										<div class="flex items-center">
+											<svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+											</svg>
+											Profile
+										</div>
+									</a>
+									<a
+										href="/hub/settings"
+										class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+									>
+										<div class="flex items-center">
+											<svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+												<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+											</svg>
+											Settings
+										</div>
+									</a>
+									<hr class="my-2 dark:border-gray-700" />
+									<button
+										onclick={handleLogout}
+										class="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+									>
+										<div class="flex items-center">
+											<svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" strokejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+											</svg>
+											Sign Out
+										</div>
+									</button>
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</aside>
