@@ -20,153 +20,180 @@
   const error = data?.error ?? null;
   const loading = false;
 
-  // Brand information
+  // Compact brand information
   const brandInfo = {
-    miwaku_premium: { name: 'Miwaku Premium', color: '#FF6B6B', description: 'Iconic Anniversary Restaurant at Landmark 81' },
-    s79_teppanyaki: { name: 'S79 Japanese Teppanyaki', color: '#4ECDC4', description: 'Premium teppanyaki experience' },
-    kohaku_sashimi_yakiniku: { name: 'Kohaku Sashimi & Yakiniku', color: '#45B7D1', description: 'Traditional Japanese cuisine' },
-    kohaku_sushi: { name: 'Kohaku Sushi', color: '#96CEB4', description: 'Authentic sushi and sashimi' },
-    kohaku_udon_ramen: { name: 'Kohaku Udon & Ramen', color: '#FFEAA7', description: 'Japanese noodle specialties' },
-    date_nariya: { name: 'Date Nariya', color: '#DDA0DD', description: 'Japanese Gyutan Steak' },
-    machida_shoten: { name: 'Machida Shoten', color: '#FFA500', description: 'Traditional Japanese izakaya' }
+    miwaku_premium: { name: 'Miwaku', color: '#FF6B6B', icon: '🍽️' },
+    s79_teppanyaki: { name: 'S79', color: '#4ECDC4', icon: '🥢' },
+    kohaku_sashimi_yakiniku: { name: 'Kohaku', color: '#45B7D1', icon: '🍱' },
+    kohaku_sushi: { name: 'Kohaku', color: '#96CEB4', icon: '🍣' },
+    kohaku_udon_ramen: { name: 'Kohaku', color: '#FFEAA7', icon: '🍜' },
+    date_nariya: { name: 'Date', color: '#DDA0DD', icon: '🥩' },
+    machida_shoten: { name: 'Machida', color: '#FFA500', icon: '🍶' }
   };
 
-  // Group branches by brand
-  $: groupedBranches = branches.reduce((acc, branch) => {
-    const brand = branch.brand_id || 'unbranded';
-    if (!acc[brand]) {
-      acc[brand] = [];
-    }
-    acc[brand].push(branch);
-    return acc;
-  }, {} as Record<string, typeof branches>);
+  // Count branches per brand
+  $: brandCounts = Object.entries(brandInfo).map(([brandId, brand]) => ({
+    ...brand,
+    id: brandId,
+    count: branches.filter(b => b.brand_id === brandId).length
+  }));
 
-  // Sort brands by name
-  $: sortedBrands = Object.entries(groupedBranches).sort(([a], [b]) => {
-    if (a === 'unbranded') return 1;
-    if (b === 'unbranded') return -1;
-    return (brandInfo[a as keyof typeof brandInfo]?.name || a).localeCompare(brandInfo[b as keyof typeof brandInfo]?.name || b);
-  });
+  let scannerStream: MediaStream | null = null;
+  let scanning = false;
+
+  async function startScanner() {
+    try {
+      scanning = true;
+      scannerStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      const video = document.getElementById('qr-video') as HTMLVideoElement;
+      if (video) {
+        video.srcObject = scannerStream;
+      }
+    } catch (error) {
+      console.error('Camera access denied:', error);
+      scanning = false;
+    }
+  }
+
+  function stopScanner() {
+    if (scannerStream) {
+      scannerStream.getTracks().forEach(track => track.stop());
+      scannerStream = null;
+    }
+    scanning = false;
+  }
 </script>
 
 <svelte:head>
-	<title>Directus Branches</title>
-	<meta name="description" content="List of branches from Directus" />
+	<title>SOL Restaurant - Digital Menu</title>
+	<meta name="description" content="Quick access to SOL restaurant digital menus" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 </svelte:head>
 
-<main class="min-h-screen bg-gray-50 p-8">
-	<div class="max-w-4xl mx-auto">
-		<header class="mb-8">
-			<h1 class="text-4xl font-bold text-gray-900 mb-2">SOL Restaurant Branches</h1>
-			<p class="text-gray-600">Browse our restaurant locations and explore their menus</p>
-		</header>
+<main class="h-screen flex flex-col bg-gradient-to-br from-blue-600 to-indigo-700">
+	<!-- Header with Logo -->
+	<header class="flex items-center justify-between px-4 py-3 md:px-6 border-b border-white border-opacity-20">
+		<img
+			src="/logos/logo_trim.png"
+			alt="SOL"
+			class="h-8 md:h-10 w-auto object-contain filter brightness-0 invert"
+		/>
+		<div class="flex items-center space-x-2 md:space-x-4">
+			<span class="text-white text-sm md:text-base opacity-90">
+				{branches.length} Locations
+			</span>
+			<span class="text-white text-sm md:text-base opacity-90">
+				7 Brands
+			</span>
+		</div>
+	</header>
 
-		{#if loading}
-			<div class="text-center py-12">
-				<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-				<p class="mt-4 text-gray-600">Loading branches...</p>
-			</div>
-		{:else if error}
-			<div class="bg-red-50 border border-red-200 rounded-lg p-6">
-				<h2 class="text-red-800 font-semibold mb-2">Error loading branches</h2>
-				<p class="text-red-600">{error}</p>
-			</div>
-		{:else if branches.length === 0}
-			<div class="text-center py-12">
-				<h2 class="text-2xl font-semibold text-gray-700 mb-2">No branches found</h2>
-				<p class="text-gray-600">Check back later for updates.</p>
+	<!-- Main Content Grid -->
+	<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 md:p-6 overflow-hidden">
+		<!-- Quick Actions -->
+		<div class="flex flex-col space-y-4">
+			<!-- Restaurants Button -->
+			<a
+				href="/restaurants"
+				class="flex-1 bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 md:p-6 hover:bg-opacity-30 transition-all flex flex-col items-center justify-center text-white group"
+			>
+				<svg class="w-12 h-12 md:w-16 md:h-16 mb-2 md:mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+				</svg>
+				<span class="text-lg md:text-xl font-semibold">All Restaurants</span>
+				<span class="text-xs md:text-sm opacity-75 mt-1">Browse locations</span>
+			</a>
+
+			<!-- QR Scanner Button -->
+			<button
+				on:click={startScanner}
+				class="flex-1 bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 md:p-6 hover:bg-opacity-30 transition-all flex flex-col items-center justify-center text-white group"
+			>
+				<svg class="w-12 h-12 md:w-16 md:h-16 mb-2 md:mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+				</svg>
+				<span class="text-lg md:text-xl font-semibold">Scan QR Code</span>
+				<span class="text-xs md:text-sm opacity-75 mt-1">Table menu access</span>
+			</button>
+		</div>
+
+		<!-- Brand Grid -->
+		<div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+			{#each brandCounts as brand}
+				<a
+					href="/restaurants/{brand.id}"
+					class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3 md:p-4 hover:bg-opacity-30 transition-all flex flex-col items-center justify-center text-white group"
+					style="background-color: {brand.color}30"
+				>
+					<div class="text-2xl md:text-3xl mb-1">{brand.icon}</div>
+					<span class="text-xs md:text-sm font-semibold text-center">{brand.name}</span>
+					<span class="text-xs opacity-75 mt-1">{brand.count} locations</span>
+				</a>
+			{/each}
+		</div>
+
+		<!-- QR Scanner Modal (when active) -->
+		{#if scanning}
+			<div class="md:hidden bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 flex flex-col items-center justify-center">
+				<div class="relative w-full max-w-xs">
+					<video
+						id="qr-video"
+						class="w-full rounded-lg"
+						autoplay
+						playsinline
+					></video>
+					<div class="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none"></div>
+					<div class="absolute inset-0 flex items-center justify-center">
+						<div class="w-32 h-32 border-2 border-white rounded-lg"></div>
+					</div>
+				</div>
+				<button
+					on:click={stopScanner}
+					class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium"
+				>
+					Cancel
+				</button>
 			</div>
 		{:else}
-			<div class="space-y-8">
-				{#each sortedBrands as [brandId, brandBranches]}
-					<section class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-						<!-- Brand Header -->
-						<div class="px-6 py-4 border-b border-gray-200" style="background-color: {brandId === 'unbranded' ? '#f9fafb' : brandInfo[brandId as keyof typeof brandInfo]?.color + '15'}">
-							<div class="flex items-center justify-between">
-								<div class="flex items-center space-x-3">
-									{#if brandId !== 'unbranded'}
-										<div class="w-4 h-4 rounded-full" style="background-color: {brandInfo[brandId as keyof typeof brandInfo]?.color}"></div>
-									{/if}
-									<div>
-										<h2 class="text-xl font-semibold text-gray-900">
-											{brandId === 'unbranded' ? 'Other Branches' : brandInfo[brandId as keyof typeof brandInfo]?.name || brandId}
-										</h2>
-										{#if brandId !== 'unbranded'}
-											<p class="text-sm text-gray-600">{brandInfo[brandId as keyof typeof brandInfo]?.description}</p>
-										{/if}
-									</div>
-								</div>
-								<div class="text-sm text-gray-500">
-									{brandBranches.length} {brandBranches.length === 1 ? 'location' : 'locations'}
-								</div>
-							</div>
-						</div>
-
-						<!-- Branches Grid -->
-						<div class="p-6">
-							<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{#each brandBranches as branch}
-									<a href="/branches/{branch.id}" class="block">
-										<article class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all hover:border-blue-300 cursor-pointer bg-white">
-											<div class="flex justify-between items-start mb-2">
-												<h3 class="font-semibold text-gray-900 text-sm">
-													{branch.name || branch.title || 'Untitled Branch'}
-												</h3>
-												{#if branch.code}
-													<span class="text-xs text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded">
-														{branch.code}
-													</span>
-												{/if}
-											</div>
-
-											{#if branch.address}
-												<div class="flex items-start mb-3">
-													<svg class="w-3 h-3 text-gray-400 mr-1.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-													</svg>
-													<p class="text-gray-600 text-xs line-clamp-1">{branch.address}</p>
-												</div>
-											{/if}
-
-											<!-- Compact Stats -->
-											<div class="flex items-center justify-between text-xs text-gray-500 mb-3">
-												<div class="flex items-center space-x-3">
-													<span class="flex items-center">
-														<svg class="w-3 h-3 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-														</svg>
-														{branch.menu_items_count > 0 ? branch.menu_items_count : '-'}
-													</span>
-													<span class="flex items-center">
-														<svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-														</svg>
-														{branch.categories_count || 0}
-													</span>
-													<span class="flex items-center">
-														<svg class="w-3 h-3 mr-1 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-														</svg>
-														{branch.tables_count || 0}
-													</span>
-												</div>
-											</div>
-
-											<div class="flex items-center text-xs text-blue-600 hover:text-blue-800 font-medium">
-												<span>View Menu</span>
-												<svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-												</svg>
-											</div>
-										</article>
-									</a>
-								{/each}
-							</div>
-						</div>
-					</section>
-				{/each}
+			<!-- Info Section (when not scanning) -->
+			<div class="hidden md:flex flex-col space-y-4">
+				<div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 md:p-6 flex-1 flex flex-col items-center justify-center text-white">
+					<div class="text-3xl md:text-4xl mb-2">🍱</div>
+					<span class="text-lg font-semibold">SOL Restaurant</span>
+					<span class="text-sm opacity-75 text-center mt-1">Premium Japanese Dining</span>
+				</div>
 			</div>
 		{/if}
 	</div>
+
+	<!-- Desktop QR Scanner Modal -->
+	{#if scanning}
+		<div class="hidden md:flex fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50" on:click={stopScanner}>
+			<div class="bg-white rounded-2xl p-6 max-w-md mx-4" on:click|stopPropagation>
+				<div class="relative mb-4">
+					<video
+						id="qr-video"
+						class="w-full rounded-lg"
+						autoplay
+						playsinline
+					></video>
+					<div class="absolute inset-0 border-4 border-blue-500 rounded-lg pointer-events-none"></div>
+					<div class="absolute inset-0 flex items-center justify-center">
+						<div class="w-48 h-48 border-4 border-white rounded-lg"></div>
+					</div>
+				</div>
+				<div class="text-center">
+					<p class="text-gray-600 mb-4">Position QR code within the frame</p>
+					<button
+						on:click={stopScanner}
+						class="px-6 py-3 bg-red-500 text-white rounded-lg font-medium"
+					>
+						Cancel Scanning
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </main>

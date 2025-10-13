@@ -6,6 +6,8 @@
  */
 
 const axios = require('axios');
+const fs = require('fs').promises;
+const path = require('path');
 const { CukCukClient } = require('@luutronghieu/cukcuk-api-client');
 const { logger } = require('./logger');
 
@@ -253,6 +255,10 @@ class ApiClient {
 
         const count = Array.isArray(menuItems) ? menuItems.length : 0;
         logger.success(`Retrieved ${count} menu items from CukCuk`);
+
+        // Save raw menu items data to JSON file for reference
+        await this.saveMenuItemsToFile(menuItems);
+
         return menuItems;
 
       } catch (error) {
@@ -738,6 +744,53 @@ class ApiClient {
    */
   async getDirectusItemsAggregate(collection, filters = {}, aggregate = {}, limit = null) {
     return this.getDirectusItems(collection, filters, limit, { aggregate });
+  }
+
+  /**
+   * Save menu items to JSON file for reference
+   */
+  async saveMenuItemsToFile(menuItems) {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `menu_items_raw_${timestamp}.json`;
+      const filePath = path.join(__dirname, '../data/raw', filename);
+
+      // Ensure directory exists
+      const dataDir = path.dirname(filePath);
+      await fs.mkdir(dataDir, { recursive: true });
+
+      // Prepare data for JSON serialization
+      const exportData = {
+        metadata: {
+          export_date: new Date().toISOString(),
+          total_items: menuItems.length,
+          branches: [...new Set(menuItems.map(item => item.BranchName || item.BranchId))].length,
+          source: 'cukcuk-api',
+          version: '1.0'
+        },
+        menu_items: menuItems.map(item => ({
+          id: item.Id,
+          name: item.Name,
+          branch_id: item.BranchId,
+          branch_name: item.BranchName,
+          category_id: item.CategoryId,
+          price: item.Price,
+          code: item.Code,
+          external_id: item.Id,
+          // Include all relevant fields
+          ...item
+        }))
+      };
+
+      await fs.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf8');
+      logger.success(`Raw menu items saved to: ${filePath}`);
+      logger.info(`Export includes ${exportData.metadata.total_items} items from ${exportData.metadata.branches} branches`);
+
+      return filePath;
+    } catch (error) {
+      logger.error(`Failed to save menu items to file: ${error.message}`);
+      // Don't throw error, just log it since this is not critical for sync operation
+    }
   }
 }
 

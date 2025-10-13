@@ -212,7 +212,8 @@ class SyncConfig {
     const typeConfigs = {
       branches: {
         batchSize: 50,
-        enableParallelProcessing: false
+        enableParallelProcessing: false,
+        maxConcurrentItems: 1
       },
       categories: {
         batchSize: 100,
@@ -220,14 +221,14 @@ class SyncConfig {
         preserveHierarchy: true
       },
       menu_items: {
-        batchSize: 200,
-        enableParallelProcessing: true,
-        maxConcurrentItems: 10
+        batchSize: 50,
+        enableParallelProcessing: false,
+        maxConcurrentItems: 1
       },
       tables: {
         batchSize: 150,
         enableParallelProcessing: true,
-        maxConcurrentItems: 8
+        maxConcurrentItems: 1
       }
       // layouts removed
     };
