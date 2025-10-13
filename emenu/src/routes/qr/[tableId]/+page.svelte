@@ -398,7 +398,7 @@
 						<span class="font-semibold text-gray-900 dark:text-white">SOL Restaurant</span>
 					</div>
 					<p class="text-sm text-gray-600 dark:text-gray-400">Premium Japanese Dining Experience</p>
-					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">© 2024 SOL Restaurant. All rights reserved.</p>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">© 2025 SOL Restaurant. All rights reserved.</p>
 				</div>
 			</div>
 		</footer>

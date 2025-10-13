@@ -4,6 +4,9 @@
 	import { enhance } from '$app/forms';
 	import { type DirectusUser } from '$lib/server/auth';
 
+	export let data;
+	export let form;
+
 	let loginMethod: 'email' | 'phone' = 'email';
 	let isLoading = false;
 	let showPassword = false;
@@ -50,6 +53,22 @@
 
 		<!-- Login Form -->
 		<div class="bg-white shadow-xl rounded-lg p-8">
+			<!-- Error Display -->
+			{#if form?.error}
+				<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+					<div class="flex">
+						<div class="flex-shrink-0">
+							<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+							</svg>
+						</div>
+						<div class="ml-3">
+							<p class="text-sm text-red-800">{form.error}</p>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Login Method Toggle -->
 			<div class="flex mb-6 bg-gray-100 rounded-lg p-1">
 				<button
@@ -72,14 +91,17 @@
 
 			<form
 				method="POST"
-				action="?/login"
+				action="?"
 				use:enhance={() => {
 					isLoading = true;
 					return async ({ result, form }) => {
 						isLoading = false;
 						if (result.type === 'success') {
-							const redirectTo = $page.url.searchParams.get('redirect') || '/hub';
+							const redirectTo = $page.url.searchParams.get('returnTo') || '/hub';
 							goto(redirectTo);
+						} else if (result.type === 'failure') {
+							// Error is handled by the template
+							console.error('Login failed:', result.data?.error);
 						}
 					};
 				}}
@@ -174,7 +196,7 @@
 
 		<!-- Footer -->
 		<div class="text-center text-sm text-gray-600">
-			<p>&copy; 2024 SOL Restaurant. All rights reserved.</p>
+			<p>&copy; 2025 SOL Restaurant. All rights reserved.</p>
 			<p class="mt-1">Need help? Contact your system administrator</p>
 		</div>
 	</div>

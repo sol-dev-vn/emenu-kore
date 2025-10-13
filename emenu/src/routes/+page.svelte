@@ -173,7 +173,7 @@
 				</div>
 				<p class="text-gray-600 dark:text-gray-400 mb-4">Premium Japanese Dining Experience Since 2020</p>
 				<div class="flex justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-					<span>&copy; 2024 SOL Restaurant. All rights reserved.</span>
+					<span>&copy; 2025 SOL Restaurant. All rights reserved.</span>
 					<span>•</span>
 					<a href="#" class="hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>
 					<span>•</span>
