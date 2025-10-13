@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 
 import VisualEditingLayout from '@/components/layout/VisualEditingLayout';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { fetchSiteData } from '@/lib/directus/fetchers';
 import { getDirectusAssetURL } from '@/lib/directus/directus-utils';
 
@@ -35,13 +36,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 		<html lang="en" style={{ '--accent-color': accentColor } as React.CSSProperties} suppressHydrationWarning>
 			<body className="antialiased font-sans flex flex-col min-h-screen">
 				<ThemeProvider>
-					<VisualEditingLayout
-						headerNavigation={headerNavigation}
-						footerNavigation={footerNavigation}
-						globals={globals}
-					>
-						<main className="flex-grow">{children}</main>
-					</VisualEditingLayout>
+					<AuthProvider>
+						<VisualEditingLayout
+							headerNavigation={headerNavigation}
+							footerNavigation={footerNavigation}
+							globals={globals}
+						>
+							<main className="flex-grow">{children}</main>
+						</VisualEditingLayout>
+					</AuthProvider>
 				</ThemeProvider>
 			</body>
 		</html>
