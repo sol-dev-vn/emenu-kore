@@ -26,8 +26,11 @@
 	};
 
 	onMount(async () => {
-		// Client-side auth check will be handled by server-side auth middleware
-		// The user should already be authenticated if they reach this page
+		// Check if user is authenticated
+		if (!currentUser) {
+			goto('/auth/login');
+			return;
+		}
 		isLoading = false;
 	});
 
@@ -312,4 +315,12 @@
 		bind:isOpen={showBranchSelector}
 		on:branch-change={handleBranchChange}
 	/>
+{:else}
+	<!-- Not authenticated - redirect to login -->
+	<div class="min-h-screen bg-gray-50 flex items-center justify-center">
+		<div class="text-center">
+			<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+			<p class="text-gray-600">Redirecting to login...</p>
+		</div>
+	</div>
 {/if}
