@@ -10,6 +10,15 @@ export default defineConfig({
 		allowedHosts: ['localhost', 'sol-menu.alphabits.team', 'alphabits.team'],
 		port: 3520
 	},
+	build: {
+		// Suppress warnings during build
+		rollupOptions: {
+			onwarn(warning, warn) {
+				// Suppress all warnings
+				return;
+			}
+		}
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
