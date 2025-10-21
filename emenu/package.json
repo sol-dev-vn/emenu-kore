@@ -1,7 +1,7 @@
 {
-	"name": "simple-cms-nextjs",
+	"name": "sol-emenu",
 	"version": "1.0.0",
-	"website": "starters-simple-cms-nextjs.vercel.app",
+	"website": "sol-menu.alphabits.team",
 	"license": "MIT",
 	"scripts": {
 		"dev": "next dev --turbopack",

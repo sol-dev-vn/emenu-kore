@@ -72,15 +72,15 @@ function QRScannerModal({ isOpen, onClose, onScan }: QRScannerModalProps) {
       className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-brand-background rounded-2xl max-w-lg w-full overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-accent/20">
-          <h2 className="text-xl font-semibold text-brand-text">Scan QR Code</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Scan QR Code</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-background-muted rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-brand-text" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
@@ -129,7 +129,7 @@ function QRScannerModal({ isOpen, onClose, onScan }: QRScannerModalProps) {
                 )}
               </div>
 
-              <p className="text-center text-brand-text/70 text-sm">
+              <p className="text-center text-gray-600 text-sm">
                 Position the QR code within the frame to scan
               </p>
             </>
@@ -137,10 +137,10 @@ function QRScannerModal({ isOpen, onClose, onScan }: QRScannerModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-accent/20 bg-background-muted">
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full py-2 text-brand-text hover:text-brand-primary transition-colors"
+            className="w-full py-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             Cancel
           </button>
@@ -169,18 +169,21 @@ export default function QRScannerClient() {
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="group relative bg-brand-nav/10 backdrop-blur-md border border-brand-nav/20 rounded-2xl p-6 hover:bg-brand-nav/20 transition-all duration-300 transform hover:scale-105"
+        className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-lg"
+        style={{backgroundColor: 'rgba(155, 29, 32, 0.1)', borderColor: 'rgba(155, 29, 32, 0.2)'}}
       >
-        <div className="flex flex-col items-center space-y-3">
-          <div className="w-16 h-16 bg-brand-nav rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Camera className="w-8 h-8 text-brand-primary" />
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform" style={{backgroundColor: '#9B1D20'}}>
+            <Camera className="w-10 h-10 text-white" />
           </div>
-          <span className="text-brand-nav font-medium text-lg">Scan eMenu QR</span>
-          <span className="text-brand-nav/60 text-sm">Tap to open scanner</span>
+          <div className="text-center">
+            <span className="block font-semibold text-xl text-gray-800">Scan QR Code</span>
+            <span className="block text-sm text-gray-600 mt-1">Tap to open scanner</span>
+          </div>
         </div>
 
         {/* Subtle glow effect */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
       </button>
 
       <QRScannerModal

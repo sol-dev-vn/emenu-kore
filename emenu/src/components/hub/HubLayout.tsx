@@ -197,9 +197,9 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
               <img
                 className="h-8 w-auto mr-3"
                 src="/images/logo.svg"
-                alt="SOL.com.vn"
+                alt="SOL eMenu"
               />
-              <span className="text-lg font-semibold text-gray-900">SOL Hub</span>
+              <span className="text-lg font-semibold text-gray-900">SOL eMenu Hub</span>
             </div>
             <Button
               variant="ghost"

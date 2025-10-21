@@ -1,10 +1,5 @@
 import type { NextConfig } from 'next';
-import initializeBundleAnalyzer from '@next/bundle-analyzer';
 import { generateRedirects } from './src/lib/redirects';
-
-const withBundleAnalyzer = initializeBundleAnalyzer({
-	enabled: process.env.BUNDLE_ANALYZER_ENABLED === 'true',
-});
 
 const ContentSecurityPolicy = `
     default-src 'self';
@@ -19,11 +14,10 @@ const ContentSecurityPolicy = `
 `;
 
 const nextConfig: NextConfig = {
-	webpack: (config) => {
-		config.cache = false;
+	// Turbopack is enabled by default in Next.js 15 when using --turbopack flag
+	// No additional configuration needed for basic usage
 
-		return config;
-	},
+	// Image optimization
 	images: {
 		dangerouslyAllowSVG: true,
 		remotePatterns: [
@@ -40,6 +34,8 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
+
+	// Environment variables
 	env: {
 		DIRECTUS_PUBLIC_TOKEN: process.env.DIRECTUS_PUBLIC_TOKEN,
 		DIRECTUS_FORM_TOKEN: process.env.DIRECTUS_FORM_TOKEN,
@@ -65,4 +61,4 @@ const nextConfig: NextConfig = {
 	},
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;

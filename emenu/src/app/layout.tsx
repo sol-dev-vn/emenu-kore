@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const { globals } = await fetchSiteData();
 
-    const siteTitle = globals?.title || 'Simple CMS';
-    const siteDescription = globals?.description || 'A starter CMS template powered by Next.js and Directus.';
+    const siteTitle = globals?.title || 'SOL eMenu';
+    const siteDescription = globals?.description || 'Digital menu experience powered by SOL';
     const faviconURL = globals?.favicon ? getDirectusAssetURL(globals.favicon) : '/favicon.ico';
 
     return {

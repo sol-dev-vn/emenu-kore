@@ -79,7 +79,7 @@ export default function BranchesPage() {
             </Button>
           </div>
 
-          {(user.role.name === 'Administrator' || user.role.name === 'Manager') && (
+          {(user?.role?.name === 'Administrator' || user?.role?.name === 'Manager') && (
             <Button
               style={{backgroundColor: '#9B1D20'}}
               className="text-white hover:bg-red-700"

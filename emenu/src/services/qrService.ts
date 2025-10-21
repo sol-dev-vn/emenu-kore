@@ -191,7 +191,7 @@ export class QRCodeService {
     const sheetHtml = `
       <html>
         <head>
-          <title>QR Codes - Print Sheet</title>
+          <title>SOL eMenu - QR Codes Print Sheet</title>
           <style>
             body {
               font-family: Arial, sans-serif;

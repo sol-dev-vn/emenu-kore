@@ -1,9 +1,9 @@
-# Next.js Simple CMS Template with Directus Integration
+# SOL eMenu - Digital Restaurant Menu System
 
-This is a **Next.js-based Simple CMS Template** that is fully integrated with [Directus](https://directus.io/), offering
-a CMS solution for managing and delivering content seamlessly. The template leverages modern technologies like the
-**Next.js App Router**, **Tailwind CSS**, and **Shadcn components**, providing a complete and scalable starting point
-for building CMS-powered web applications.
+SOL eMenu is a **Next.js-based digital menu system** that is fully integrated with [Directus](https://directus.io/), offering
+a complete restaurant management solution for digital menus and QR code ordering. The system leverages modern technologies like the
+**Next.js App Router**, **Tailwind CSS**, and **Shadcn components**, providing a comprehensive platform for
+modern restaurant operations.
 
 ## **Features**
 
