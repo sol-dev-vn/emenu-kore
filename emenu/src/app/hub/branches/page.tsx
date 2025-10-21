@@ -3,18 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import HubLayout from '@/components/hub/HubLayout';
+import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Search,
   Plus,
   Filter,
   MapPin,
-  Phone,
-  Clock,
   Store,
   Users
 } from 'lucide-react';
@@ -34,7 +32,7 @@ export default function BranchesPage() {
   }, [user, isLoading, router]);
 
   useEffect(() => {
-    // Simulate initial loading
+    // Simulate loading branches data
     const timer = setTimeout(() => {
       setIsLoadingBranches(false);
     }, 1000);
@@ -50,47 +48,19 @@ export default function BranchesPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#FFE4E1'}}>
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/hub')}
-                className="mr-4"
-              >
-                <Store className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Branch Management</h1>
-                <p className="text-sm text-gray-500">Manage restaurant locations and layouts</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Badge style={{backgroundColor: '#9B1D20'}} className="text-white">
-                {user.role.name}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={logout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <HubLayout
+      breadcrumb={
+        <Breadcrumb items={[
+          {label: 'Overview', href: '/hub'},
+          {label: 'Branch Management', active: true}
+        ]}
+      }
+      title="Restaurant Branches"
+      subtitle="View and manage all restaurant branches grouped by brand"
+    >
+      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Search and Actions Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Restaurant Branches</h2>
-            <p className="text-gray-600">View and manage all restaurant branches grouped by brand</p>
-          </div>
-
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -107,22 +77,22 @@ export default function BranchesPage() {
               <Filter className="h-4 w-4 mr-2" />
               Filter
             </Button>
-
-            {(user.role.name === 'Administrator' || user.role.name === 'Manager') && (
-              <Button
-                style={{backgroundColor: '#9B1D20'}}
-                className="text-white hover:bg-red-700"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Branch
-              </Button>
-            )}
           </div>
+
+          {(user.role.name === 'Administrator' || user.role.name === 'Manager') && (
+            <Button
+              style={{backgroundColor: '#9B1D20'}}
+              className="text-white hover:bg-red-700"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Branch
+            </Button>
+          )}
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-medium text-gray-900">Total Branches</CardTitle>
@@ -155,26 +125,11 @@ export default function BranchesPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium text-gray-900">Open Now</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-900">Tables</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center">
-                <Clock className="h-8 w-8 mr-3 text-green-500" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">25</p>
-                  <p className="text-sm text-gray-500">Currently operating</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium text-gray-900">Total Tables</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <MapPin className="h-8 w-8 mr-3 text-blue-500" />
+                <MapPin className="h-8 w-8 mr-3" style={{color: '#9B1D20'}} />
                 <div>
                   <p className="text-2xl font-bold text-gray-900">600+</p>
                   <p className="text-sm text-gray-500">Across all branches</p>
@@ -182,13 +137,26 @@ export default function BranchesPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        <Separator className="my-8" />
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium text-gray-900">Staff</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <Users className="h-8 w-8 mr-3" style={{color: '#9B1D20'}} />
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">200+</p>
+                  <p className="text-sm text-gray-500">Active employees</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Branch Listings */}
         <BrandGroupedList searchTerm={searchTerm} />
-      </main>
-    </div>
+      </div>
+    </HubLayout>
   );
 }

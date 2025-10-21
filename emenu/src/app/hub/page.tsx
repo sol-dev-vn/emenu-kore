@@ -3,23 +3,20 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import HubLayout from '@/components/hub/HubLayout';
+import { Breadcrumb } from '@/components/hub/Breadcrumb';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  LogOut, 
-  Settings, 
-  Users, 
-  FileText, 
-  Home, 
-  Menu, 
-  Search,
-  Bell,
-  User,
+import {
   Store,
-  Utensils
+  Utensils,
+  Users,
+  TrendingUp,
+  Clock,
+  AlertCircle,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 
 export default function HubPage() {
@@ -34,8 +31,8 @@ export default function HubPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#FFE4E1'}}>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
       </div>
     );
   }
@@ -44,260 +41,220 @@ export default function HubPage() {
     return null;
   }
 
-  // Define navigation items based on user role
-  const getNavigationItems = () => {
-    const baseItems = [
-      {
-        title: 'Dashboard',
-        icon: Home,
-        href: '/hub',
-        description: 'Overview and statistics',
-      },
-    ];
-
-    const roleBasedItems = [];
-
-    // Add items based on user role
-    if (user.role.name === 'Administrator' || user.role.name === 'Manager') {
-      roleBasedItems.push(
-        {
-          title: 'Restaurants',
-          icon: Store,
-          href: '/hub/branches',
-          description: 'Manage restaurant branches and layouts',
-        },
-        {
-          title: 'Menu Management',
-          icon: Utensils,
-          href: '/hub/menus',
-          description: 'Manage menu items and categories',
-        },
-        {
-          title: 'Staff',
-          icon: Users,
-          href: '/hub/staff',
-          description: 'Manage staff accounts and permissions',
-        }
-      );
+  // Mock data for dashboard
+  const stats = [
+    {
+      title: 'Active Branches',
+      value: '26',
+      change: '+2',
+      changeType: 'positive',
+      icon: Store,
+      color: '#9B1D20'
+    },
+    {
+      title: 'Total Menu Items',
+      value: '487',
+      change: '+18',
+      changeType: 'positive',
+      icon: Utensils,
+      color: '#9B1D20'
+    },
+    {
+      title: 'Staff Members',
+      value: '194',
+      change: '+5',
+      changeType: 'positive',
+      icon: Users,
+      color: '#9B1D20'
+    },
+    {
+      title: 'Monthly Revenue',
+      value: '₫2.4B',
+      change: '+12%',
+      changeType: 'positive',
+      icon: TrendingUp,
+      color: '#9B1D20'
     }
+  ];
 
-    if (user.role.name === 'Administrator') {
-      roleBasedItems.push(
-        {
-          title: 'Reports',
-          icon: FileText,
-          href: '/hub/reports',
-          description: 'View system reports and analytics',
-        },
-        {
-          title: 'Settings',
-          icon: Settings,
-          href: '/hub/settings',
-          description: 'System configuration and settings',
-        }
-      );
+  const recentActivity = [
+    {
+      id: 1,
+      type: 'branch_created',
+      message: 'New branch "SOL Pizza - District 7" has been added',
+      time: '2 hours ago',
+      icon: Store
+    },
+    {
+      id: 2,
+      type: 'menu_updated',
+      message: 'Menu prices updated for SOL Burger brand',
+      time: '4 hours ago',
+      icon: Utensils
+    },
+    {
+      id: 3,
+      type: 'staff_added',
+      message: '3 new staff members joined this week',
+      time: '1 day ago',
+      icon: Users
+    },
+    {
+      id: 4,
+      type: 'system_update',
+      message: 'System maintenance completed successfully',
+      time: '2 days ago',
+      icon: AlertCircle
     }
+  ];
 
-    // Staff-specific items
-    if (user.role.name === 'Staff') {
-      roleBasedItems.push(
-        {
-          title: 'My Restaurant',
-          icon: Store,
-          href: `/hub/restaurant/${user.id}`,
-          description: 'Manage your assigned restaurant',
-        },
-        {
-          title: 'Menu Updates',
-          icon: Utensils,
-          href: '/hub/menu-updates',
-          description: 'Update menu items and prices',
-        }
-      );
+  const quickActions = [
+    {
+      title: 'Add New Branch',
+      description: 'Create a new restaurant branch',
+      icon: Store,
+      href: '/hub/branches?action=create',
+      color: '#9B1D20'
+    },
+    {
+      title: 'Update Menu',
+      description: 'Manage menu items and pricing',
+      icon: Utensils,
+      href: '/hub/menus',
+      color: '#9B1D20'
+    },
+    {
+      title: 'Generate QR Codes',
+      description: 'Create QR codes for tables',
+      icon: AlertCircle,
+      href: '/hub/qr',
+      color: '#9B1D20'
     }
-
-    return [...baseItems, ...roleBasedItems];
-  };
-
-  const navigationItems = getNavigationItems();
-
-  const getRoleBadgeColor = (roleName: string) => {
-    switch (roleName) {
-      case 'Administrator':
-        return 'text-white';
-      case 'Manager':
-        return 'text-white';
-      case 'Staff':
-        return 'text-white';
-      default:
-        return 'text-white';
-    }
-  };
+  ];
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#FFE4E1'}}>
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Button variant="ghost" size="sm" className="mr-4 lg:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-              <img
-                className="h-8 w-auto mr-4"
-                src="/images/logo.svg"
-                alt="SOL.com.vn"
-              />
-              <h1 className="text-xl font-semibold text-gray-900">SOL Staff Hub</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Search className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.first_name} />
-                  <AvatarFallback>
-                    {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user.first_name} {user.last_name}
-                  </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={logout}>
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user.first_name}!
-          </h2>
-          <p className="text-gray-600">
-            Here's what's happening with your restaurants today.
-          </p>
-        </div>
-
-        {/* User Info Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Your Profile</CardTitle>
-              <Badge
-                className={getRoleBadgeColor(user.role.name)}
-                style={{backgroundColor: '#9B1D20'}}
-              >
-                {user.role.name}
-              </Badge>
-            </div>
-            <CardDescription>
-              Manage your account settings and permissions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar} alt={user.first_name} />
-                <AvatarFallback className="text-lg">
-                  {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {user.first_name} {user.last_name}
-                </h3>
-                <p className="text-gray-500">{user.email}</p>
-                {user.title && (
-                  <p className="text-sm text-gray-500">{user.title}</p>
-                )}
-                {user.location && (
-                  <p className="text-sm text-gray-500">{user.location}</p>
-                )}
-              </div>
-              <div className="ml-auto">
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {navigationItems.map((item) => (
-            <Card key={item.href} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <item.icon className="h-5 w-5 mr-2" style={{color: '#9B1D20'}} />
-                  {item.title}
+    <HubLayout
+      breadcrumb={<Breadcrumb items={[{label: 'Overview', active: true}]} />}
+      title={`Welcome back, ${user.first_name}!`}
+      subtitle="Here's what's happening across your restaurants today."
+    >
+      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  {stat.title}
                 </CardTitle>
-                <CardDescription>{item.description}</CardDescription>
+                <stat.icon className="h-4 w-4" style={{color: stat.color}} />
               </CardHeader>
               <CardContent>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => router.push(item.href)}
-                >
-                  Access
-                </Button>
+                <div className="text-2xl font-bold" style={{color: stat.color}}>
+                  {stat.value}
+                </div>
+                <div className="flex items-center text-xs text-gray-500 mt-1">
+                  {stat.changeType === 'positive' ? (
+                    <ArrowUpRight className="h-3 w-3 mr-1 text-green-500" />
+                  ) : (
+                    <ArrowDownRight className="h-3 w-3 mr-1 text-red-500" />
+                  )}
+                  {stat.change} from last month
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <Separator className="my-8" />
-        
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Active Restaurants</CardTitle>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>30+</p>
-              <p className="text-sm text-gray-500">Across Vietnam</p>
+            <CardContent className="space-y-3">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="w-full justify-start h-auto p-4"
+                  onClick={() => router.push(action.href)}
+                >
+                  <div className="flex items-center">
+                    <action.icon className="h-5 w-5 mr-3" style={{color: action.color}} />
+                    <div className="text-left">
+                      <div className="font-medium">{action.title}</div>
+                      <div className="text-xs text-gray-500">{action.description}</div>
+                    </div>
+                  </div>
+                </Button>
+              ))}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Menu Items</CardTitle>
+          {/* Recent Activity */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Recent Activity</CardTitle>
+              <Button variant="ghost" size="sm">
+                View All
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>500+</p>
-              <p className="text-sm text-gray-500">Currently available</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Staff Members</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>200+</p>
-              <p className="text-sm text-gray-500">Active employees</p>
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <activity.icon className="h-4 w-4 text-gray-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900">{activity.message}</p>
+                      <div className="flex items-center mt-1">
+                        <Clock className="h-3 w-3 text-gray-400 mr-1" />
+                        <p className="text-xs text-gray-500">{activity.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+
+        {/* System Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">All Systems Operational</p>
+                  <p className="text-xs text-gray-500">No active issues</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Database Connected</p>
+                  <p className="text-xs text-gray-500">Response time: 12ms</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Scheduled Maintenance</p>
+                  <p className="text-xs text-gray-500">Tonight at 2:00 AM</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </HubLayout>
   );
 }
