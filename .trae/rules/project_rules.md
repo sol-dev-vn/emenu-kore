@@ -8,8 +8,7 @@
 - Directus MCP is available and configured for Trae IDE & Claude Code (https://sol-kore.alphabits.team/mcp).
 
 # Improtant files and folder structure
-- deploy/ecosystem.config.js : PM2 process configuration for API service and CukCuk data collector.
-- api-service: Core Directus installation for Authentication, Admin Portal, and custom plugins | Directus + PostgreSQL.
+- ecosystem.config.js : PM2 process configuration .
 - emenu: Mobile-responsive eMenu platform with real-time data synchronization | SvelteKit + Directus API.
 - data: Data dictionary, schemas, and documentation. Cukcuk Data collector sync job.
 - docs: Technical documentation, API specs, deployment guides.

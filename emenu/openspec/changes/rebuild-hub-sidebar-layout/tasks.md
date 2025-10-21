@@ -1,0 +1,17 @@
+## 1. Implementation
+- [ ] 1.1 Create sidebar layout component with navigation items
+- [ ] 1.2 Create fixed breadcrumb and heading component for main content area
+- [ ] 1.3 Implement Overview dashboard page
+- [ ] 1.4 Create Menu Management interface
+- [ ] 1.5 Build Branch Management interface
+- [ ] 1.6 Develop Table Layouts interface
+- [ ] 1.7 Create QR Code management page (/hub/qr) with branch selection
+- [ ] 1.8 Implement QR code generation with medium error correction
+- [ ] 1.9 Add print and A4 PDF download functionality for QR codes
+- [ ] 1.10 Create table status page (/qr/[table-id])
+- [ ] 1.11 Implement QR detection logic on home page
+- [ ] 1.12 Create User Profile page
+- [ ] 1.13 Build Settings page
+- [ ] 1.14 Update routing structure for new layout
+- [ ] 1.15 Apply consistent styling and animations
+- [ ] 1.16 Test responsive design and accessibility
