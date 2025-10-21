@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { cn } from '@/lib/utils';
 import {
   Home,
@@ -44,6 +46,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -51,10 +54,10 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
   const getNavigationItems = (): SidebarItem[] => {
     const baseItems: SidebarItem[] = [
       {
-        title: 'Overview',
+        title: t('navigation.dashboard'),
         icon: Home,
         href: '/hub',
-        description: 'Dashboard and statistics'
+        description: t('dashboard.subtitle')
       },
     ];
 
@@ -63,29 +66,29 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
     if (user?.role.name === 'Administrator' || user?.role.name === 'Manager') {
       roleBasedItems.push(
         {
-          title: 'Menu Management',
+          title: t('navigation.menuManagement'),
           icon: Utensils,
           href: '/hub/menus',
-          description: 'Manage menu items and categories'
+          description: t('menu.subtitle')
         },
         {
-          title: 'Branch Management',
+          title: t('navigation.branchManagement'),
           icon: Store,
           href: '/hub/branches',
-          description: 'Manage restaurant branches',
+          description: t('branches.subtitle'),
           badge: 'New'
         },
         {
-          title: 'Table Layouts',
+          title: t('navigation.tableLayouts'),
           icon: Layout,
           href: '/hub/layouts',
-          description: 'Configure table layouts'
+          description: t('tableLayouts.subtitle')
         },
         {
-          title: 'QR Codes',
+          title: t('navigation.qrCodes'),
           icon: QrCode,
           href: '/hub/qr',
-          description: 'Generate and manage QR codes'
+          description: t('qrCodes.subtitle')
         }
       );
     }
@@ -93,10 +96,10 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
     if (user?.role.name === 'Administrator') {
       roleBasedItems.push(
         {
-          title: 'Settings',
+          title: t('navigation.settings'),
           icon: Settings,
           href: '/hub/settings',
-          description: 'System configuration'
+          description: t('settings.subtitle')
         }
       );
     }
@@ -302,7 +305,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
                 onClick={() => router.push('/hub/profile')}
               >
                 <User className="h-4 w-4 mr-2" />
-                Profile
+                {t('navigation.profile')}
               </Button>
               <Button
                 variant="ghost"
@@ -311,7 +314,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
                 onClick={logout}
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                {t('auth.logout')}
               </Button>
             </div>
           </div>
@@ -345,6 +348,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
 
               {/* Right side actions */}
               <div className="flex items-center space-x-2">
+                <LanguageSwitcher />
                 <Button variant="ghost" size="sm">
                   <Search className="h-5 w-5" />
                 </Button>

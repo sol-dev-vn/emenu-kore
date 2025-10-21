@@ -7,6 +7,7 @@ import PublicLayout from './PublicLayout';
 import VisualEditingLayout from '@/components/layout/VisualEditingLayout';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { I18nProvider } from '@/contexts/I18nContext';
 import { fetchSiteData } from '@/lib/directus/fetchers';
 import { getDirectusAssetURL } from '@/lib/directus/directus-utils';
 
@@ -68,9 +69,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <body className="antialiased font-sans min-h-screen bg-gradient-to-br from-[#9B1D20] via-[#7a1618] to-[#5a0f10]">
           <ThemeProvider>
             <AuthProvider>
-              <PublicLayout>
-                {children}
-              </PublicLayout>
+              <I18nProvider>
+                <PublicLayout>
+                  {children}
+                </PublicLayout>
+              </I18nProvider>
             </AuthProvider>
           </ThemeProvider>
         </body>
@@ -87,13 +90,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <body className="antialiased font-sans flex flex-col min-h-screen">
           <ThemeProvider>
             <AuthProvider>
-              <VisualEditingLayout
-                headerNavigation={headerNavigation}
-                footerNavigation={footerNavigation}
-                globals={globals}
-              >
-                <main className="flex-grow">{children}</main>
-              </VisualEditingLayout>
+              <I18nProvider>
+                <VisualEditingLayout
+                  headerNavigation={headerNavigation}
+                  footerNavigation={footerNavigation}
+                  globals={globals}
+                >
+                  <main className="flex-grow">{children}</main>
+                </VisualEditingLayout>
+              </I18nProvider>
             </AuthProvider>
           </ThemeProvider>
         </body>
@@ -106,7 +111,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <body className="antialiased font-sans flex flex-col min-h-screen">
           <ThemeProvider>
             <AuthProvider>
-              <main className="flex-grow">{children}</main>
+              <I18nProvider>
+                <main className="flex-grow">{children}</main>
+              </I18nProvider>
             </AuthProvider>
           </ThemeProvider>
         </body>

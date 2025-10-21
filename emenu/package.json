@@ -10,7 +10,11 @@
 		"generate:types": "tsx ./src/lib/directus/generateDirectusTypes.ts",
 		"lint": "next lint",
 		"lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-		"format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
+		"format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
+		"test:ci": "jest --coverage --watchAll=false --passWithNoTests"
 	},
 	"dependencies": {
 		"@directus/sdk": "^19.1.0",
