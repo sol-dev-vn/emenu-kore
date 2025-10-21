@@ -63,8 +63,8 @@ export default function HubPage() {
         {
           title: 'Restaurants',
           icon: Store,
-          href: '/hub/restaurants',
-          description: 'Manage restaurant locations',
+          href: '/hub/branches',
+          description: 'Manage restaurant branches and layouts',
         },
         {
           title: 'Menu Management',
@@ -124,18 +124,18 @@ export default function HubPage() {
   const getRoleBadgeColor = (roleName: string) => {
     switch (roleName) {
       case 'Administrator':
-        return 'bg-red-100 text-red-800';
+        return 'text-white';
       case 'Manager':
-        return 'bg-blue-100 text-blue-800';
+        return 'text-white';
       case 'Staff':
-        return 'bg-green-100 text-green-800';
+        return 'text-white';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'text-white';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{backgroundColor: '#FFE4E1'}}>
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,7 +198,10 @@ export default function HubPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Your Profile</CardTitle>
-              <Badge className={getRoleBadgeColor(user.role.name)}>
+              <Badge
+                className={getRoleBadgeColor(user.role.name)}
+                style={{backgroundColor: '#9B1D20'}}
+              >
                 {user.role.name}
               </Badge>
             </div>
@@ -242,7 +245,7 @@ export default function HubPage() {
             <Card key={item.href} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <item.icon className="h-5 w-5 mr-2 text-primary" />
+                  <item.icon className="h-5 w-5 mr-2" style={{color: '#9B1D20'}} />
                   {item.title}
                 </CardTitle>
                 <CardDescription>{item.description}</CardDescription>
@@ -269,27 +272,27 @@ export default function HubPage() {
               <CardTitle className="text-lg">Active Restaurants</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">30+</p>
+              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>30+</p>
               <p className="text-sm text-gray-500">Across Vietnam</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Menu Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">500+</p>
+              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>500+</p>
               <p className="text-sm text-gray-500">Currently available</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Staff Members</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">200+</p>
+              <p className="text-3xl font-bold" style={{color: '#9B1D20'}}>200+</p>
               <p className="text-sm text-gray-500">Active employees</p>
             </CardContent>
           </Card>
