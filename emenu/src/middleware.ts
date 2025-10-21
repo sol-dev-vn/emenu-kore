@@ -10,9 +10,17 @@ const protectedRoutes = ['/hub', '/api/auth/me', '/api/auth/logout'];
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
+	// Add pathname to headers for layout detection
+	const requestHeaders = new Headers(request.headers);
+	requestHeaders.set('x-pathname', pathname);
+
 	// Check if the route is public
 	if (publicRoutes.some(route => pathname.startsWith(route))) {
-		return NextResponse.next();
+		return NextResponse.next({
+			request: {
+				headers: requestHeaders,
+			},
+		});
 	}
 
 	// Check if the route is protected
@@ -33,7 +41,11 @@ export async function middleware(request: NextRequest) {
 	}
 
 	// For all other routes, continue
-	return NextResponse.next();
+	return NextResponse.next({
+		request: {
+			headers: requestHeaders,
+		},
+	});
 }
 
 export const config = {

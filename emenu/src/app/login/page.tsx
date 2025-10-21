@@ -53,26 +53,26 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-primary via-[#7a1618] to-[#5a0f10] py-12 px-4 sm:px-6 lg:px-8">
 			<div className="max-w-md w-full space-y-8">
 				<div className="text-center">
 					<img
-						className="mx-auto h-12 w-auto"
-						src="/images/logo.svg"
-						alt="SOL.com.vn"
+						className="mx-auto h-16 w-auto mb-4"
+						src="/icons/logo_trim.png"
+						alt="SOL eMenu"
 					/>
-					<h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+					<h2 className="text-3xl font-bold text-brand-nav">
 						Sign in to your account
 					</h2>
-					<p className="mt-2 text-sm text-gray-600">
-						Access the SOL staff dashboard
+					<p className="mt-2 text-sm text-brand-nav/80">
+						Access the SOL eMenu system
 					</p>
 				</div>
 				
-				<Card>
+				<Card className="bg-brand-background/95 backdrop-blur-sm border-accent/20">
 					<CardHeader>
-						<CardTitle>Login</CardTitle>
-						<CardDescription>
+						<CardTitle className="text-brand-text">Login</CardTitle>
+						<CardDescription className="text-brand-text/70">
 							Enter your credentials to access the dashboard
 						</CardDescription>
 					</CardHeader>
@@ -86,7 +86,7 @@ export default function LoginPage() {
 							)}
 							
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email" className="text-brand-text">Email</Label>
 								<Input
 									id="email"
 									type="email"
@@ -95,11 +95,12 @@ export default function LoginPage() {
 									placeholder="Enter your email"
 									required
 									disabled={isLoading}
+									className="bg-background/50 border-accent/30 text-brand-text placeholder:text-brand-text/50"
 								/>
 							</div>
-							
+
 							<div className="space-y-2">
-								<Label htmlFor="password">Password</Label>
+								<Label htmlFor="password" className="text-brand-text">Password</Label>
 								<div className="relative">
 									<Input
 										id="password"
@@ -109,12 +110,13 @@ export default function LoginPage() {
 										placeholder="Enter your password"
 										required
 										disabled={isLoading}
+										className="bg-background/50 border-accent/30 text-brand-text placeholder:text-brand-text/50"
 									/>
 									<Button
 										type="button"
 										variant="ghost"
 										size="sm"
-										className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+										className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-brand-text/60 hover:text-brand-text"
 										onClick={() => setShowPassword(!showPassword)}
 										disabled={isLoading}
 									>
@@ -147,7 +149,7 @@ export default function LoginPage() {
 					</form>
 				</Card>
 				
-				<div className="text-center text-sm text-gray-600">
+				<div className="text-center text-sm text-brand-nav/70">
 					<p>
 						Need help? Contact your system administrator
 					</p>

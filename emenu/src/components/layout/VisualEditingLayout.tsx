@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, ReactNode } from 'react';
 import { useVisualEditing } from '@/hooks/useVisualEditing';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import NavigationBar from '@/components/layout/NavigationBar';
 import Footer from '@/components/layout/Footer';
 
@@ -23,9 +23,13 @@ export default function VisualEditingLayout({
 	const footerRef = useRef<HTMLElement>(null);
 	const { isVisualEditingEnabled, apply } = useVisualEditing();
 	const router = useRouter();
+	const pathname = usePathname();
+
+	// Check if we're on pages that shouldn't show header/footer
+	const isExcludedPage = ['/', '/login'].includes(pathname);
 
 	useEffect(() => {
-		if (isVisualEditingEnabled) {
+		if (isVisualEditingEnabled && !isExcludedPage) {
 			// Apply visual editing for the navigation bar if its ref is set.
 			if (navRef.current) {
 				apply({
@@ -41,13 +45,14 @@ export default function VisualEditingLayout({
 				});
 			}
 		}
-	}, [isVisualEditingEnabled, apply, router]);
+	}, [isVisualEditingEnabled, apply, router, isExcludedPage]);
 
 	return (
 		<>
-			<NavigationBar ref={navRef} navigation={headerNavigation} globals={globals} />
+			{/* Only show navigation and footer if not on excluded pages */}
+			{!isExcludedPage && <NavigationBar ref={navRef} navigation={headerNavigation} globals={globals} />}
 			{children}
-			<Footer ref={footerRef} navigation={footerNavigation} globals={globals} />
+			{!isExcludedPage && <Footer ref={footerRef} navigation={footerNavigation} globals={globals} />}
 		</>
 	);
 }

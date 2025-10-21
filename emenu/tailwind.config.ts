@@ -41,13 +41,19 @@ const config: Config = {
 				secondary: 'var(--accent-color-dark)',
 				accent: 'var(--accent-color)',
 				soft: 'var(--accent-color-soft)',
+	brand: {
+					primary: '#9B1D20', // Ruby red
+					background: '#FFE4E1', // Soft peach-red
+					text: '#333333', // Dark gray
+					nav: '#F5F5F5', // Light gray-white
+				},
 				blue: {
 					DEFAULT: '#172940',
 				},
 				gray: {
-					DEFAULT: '#F5F8FB',
+					DEFAULT: '#F5F5F5',
 					muted: '#A5B0BD',
-					dark: '#42566E',
+					dark: '#333333',
 				},
 			},
 			typography: {

@@ -3,22 +3,22 @@
 @tailwind utilities;
 
 :root {
-	--background-color: #ffffff; /* Light background */
-	--foreground-color: #42566e; /* Light text */
-	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 10%);
-	--accent-color: #6644ff; /* Accent color */
-	--background-variant-color: #172940;
-	--accent-color-dark: color-mix(in srgb, var(--accent-color), black 40%);
-	--accent-color-soft: color-mix(in srgb, var(--accent-color), white 20%);
-	--accent-color-light: color-mix(in srgb, var(--accent-color), white 90%);
-	--input-color: color-mix(in srgb, var(--background-color), var(--foreground-color) 30%);
+	--background-color: #FFE4E1; /* Soft peach-red background */
+	--foreground-color: #333333; /* Dark gray text for readability */
+	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 15%);
+	--accent-color: #9B1D20; /* Ruby red for accents and highlights */
+	--background-variant-color: #F5F5F5; /* Light gray-white for contrast */
+	--accent-color-dark: color-mix(in srgb, var(--accent-color), black 30%);
+	--accent-color-soft: color-mix(in srgb, var(--accent-color), white 85%);
+	--accent-color-light: color-mix(in srgb, var(--accent-color), white 95%);
+	--input-color: color-mix(in srgb, var(--background-color), var(--foreground-color) 25%);
 }
 
 .dark {
-	--background-color: #0e1a2b ; /* Default dark background */
-	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 10%);
-	--background-variant-color: #172940;
-	--foreground-color: #ffffff; /* Default dark text */
+	--background-color: #2C1810; /* Dark version of brand background */
+	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 15%);
+	--background-variant-color: #1a0f08; /* Dark variant for navigation */
+	--foreground-color: #FFE4E1; /* Light version of brand text for dark mode */
 }
 
 @layer base {
