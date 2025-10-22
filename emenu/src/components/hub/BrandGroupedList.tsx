@@ -31,153 +31,156 @@ interface Brand {
 interface Branch {
   id: string;
   name: string;
-  address: string;
-  phone?: string;
-  status: 'active' | 'inactive' | 'maintenance';
+  code: string;
   tables_count: number;
-  opening_hours?: string;
-  manager?: {
-    name: string;
-    email: string;
-  };
-  created_at: string;
+  active_tables?: number;
 }
 
-interface BrandGroupedListProps {
-  searchTerm?: string;
-}
-
-export function BrandGroupedList({ searchTerm = '' }: BrandGroupedListProps) {
+export function BrandGroupedList() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data for development
+  // Mock data for development - Updated with real brand names from Directus
   useEffect(() => {
     const mockBrands: Brand[] = [
       {
         id: '1',
-        name: 'SOL Pizza',
-        description: 'Authentic Italian pizza restaurant chain',
-        logo: '/images/brands/sol-pizza.png',
-        branches_count: 12,
+        name: 'Miwaku Premium',
+        description: 'Premium Japanese dining experience',
+        logo: '/images/brands/miwaku-premium.png',
+        branches_count: 3,
         branches: [
           {
             id: '1-1',
-            name: 'SOL Pizza - District 1',
-            address: '123 Nguyễn Huệ Street, District 1, Ho Chi Minh City',
-            phone: '+84 28 3821 1234',
-            status: 'active',
-            tables_count: 24,
-            opening_hours: '10:00 - 22:00',
-            manager: {
-              name: 'John Smith',
-              email: 'john.smith@solpizza.com'
-            },
-            created_at: '2023-01-15'
-          },
-          {
-            id: '1-2',
-            name: 'SOL Pizza - District 3',
-            address: '456 Võ Văn Tần Street, District 3, Ho Chi Minh City',
-            phone: '+84 28 3930 5678',
-            status: 'active',
-            tables_count: 18,
-            opening_hours: '11:00 - 23:00',
-            manager: {
-              name: 'Sarah Johnson',
-              email: 'sarah.j@solpizza.com'
-            },
-            created_at: '2023-03-20'
-          },
-          {
-            id: '1-3',
-            name: 'SOL Pizza - Thao Dien',
-            address: '789 Nguyễn Văn Hưởng Street, District 2, Ho Chi Minh City',
-            phone: '+84 28 3744 9012',
-            status: 'maintenance',
-            tables_count: 32,
-            opening_hours: '10:00 - 22:00',
-            manager: {
-              name: 'Mike Chen',
-              email: 'mike.chen@solpizza.com'
-            },
-            created_at: '2023-06-10'
+            name: 'Miwaku Premium Landmark 81',
+            code: 'MIWAKU_LANDMARK',
+            tables_count: 28,
+            active_tables: 24
           }
         ]
       },
       {
         id: '2',
-        name: 'SOL Burger',
-        description: 'Gourmet burger restaurant with premium ingredients',
-        logo: '/images/brands/sol-burger.png',
-        branches_count: 8,
+        name: 'S79 Japanese Teppanyaki',
+        description: 'Authentic Japanese teppanyaki restaurant',
+        logo: '/images/brands/s79-teppanyaki.png',
+        branches_count: 2,
         branches: [
           {
             id: '2-1',
-            name: 'SOL Burger - Vincom Center',
-            address: '72 Lê Thánh Tôn Street, District 1, Ho Chi Minh City',
-            phone: '+84 28 3821 3456',
-            status: 'active',
+            name: 'S79 Teppanyaki District 1',
+            code: 'S79_D1',
             tables_count: 16,
-            opening_hours: '10:30 - 22:30',
-            manager: {
-              name: 'Emily Davis',
-              email: 'emily.d@solburger.com'
-            },
-            created_at: '2023-02-28'
+            active_tables: 14
           },
           {
             id: '2-2',
-            name: 'SOL Burger - Takashimaya',
-            address: '92 Cộng Hòa Street, Tân Bình District, Ho Chi Minh City',
-            phone: '+84 28 3812 7890',
-            status: 'active',
+            name: 'S79 Teppanyaki District 7',
+            code: 'S79_D7',
             tables_count: 20,
-            opening_hours: '10:00 - 22:00',
-            manager: {
-              name: 'David Wilson',
-              email: 'david.w@solburger.com'
-            },
-            created_at: '2023-04-15'
+            active_tables: 18
           }
         ]
       },
       {
         id: '3',
-        name: 'SOL Cafe',
-        description: 'Cozy coffee shop with light meals and desserts',
-        logo: '/images/brands/sol-cafe.png',
-        branches_count: 6,
+        name: 'Kohaku Sashimi & Yakiniku',
+        description: 'Japanese sashimi and BBQ restaurant',
+        logo: '/images/brands/kohaku-sashimi.png',
+        branches_count: 2,
         branches: [
           {
             id: '3-1',
-            name: 'SOL Cafe - Dong Khoi',
-            address: '201 Đồng Khởi Street, District 1, Ho Chi Minh City',
-            phone: '+84 28 3821 2345',
-            status: 'active',
-            tables_count: 12,
-            opening_hours: '07:00 - 22:00',
-            manager: {
-              name: 'Lisa Anderson',
-              email: 'lisa.a@solcafe.com'
-            },
-            created_at: '2023-05-01'
+            name: 'Kohaku Sashimi District 1',
+            code: 'KOHAKU_SASHIMI_D1',
+            tables_count: 22,
+            active_tables: 20
           },
           {
             id: '3-2',
-            name: 'SOL Cafe - Thao Dien',
-            address: '101 Nguyễn Văn Hưởng Street, District 2, Ho Chi Minh City',
-            phone: '+84 28 3744 5678',
-            status: 'inactive',
+            name: 'Kohaku Sashimi Thao Dien',
+            code: 'KOHAKU_SASHIMI_TD',
+            tables_count: 18,
+            active_tables: 16
+          }
+        ]
+      },
+      {
+        id: '4',
+        name: 'Kohaku Sushi',
+        description: 'Traditional Japanese sushi restaurant',
+        logo: '/images/brands/kohaku-sushi.png',
+        branches_count: 2,
+        branches: [
+          {
+            id: '4-1',
+            name: 'Kohaku Sushi District 1',
+            code: 'KOHAKU_SUSHI_D1',
+            tables_count: 14,
+            active_tables: 12
+          },
+          {
+            id: '4-2',
+            name: 'Kohaku Sushi Phu My Hung',
+            code: 'KOHAKU_SUSHI_PMH',
+            tables_count: 18,
+            active_tables: 15
+          }
+        ]
+      },
+      {
+        id: '5',
+        name: 'Kohaku Udon & Ramen',
+        description: 'Japanese noodle house',
+        logo: '/images/brands/kohaku-udon.png',
+        branches_count: 2,
+        branches: [
+          {
+            id: '5-1',
+            name: 'Kohaku Udon District 1',
+            code: 'KOHAKU_UDON_D1',
+            tables_count: 24,
+            active_tables: 20
+          },
+          {
+            id: '5-2',
+            name: 'Kohaku Udon District 3',
+            code: 'KOHAKU_UDON_D3',
+            tables_count: 16,
+            active_tables: 14
+          }
+        ]
+      },
+      {
+        id: '6',
+        name: 'Date Nariya',
+        description: 'Japanese specialty restaurant',
+        logo: '/images/brands/date-nariya.png',
+        branches_count: 1,
+        branches: [
+          {
+            id: '6-1',
+            name: 'Date Nariya District 1',
+            code: 'DATE_NARIYA_D1',
+            tables_count: 12,
+            active_tables: 10
+          }
+        ]
+      },
+      {
+        id: '7',
+        name: 'Machida Shoten',
+        description: 'Japanese dining establishment',
+        logo: '/images/brands/machida-shoten.png',
+        branches_count: 1,
+        branches: [
+          {
+            id: '7-1',
+            name: 'Machida Shoten District 1',
+            code: 'MACHIDA_D1',
             tables_count: 8,
-            opening_hours: '07:00 - 20:00',
-            manager: {
-              name: 'Tom Brown',
-              email: 'tom.b@solcafe.com'
-            },
-            created_at: '2023-07-20'
+            active_tables: 6
           }
         ]
       }
@@ -186,29 +189,9 @@ export function BrandGroupedList({ searchTerm = '' }: BrandGroupedListProps) {
     // Simulate API call
     setTimeout(() => {
       setBrands(mockBrands);
-      setFilteredBrands(mockBrands);
       setIsLoading(false);
     }, 800);
   }, []);
-
-  // Filter brands and branches based on search term
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredBrands(brands);
-      return;
-    }
-
-    const filtered = brands.map(brand => ({
-      ...brand,
-      branches: brand.branches.filter(branch =>
-        branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        branch.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        brand.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })).filter(brand => brand.branches.length > 0);
-
-    setFilteredBrands(filtered);
-  }, [searchTerm, brands]);
 
   if (isLoading) {
     return (
@@ -257,25 +240,9 @@ export function BrandGroupedList({ searchTerm = '' }: BrandGroupedListProps) {
     );
   }
 
-  if (filteredBrands.length === 0) {
-    return (
-      <Card className="border-gray-200">
-        <CardContent className="p-12">
-          <div className="text-center">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No branches found</h3>
-            <p className="text-gray-500">
-              {searchTerm ? `No branches match "${searchTerm}"` : 'No branches are available at the moment.'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-8">
-      {filteredBrands.map((brand) => (
+      {brands.map((brand) => (
         <BrandGroup
           key={brand.id}
           brand={brand}

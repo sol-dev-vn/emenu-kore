@@ -47,6 +47,42 @@
 			@apply bg-[#172940] text-white hover:bg-accent;
 		}
 	}
+
+	/* Ensure headings use brand colors for better contrast */
+	h1, h2, h3, h4, h5, h6 {
+		@apply text-[var(--foreground-color)];
+	}
+
+	/* Override any default pink/rose colors with brand ruby red */
+	.text-pink-500,
+	.text-pink-600,
+	.text-pink-700,
+	.text-rose-500,
+	.text-rose-600,
+	.text-rose-700,
+	.text-fuchsia-500,
+	.text-fuchsia-600,
+	.text-fuchsia-700 {
+		@apply !text-[var(--accent-color)];
+	}
+
+	.bg-pink-50,
+	.bg-rose-50,
+	.bg-fuchsia-50 {
+		@apply !bg-[var(--accent-color-light)];
+	}
+
+	.bg-pink-100,
+	.bg-rose-100,
+	.bg-fuchsia-100 {
+		@apply !bg-[var(--accent-color-soft)];
+	}
+
+	.border-pink-200,
+	.border-rose-200,
+	.border-fuchsia-200 {
+		@apply !border-[var(--accent-color-soft)];
+	}
 }
 
 @layer utilities {

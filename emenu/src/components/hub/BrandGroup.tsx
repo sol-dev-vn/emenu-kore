@@ -19,16 +19,9 @@ interface Brand {
 interface Branch {
   id: string;
   name: string;
-  address: string;
-  phone?: string;
-  status: 'active' | 'inactive' | 'maintenance';
+  code: string;
   tables_count: number;
-  opening_hours?: string;
-  manager?: {
-    name: string;
-    email: string;
-  };
-  created_at: string;
+  active_tables?: number;
 }
 
 interface BrandGroupProps {
@@ -36,23 +29,8 @@ interface BrandGroupProps {
 }
 
 export function BrandGroup({ brand }: BrandGroupProps) {
-  const router = useRouter();
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const activeBranches = brand.branches.filter(b => b.status === 'active').length;
   const totalTables = brand.branches.reduce((sum, branch) => sum + branch.tables_count, 0);
+  const totalActiveTables = brand.branches.reduce((sum, branch) => sum + (branch.active_tables || Math.floor(branch.tables_count * 0.8)), 0);
 
   return (
     <Card className="shadow-sm">
@@ -91,9 +69,9 @@ export function BrandGroup({ brand }: BrandGroupProps) {
             <div className="text-center">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-2xl font-bold text-gray-900">{activeBranches}</span>
+                <span className="text-2xl font-bold text-gray-900">{totalActiveTables}</span>
               </div>
-              <p className="text-sm text-gray-500">Active</p>
+              <p className="text-sm text-gray-500">Active Tables</p>
             </div>
 
             <div className="text-center">
@@ -101,16 +79,8 @@ export function BrandGroup({ brand }: BrandGroupProps) {
                 <Users className="h-5 w-5 text-gray-400" />
                 <span className="text-2xl font-bold text-gray-900">{totalTables}</span>
               </div>
-              <p className="text-sm text-gray-500">Tables</p>
+              <p className="text-sm text-gray-500">Total Tables</p>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(`/hub/branches?brand=${brand.id}`)}
-            >
-              View All
-            </Button>
           </div>
         </div>
       </CardHeader>

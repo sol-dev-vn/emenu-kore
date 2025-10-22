@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'emenu',
       script: 'npm',
-      args: 'run dev',
+      args: 'start',
       cwd: '/Users/dev/code/emenu-kore/emenu',
       instances: 1,
       exec_mode: 'fork',
