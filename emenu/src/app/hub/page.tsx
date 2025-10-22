@@ -31,7 +31,7 @@ export default function HubPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#FFE4E1'}}>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
       </div>
     );
@@ -140,7 +140,7 @@ export default function HubPage() {
     >
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat, index) => (
             <Card key={index} className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -166,7 +166,7 @@ export default function HubPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -177,7 +177,7 @@ export default function HubPage() {
                 <Button
                   key={index}
                   variant="outline"
-                  className="w-full justify-start h-auto p-4"
+                  className="w-full justify-start h-auto p-3 sm:p-4"
                   onClick={() => router.push(action.href)}
                 >
                   <div className="flex items-center">
@@ -229,7 +229,7 @@ export default function HubPage() {
             <CardTitle>System Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 <div>

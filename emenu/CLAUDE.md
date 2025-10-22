@@ -17,8 +17,9 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-- Prefer to Manage the server process with PM2 and ecosystem.config.js file, unless for debugging
-- Vendure ecommerce service installation is at /Users/dev/code/emenu-kore/emenu . It runs at port 3520 mapped to CloudFlare Tunnel https://sol-menu.alphabits.team
+- Prefer to Manage the server process with PM2 and ecosystem.config.js file, unless for debugging.
+- Vendure ecommerce service installation is at /Users/dev/code/emenu-kore/emenu . It runs at port 3000 mapped to CloudFlare Tunnel https://sol-menu.alphabits.team
+- If port 3000 is used, that means we need to restart the server by PM2 (remember to do npm install).I need
 - We are using Directus SDK (Full SDK Doc https://directus.io/docs/guides/connect/sdk)
 - Use Directus MCP to check with actual backend if needed.
 - Try not to tail or watch logs/process for too long.
@@ -31,4 +32,7 @@ Styling Rules:
 - Text tone: #333333 (a dark gray for readability)
 - Navigation/Secondary tone: #F5F5F5 (a light gray-white for contrast)
 - Use flat color professional modern styling, with micro animation for subtle interactions.
+
+Implementation rules
+- Review existing utils, services, helpers, models, controller, UI components,... before creating new one, prefer to consolidate in a few files following D.R.Y principles.
 

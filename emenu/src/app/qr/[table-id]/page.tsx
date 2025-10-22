@@ -122,7 +122,7 @@ export default function TableStatusPage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#FFE4E1'}}>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
       </div>
     );
@@ -182,7 +182,7 @@ export default function TableStatusPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#FFE4E1'}}>
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">

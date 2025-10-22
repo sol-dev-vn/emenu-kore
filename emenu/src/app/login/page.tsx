@@ -53,7 +53,7 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-primary via-[#7a1618] to-[#5a0f10] py-12 px-4 sm:px-6 lg:px-8">
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
 			<div className="max-w-md w-full space-y-8">
 				<div className="text-center">
 					<img
@@ -61,14 +61,14 @@ export default function LoginPage() {
 						src="/icons/logo_trim.png"
 						alt="SOL eMenu"
 					/>
-					<h2 className="text-3xl font-bold text-brand-nav">
+					<h2 className="text-3xl font-bold text-gray-900">
 						Sign in to your account
 					</h2>
-					<p className="mt-2 text-sm text-brand-nav/80">
+					<p className="mt-2 text-sm text-gray-600">
 						Access the SOL eMenu system
 					</p>
 				</div>
-				
+
 				<Card className="bg-brand-background/95 backdrop-blur-sm border-accent/20">
 					<CardHeader>
 						<CardTitle className="text-brand-text">Login</CardTitle>
@@ -76,7 +76,7 @@ export default function LoginPage() {
 							Enter your credentials to access the dashboard
 						</CardDescription>
 					</CardHeader>
-					
+
 					<form onSubmit={handleSubmit}>
 						<CardContent className="space-y-4">
 							{error && (
@@ -84,7 +84,7 @@ export default function LoginPage() {
 									<AlertDescription>{error}</AlertDescription>
 								</Alert>
 							)}
-							
+
 							<div className="space-y-2">
 								<Label htmlFor="email" className="text-brand-text">Email</Label>
 								<Input
@@ -129,7 +129,7 @@ export default function LoginPage() {
 								</div>
 							</div>
 						</CardContent>
-						
+
 						<CardFooter>
 							<Button
 								type="submit"
@@ -148,8 +148,8 @@ export default function LoginPage() {
 						</CardFooter>
 					</form>
 				</Card>
-				
-				<div className="text-center text-sm text-brand-nav/70">
+
+				<div className="text-center text-sm text-gray-600">
 					<p>
 						Need help? Contact your system administrator
 					</p>

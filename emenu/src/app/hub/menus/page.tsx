@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import HubLayout from '@/components/hub/HubLayout';
+import TestLayout from '@/components/hub/TestLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,7 +116,7 @@ export default function MenuManagementPage() {
   };
 
   return (
-    <HubLayout
+    <TestLayout
       breadcrumb={
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},

@@ -170,7 +170,7 @@ export default function QRScannerClient() {
       <button
         onClick={() => setIsModalOpen(true)}
         className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-lg"
-        style={{backgroundColor: 'rgba(155, 29, 32, 0.1)', borderColor: 'rgba(155, 29, 32, 0.2)'}}
+        style={{backgroundColor: 'rgba(249, 250, 251, 0.8)', borderColor: 'rgba(229, 231, 235, 0.8)'}}
       >
         <div className="flex flex-col items-center space-y-4">
           <div className="w-20 h-20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform" style={{backgroundColor: '#9B1D20'}}>

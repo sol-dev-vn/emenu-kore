@@ -14,8 +14,10 @@ const ContentSecurityPolicy = `
 `;
 
 const nextConfig: NextConfig = {
-	// Turbopack is enabled by default in Next.js 15 when using --turbopack flag
-	// No additional configuration needed for basic usage
+	// Turbopack is enabled by default in next.config.js when using --turbopack flag
+	// For build, use the default Next.js compiler
+	// Enable React strict mode
+	reactStrictMode: true,
 
 	// Image optimization
 	images: {

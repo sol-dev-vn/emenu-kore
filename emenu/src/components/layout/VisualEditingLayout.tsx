@@ -26,7 +26,7 @@ export default function VisualEditingLayout({
 	const pathname = usePathname();
 
 	// Check if we're on pages that shouldn't show header/footer
-	const isExcludedPage = ['/', '/login'].includes(pathname);
+	const isExcludedPage = ['/', '/login'].includes(pathname) || pathname.startsWith('/hub');
 
 	useEffect(() => {
 		if (isVisualEditingEnabled && !isExcludedPage) {

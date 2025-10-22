@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -138,7 +139,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
 
   const handleNavigation = (href: string) => {
     router.push(href);
-    if (window.innerWidth < 1024) {
+    if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   };
@@ -157,7 +158,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
-    if (window.innerWidth < 1024) {
+    if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
   }, [pathname]);
@@ -176,19 +177,19 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
   };
 
   return (
-    <div className="min-h-screen flex" style={{backgroundColor: '#FFE4E1'}}>
+    <div className="min-h-screen flex bg-gradient-to-br from-white via-gray-50 to-gray-100">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
@@ -204,7 +205,7 @@ export default function HubLayout({ children, breadcrumb, title, subtitle }: Hub
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden"
+              className="md:hidden"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-5 w-5" />
