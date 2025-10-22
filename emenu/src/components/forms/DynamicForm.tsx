@@ -7,7 +7,6 @@ import { Form } from '@/components/ui/form';
 import Field from './FormField';
 import { buildZodSchema } from '@/lib/zodSchemaBuilder';
 import type { FormField as FormFieldType } from '@/types/directus-schema';
-import { setAttr } from '@directus/visual-editing';
 
 interface DynamicFormProps {
 	fields: FormFieldType[];
@@ -48,12 +47,6 @@ const DynamicForm = ({ fields, onSubmit, submitLabel, id }: DynamicFormProps) =>
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-wrap gap-4"
-				data-directus={setAttr({
-					collection: 'forms',
-					item: id,
-					fields: 'fields',
-					mode: 'popover',
-				})}
 			>
 				{sortedFields.map((field) => (
 					<div key={field.id} className="w-full">
@@ -61,14 +54,7 @@ const DynamicForm = ({ fields, onSubmit, submitLabel, id }: DynamicFormProps) =>
 					</div>
 				))}
 				<div className="w-full">
-					<div
-						data-directus={setAttr({
-							collection: 'forms',
-							item: id,
-							fields: 'submit_label',
-							mode: 'popover',
-						})}
-					>
+					<div>
 						<Button type="submit" label={submitLabel} icon="arrow" iconPosition="right" id={`submit-${id}`} />
 					</div>
 				</div>

@@ -8,6 +8,9 @@ import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import LoadingPage from '@/components/ui/LoadingPage';
+import PageContainer from '@/components/ui/PageContainer';
+import { COLORS } from '@/lib/styling-constants';
 import {
   Store,
   Utensils,
@@ -30,11 +33,7 @@ export default function HubPage() {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (!user) {
@@ -138,7 +137,7 @@ export default function HubPage() {
       title={`Welcome back, ${user.first_name}!`}
       subtitle="Here's what's happening across your restaurants today."
     >
-      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <PageContainer className="py-6 space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat, index) => (
@@ -254,7 +253,7 @@ export default function HubPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     </HubLayout>
   );
 }

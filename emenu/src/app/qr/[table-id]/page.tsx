@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import LoadingPage from '@/components/ui/LoadingPage';
+import PageContainer from '@/components/ui/PageContainer';
 import {
   Utensils,
   Clock,
@@ -121,11 +123,7 @@ export default function TableStatusPage() {
   }, [user, isLoading, router, tableId]);
 
   if (isLoading || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (!user || !tableData) {
@@ -210,8 +208,9 @@ export default function TableStatusPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <main>
+        <PageContainer size="lg">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Table Info & Actions */}
           <div className="space-y-6">
             {/* Table Information */}
@@ -401,6 +400,7 @@ export default function TableStatusPage() {
             </Card>
           </div>
         </div>
+        </PageContainer>
       </main>
     </div>
   );

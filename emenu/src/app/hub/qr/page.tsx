@@ -166,7 +166,7 @@ export default function QRManagementPage() {
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'QR Codes', active: true}
-        ]}
+        ]} />
       }
       title="QR Code Management"
       subtitle="Generate and manage QR codes for restaurant table access."

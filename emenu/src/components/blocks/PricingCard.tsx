@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import Button from '@/components/blocks/Button';
 import { CheckCircle2 } from 'lucide-react';
-import { setAttr } from '@directus/visual-editing';
 
 export interface PricingCardProps {
 	card: {
@@ -32,57 +31,26 @@ const PricingCard = ({ card }: PricingCardProps) => {
 			}`}
 		>
 			<div className="flex justify-between items-start gap-2 mb-4">
-				<h3
-					className="text-xl font-heading text-foreground"
-					data-directus={setAttr({
-						collection: 'block_pricing_cards',
-						item: card.id,
-						fields: ['title'],
-						mode: 'popover',
-					})}
-				>
+				<h3 className="text-xl font-heading text-foreground">
 					{card.title}
 				</h3>
 				<div className="flex-shrink-0">
 					{card.badge && (
 						<Badge
 							variant={card.is_highlighted ? 'secondary' : 'default'}
-							className="text-xs font-medium uppercase"
-							data-directus={setAttr({
-								collection: 'block_pricing_cards',
-								item: card.id,
-								fields: ['badge'],
-								mode: 'popover',
-							})}
-						>
+							className="text-xs font-medium uppercase">
 							{card.badge}
 						</Badge>
 					)}
 				</div>
 			</div>
 			{card.price && (
-				<p
-					className="text-h2 mt-2 font-semibold"
-					data-directus={setAttr({
-						collection: 'block_pricing_cards',
-						item: card.id,
-						fields: ['price'],
-						mode: 'popover',
-					})}
-				>
+				<p className="text-h2 mt-2 font-semibold">
 					{card.price}
 				</p>
 			)}
 			{card.description && (
-				<p
-					className="text-description mt-2 line-clamp-2"
-					data-directus={setAttr({
-						collection: 'block_pricing_cards',
-						item: card.id,
-						fields: ['description'],
-						mode: 'popover',
-					})}
-				>
+				<p className="text-description mt-2 line-clamp-2">
 					{card.description}
 				</p>
 			)}
@@ -91,15 +59,7 @@ const PricingCard = ({ card }: PricingCardProps) => {
 
 			<div className="flex-grow">
 				{card.features && Array.isArray(card.features) && (
-					<ul
-						className="space-y-4"
-						data-directus={setAttr({
-							collection: 'block_pricing_cards',
-							item: card.id,
-							fields: ['features'],
-							mode: 'popover',
-						})}
-					>
+					<ul className="space-y-4">
 						{card.features.map((feature, index) => (
 							<li key={index} className="flex items-center gap-3 text-regular">
 								<div className="mt-1">
@@ -113,19 +73,9 @@ const PricingCard = ({ card }: PricingCardProps) => {
 			</div>
 			<div className="mt-auto pt-4">
 				{card.button && (
-					<Button
-						id={card.button.id}
-						data-directus={setAttr({
-							collection: 'block_button',
-							item: card.button.id,
-							fields: ['type', 'label', 'variant', 'url', 'page', 'post'],
-							mode: 'popover',
-						})}
-						label={card.button.label}
-						variant={card.button.variant}
-						url={card.button.url}
-						block={true}
-					/>
+					<Button id={card.button.id}>
+						{card.button.label}
+					</Button>
 				)}
 			</div>
 		</div>

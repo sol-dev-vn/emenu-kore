@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import TestLayout from '@/components/hub/TestLayout';
+import HubLayout from '@/components/hub/HubLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,12 +116,12 @@ export default function MenuManagementPage() {
   };
 
   return (
-    <TestLayout
+    <HubLayout
       breadcrumb={
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'Menu Management', active: true}
-        ]}
+        ]} />
       }
       title="Menu Management"
       subtitle="Manage menu items, categories, and pricing across all branches."

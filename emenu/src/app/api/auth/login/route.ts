@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 		// Fetch user data
 		const user = await directus.request(
 			readMe({
-				fields: ['*', 'role.*']
+				fields: ['*', 'role.*'] as any
 			})
 		) as any;
 

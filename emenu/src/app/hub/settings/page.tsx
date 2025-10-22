@@ -128,7 +128,7 @@ export default function SettingsPage() {
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'Settings', active: true}
-        ]}
+        ]} />
       }
       title="System Settings"
       subtitle="Configure system-wide settings and preferences."

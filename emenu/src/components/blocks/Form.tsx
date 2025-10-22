@@ -4,7 +4,6 @@ import { FormField } from '@/types/directus-schema';
 import Tagline from '@/components/ui/Tagline';
 import FormBuilder from '../forms/FormBuilder';
 import Headline from '@/components/ui/Headline';
-import { setAttr } from '@directus/visual-editing';
 
 interface FormBlockProps {
 	data: {
@@ -39,35 +38,16 @@ const FormBlock = ({ data }: FormBlockProps) => {
 			{tagline && (
 				<Tagline
 					tagline={tagline}
-					data-directus={setAttr({
-						collection: 'block_form',
-						item: data.id,
-						fields: 'tagline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 
 			{headline && (
 				<Headline
 					headline={headline}
-					data-directus={setAttr({
-						collection: 'block_form',
-						item: data.id,
-						fields: 'headline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 
-			<div
-				data-directus={setAttr({
-					collection: 'block_form',
-					item: data.id,
-					fields: ['form'],
-					mode: 'popover',
-				})}
-			>
+			<div>
 				<FormBuilder form={form} className="mt-8" />
 			</div>
 		</section>

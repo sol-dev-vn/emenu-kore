@@ -134,7 +134,7 @@ export default function TableLayoutsPage() {
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'Table Layouts', active: true}
-        ]}
+        ]} />
       }
       title="Table Layouts"
       subtitle="Configure and manage table layouts for restaurant branches."

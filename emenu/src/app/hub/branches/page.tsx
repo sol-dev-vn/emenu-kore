@@ -53,7 +53,7 @@ export default function BranchesPage() {
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'Branch Management', active: true}
-        ]}
+        ]} />
       }
       title="Restaurant Branches"
       subtitle="View and manage all restaurant branches grouped by brand"

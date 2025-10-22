@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import PageContainer from '@/components/ui/PageContainer';
 
 export default function LoginPage() {
 	const [email, setEmail] = useState('');
@@ -53,8 +55,8 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-md w-full space-y-8">
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100 py-12">
+			<PageContainer size="sm" className="w-full space-y-8">
 				<div className="text-center">
 					<img
 						className="mx-auto h-16 w-auto mb-4"
@@ -138,7 +140,7 @@ export default function LoginPage() {
 							>
 								{isLoading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<LoadingSpinner size="sm" className="mr-2" />
 										Signing in...
 									</>
 								) : (
@@ -154,7 +156,7 @@ export default function LoginPage() {
 						Need help? Contact your system administrator
 					</p>
 				</div>
-			</div>
+			</PageContainer>
 		</div>
 	);
 }

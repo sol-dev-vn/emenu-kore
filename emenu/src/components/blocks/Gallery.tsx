@@ -6,7 +6,6 @@ import Tagline from '../ui/Tagline';
 import Headline from '@/components/ui/Headline';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { ArrowLeft, ArrowRight, ZoomIn, X } from 'lucide-react';
-import { setAttr } from '@directus/visual-editing';
 
 interface GalleryItem {
 	id: string;
@@ -80,36 +79,17 @@ const Gallery = ({ data }: GalleryProps) => {
 			{tagline && (
 				<Tagline
 					tagline={tagline}
-					data-directus={setAttr({
-						collection: 'block_gallery',
-						item: id,
-						fields: 'tagline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 			{headline && (
 				<Headline
 					headline={headline}
-					data-directus={setAttr({
-						collection: 'block_gallery',
-						item: id,
-						fields: 'headline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 
 			{sortedItems.length > 0 && (
 				<div
-					className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-					data-directus={setAttr({
-						collection: 'block_gallery',
-						item: id,
-						fields: 'items',
-						mode: 'modal',
-					})}
-				>
+					className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 					{sortedItems.map((item, index) => (
 						<div
 							key={item.id}

@@ -130,7 +130,7 @@ export default function ProfilePage() {
         <Breadcrumb items={[
           {label: 'Overview', href: '/hub'},
           {label: 'Profile', active: true}
-        ]}
+        ]} />
       }
       title="User Profile"
       subtitle="Manage your account settings and preferences."

@@ -6,7 +6,6 @@ import BaseText from '@/components/ui/Text';
 import DirectusImage from '@/components/shared/DirectusImage';
 import ButtonGroup from '@/components/blocks/ButtonGroup';
 import { cn } from '@/lib/utils';
-import { setAttr } from '@directus/visual-editing';
 
 interface HeroProps {
 	data: {
@@ -53,43 +52,18 @@ export default function Hero({ data }: HeroProps) {
 			>
 				<Tagline
 					tagline={tagline}
-					data-directus={setAttr({
-						collection: 'block_hero',
-						item: id,
-						fields: 'tagline',
-						mode: 'popover',
-					})}
 				/>
 				<Headline
 					headline={headline}
-					data-directus={setAttr({
-						collection: 'block_hero',
-						item: id,
-						fields: 'headline',
-						mode: 'popover',
-					})}
 				/>
 				{description && (
 					<BaseText
 						content={description}
-						data-directus={setAttr({
-							collection: 'block_hero',
-							item: id,
-							fields: 'description',
-							mode: 'popover',
-						})}
 					/>
 				)}
 				{button_group && button_group.buttons.length > 0 && (
 					<div
-						className={cn(layout === 'image_center' && 'flex justify-center', 'mt-6')}
-						data-directus={setAttr({
-							collection: 'block_button_group',
-							item: button_group.id,
-							fields: 'buttons',
-							mode: 'modal',
-						})}
-					>
+						className={cn(layout === 'image_center' && 'flex justify-center', 'mt-6')}>
 						<ButtonGroup buttons={button_group.buttons} />
 					</div>
 				)}
@@ -99,14 +73,7 @@ export default function Hero({ data }: HeroProps) {
 					className={cn(
 						'relative w-full',
 						layout === 'image_center' ? 'md:w-3/4 xl:w-2/3 h-[400px]' : 'md:w-1/2 h-[562px]',
-					)}
-					data-directus={setAttr({
-						collection: 'block_hero',
-						item: id,
-						fields: ['image', 'layout'],
-						mode: 'modal',
-					})}
-				>
+					)}>
 					<DirectusImage
 						uuid={image}
 						alt={tagline || headline || 'Hero Image'}

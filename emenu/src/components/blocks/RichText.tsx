@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import Tagline from '@/components/ui/Tagline';
 import Headline from '@/components/ui/Headline';
 import Text from '@/components/ui/Text';
-import { setAttr } from '@directus/visual-editing';
 
 interface RichTextProps {
 	data: {
@@ -64,34 +63,16 @@ const RichText = ({ data, className }: RichTextProps) => {
 			{tagline && (
 				<Tagline
 					tagline={tagline}
-					data-directus={setAttr({
-						collection: 'block_richtext',
-						item: id,
-						fields: 'tagline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 			{headline && (
 				<Headline
 					headline={headline}
-					data-directus={setAttr({
-						collection: 'block_richtext',
-						item: id,
-						fields: 'headline',
-						mode: 'popover',
-					})}
 				/>
 			)}
 			{content && (
 				<Text
 					content={content}
-					data-directus={setAttr({
-						collection: 'block_richtext',
-						item: id,
-						fields: 'content',
-						mode: 'drawer',
-					})}
 				/>
 			)}
 		</div>

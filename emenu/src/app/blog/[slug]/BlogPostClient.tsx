@@ -1,9 +1,4 @@
 'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { setAttr } from '@directus/visual-editing';
-import { useVisualEditing } from '@/hooks/useVisualEditing';
 import DirectusImage from '@/components/shared/DirectusImage';
 import BaseText from '@/components/ui/Text';
 import { Separator } from '@/components/ui/separator';
@@ -30,18 +25,6 @@ export default function BlogPostClient({
 	postUrl,
 	isDraft,
 }: BlogPostClientProps) {
-	const { isVisualEditingEnabled, apply } = useVisualEditing();
-	const router = useRouter();
-
-	useEffect(() => {
-		if (isVisualEditingEnabled) {
-			apply({
-				onSaved: () => {
-					router.refresh();
-				},
-			});
-		}
-	}, [isVisualEditingEnabled, apply, router]);
 
 	return (
 		<>
@@ -50,15 +33,7 @@ export default function BlogPostClient({
 			<Container className="py-12">
 				{post.image && (
 					<div className="mb-8">
-						<div
-							className="relative w-full h-[400px] overflow-hidden rounded-lg"
-							data-directus={setAttr({
-								collection: 'posts',
-								item: post.id,
-								fields: ['image', 'meta_header_image'],
-								mode: 'modal',
-							})}
-						>
+						<div className="relative w-full h-[400px] overflow-hidden rounded-lg">
 							<DirectusImage
 								uuid={post.image as string}
 								alt={post.title || 'post header image'}
@@ -73,12 +48,6 @@ export default function BlogPostClient({
 					as="h2"
 					headline={post.title}
 					className="!text-accent mb-4"
-					data-directus={setAttr({
-						collection: 'posts',
-						item: post.id,
-						fields: ['title', 'slug'],
-						mode: 'popover',
-					})}
 				/>
 				<Separator className="mb-8" />
 
@@ -86,26 +55,12 @@ export default function BlogPostClient({
 					<main className="text-left">
 						<BaseText
 							content={post.content || ''}
-							data-directus={setAttr({
-								collection: 'posts',
-								item: post.id,
-								fields: ['content', 'meta_header_content'],
-								mode: 'drawer',
-							})}
 						/>
 					</main>
 
 					<aside className="space-y-6 p-6 rounded-lg max-w-[496px] h-fit bg-background-muted">
 						{author && (
-							<div
-								className="flex items-center space-x-4"
-								data-directus={setAttr({
-									collection: 'posts',
-									item: post.id,
-									fields: ['author'],
-									mode: 'popover',
-								})}
-							>
+							<div className="flex items-center space-x-4">
 								{author.avatar && (
 									<DirectusImage
 										uuid={typeof author.avatar === 'string' ? author.avatar : author.avatar.id}
@@ -120,14 +75,7 @@ export default function BlogPostClient({
 						)}
 
 						{post.description && (
-							<p
-								data-directus={setAttr({
-									collection: 'posts',
-									item: post.id,
-									fields: 'description',
-									mode: 'popover',
-								})}
-							>
+							<p>
 								{post.description}
 							</p>
 						)}

@@ -18,7 +18,6 @@ import { ChevronDown, Menu } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import SearchModal from '@/components/ui/SearchModal';
 import Container from '@/components/ui/container';
-import { setAttr } from '@directus/visual-editing';
 
 interface NavigationBarProps {
 	navigation: any;
@@ -62,19 +61,7 @@ const NavigationBar = forwardRef<HTMLElement, NavigationBarProps>(({ navigation,
 
 				<nav className="flex items-center gap-4">
 					<SearchModal />
-					<NavigationMenu
-						className="hidden md:flex"
-						data-directus={
-							navigation
-								? setAttr({
-										collection: 'navigation',
-										item: navigation.id,
-										fields: ['items'],
-										mode: 'modal',
-									})
-								: undefined
-						}
-					>
+					<NavigationMenu className="hidden md:flex">
 						<NavigationMenuList className="flex gap-6">
 							{navigation?.items?.map((section: any) => (
 								<NavigationMenuItem key={section.id}>
