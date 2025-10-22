@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PageContainer from '@/components/ui/PageContainer';
@@ -16,15 +17,27 @@ export default function LoginPage() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [showPassword, setShowPassword] = useState(false);
+	const [rememberMe, setRememberMe] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState('');
-	
+
 	const { login, isAuthenticated } = useAuth();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	
 	// Get redirect URL from query params
 	const redirectTo = searchParams.get('redirect') || '/hub';
+
+	// Load saved credentials on mount
+	useEffect(() => {
+		const savedEmail = localStorage.getItem('remembered_email');
+		const savedRememberMe = localStorage.getItem('remember_me') === 'true';
+
+		if (savedEmail && savedRememberMe) {
+			setEmail(savedEmail);
+			setRememberMe(true);
+		}
+	}, []);
 
 	// Redirect if already authenticated
 	useEffect(() => {
@@ -39,9 +52,18 @@ export default function LoginPage() {
 		setError('');
 
 		try {
-			const result = await login(email, password);
-			
+			const result = await login(email, password, rememberMe);
+
 			if (result.success) {
+				// Save email if remember me is checked
+				if (rememberMe) {
+					localStorage.setItem('remembered_email', email);
+					localStorage.setItem('remember_me', 'true');
+				} else {
+					localStorage.removeItem('remembered_email');
+					localStorage.removeItem('remember_me');
+				}
+
 				// Use window.location for a full page refresh to ensure cookies are properly set
 				window.location.href = redirectTo;
 			} else {
@@ -129,6 +151,22 @@ export default function LoginPage() {
 										)}
 									</Button>
 								</div>
+							</div>
+
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="remember-me"
+									checked={rememberMe}
+									onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+									disabled={isLoading}
+									className="border-accent/30"
+								/>
+								<Label
+									htmlFor="remember-me"
+									className="text-sm text-brand-text cursor-pointer"
+								>
+									Remember me
+								</Label>
 							</div>
 						</CardContent>
 

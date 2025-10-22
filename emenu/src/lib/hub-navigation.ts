@@ -5,6 +5,11 @@ import {
   Layout,
   QrCode,
   Settings,
+  ChevronRight,
+  Building,
+  MapPin,
+  Package,
+  Users,
 } from 'lucide-react';
 
 export interface SidebarItem {
@@ -14,6 +19,7 @@ export interface SidebarItem {
   description?: string;
   badge?: string;
   children?: SidebarItem[];
+  isSectionHeader?: boolean;
 }
 
 /**
@@ -22,10 +28,10 @@ export interface SidebarItem {
 export function getNavigationItems(userRole: string, t: (key: string) => string): SidebarItem[] {
   const baseItems: SidebarItem[] = [
     {
-      title: t('navigation.dashboard'),
+      title: 'Overview',
       icon: Home,
       href: '/hub',
-      description: t('dashboard.subtitle')
+      description: 'Dashboard and system overview'
     },
   ];
 
@@ -34,29 +40,65 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
   if (userRole === 'Administrator' || userRole === 'Manager') {
     roleBasedItems.push(
       {
-        title: t('navigation.menuManagement'),
-        icon: Utensils,
-        href: '/hub/menus',
-        description: t('menu.subtitle')
+        title: 'Brands',
+        icon: Building,
+        href: '#brands',
+        description: 'Manage brands and their menus',
+        isSectionHeader: true,
+        children: [
+          {
+            title: 'Brands',
+            icon: Building,
+            href: '/hub/brands',
+            description: 'Brand management and configuration'
+          },
+          {
+            title: 'Brand Menu',
+            icon: Utensils,
+            href: '/hub/brands/menu',
+            description: 'Master menu management for brands'
+          }
+        ]
       },
       {
-        title: t('navigation.branchManagement'),
+        title: 'Restaurants',
         icon: Store,
-        href: '/hub/branches',
-        description: t('branches.subtitle'),
-        badge: 'New'
-      },
-      {
-        title: t('navigation.tableLayouts'),
-        icon: Layout,
-        href: '/hub/layouts',
-        description: t('tableLayouts.subtitle')
-      },
-      {
-        title: t('navigation.qrCodes'),
-        icon: QrCode,
-        href: '/hub/qr',
-        description: t('qrCodes.subtitle')
+        href: '#restaurants',
+        description: 'Manage restaurant locations and operations',
+        isSectionHeader: true,
+        children: [
+          {
+            title: 'Locations',
+            icon: MapPin,
+            href: '/hub/branches',
+            description: 'Restaurant branch management',
+            badge: 'New'
+          },
+          {
+            title: 'Restaurant Menu',
+            icon: Utensils,
+            href: '/hub/branches/menu',
+            description: 'Branch-specific menu configuration'
+          },
+          {
+            title: 'Table Layout',
+            icon: Layout,
+            href: '/hub/tables',
+            description: 'Table layout and arrangement'
+          },
+          {
+            title: 'Table QR Codes',
+            icon: QrCode,
+            href: '/hub/tables/qr',
+            description: 'Generate and manage QR codes'
+          },
+          {
+            title: 'Manager & Staff',
+            icon: Users,
+            href: '/hub/users',
+            description: 'User management and permissions'
+          }
+        ]
       }
     );
   }
@@ -64,10 +106,19 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
   if (userRole === 'Administrator') {
     roleBasedItems.push(
       {
-        title: t('navigation.settings'),
+        title: 'System',
         icon: Settings,
-        href: '/hub/settings',
-        description: t('settings.subtitle')
+        href: '#system',
+        description: 'System configuration and settings',
+        isSectionHeader: true,
+        children: [
+          {
+            title: 'General',
+            icon: Settings,
+            href: '/hub/settings',
+            description: 'General system settings'
+          }
+        ]
       }
     );
   }
@@ -76,10 +127,19 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
   if (userRole === 'Staff') {
     roleBasedItems.push(
       {
-        title: 'My Restaurant',
+        title: 'Restaurant Management',
         icon: Store,
-        href: `/hub/restaurant/user`, // This would need to be dynamic based on user ID
-        description: 'Manage your assigned restaurant'
+        href: '#restaurant-management',
+        description: 'Manage restaurant operations',
+        isSectionHeader: true,
+        children: [
+          {
+            title: 'My Restaurant',
+            icon: Store,
+            href: `/hub/restaurant/user`, // This would need to be dynamic based on user ID
+            description: 'Manage your assigned restaurant'
+          }
+        ]
       }
     );
   }

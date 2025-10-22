@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
 		// Clear the authentication cookies
 		cookieStore.delete('access_token');
 		cookieStore.delete('refresh_token');
+		cookieStore.delete('remember_me');
 		
 		// Optionally call Directus logout endpoint if needed
 		const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL;

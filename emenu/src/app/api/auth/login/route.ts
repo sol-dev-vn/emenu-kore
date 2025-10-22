@@ -5,7 +5,7 @@ import type { Schema } from '@/types/directus-schema';
 
 export async function POST(request: NextRequest) {
 	try {
-		const { email, password } = await request.json();
+		const { email, password, rememberMe = false } = await request.json();
 
 		if (!email || !password) {
 			return NextResponse.json(
@@ -59,24 +59,39 @@ export async function POST(request: NextRequest) {
 
 		// Set HTTP-only cookies
 		const cookieStore = await cookies();
-		
+
+		// Determine cookie expiration based on remember me preference
+		const accessTokenMaxAge = 60 * 15; // Always 15 minutes for access token
+		const refreshTokenMaxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7; // 30 days if remember me, 7 days if not
+
 		// Access token cookie (short-lived)
 		cookieStore.set('access_token', access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
-			maxAge: 60 * 15, // 15 minutes
+			maxAge: accessTokenMaxAge,
 			path: '/',
 		});
 
-		// Refresh token cookie (longer-lived)
+		// Refresh token cookie (duration based on remember me)
 		cookieStore.set('refresh_token', refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
-			maxAge: 60 * 60 * 24 * 7, // 7 days
+			maxAge: refreshTokenMaxAge,
 			path: '/',
 		});
+
+		// Optional: Set a session cookie to indicate remember me status
+		if (rememberMe) {
+			cookieStore.set('remember_me', 'true', {
+				httpOnly: false, // Allow client-side access
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'lax',
+				maxAge: refreshTokenMaxAge,
+				path: '/',
+			});
+		}
 
 		return NextResponse.json({
 			success: true,
