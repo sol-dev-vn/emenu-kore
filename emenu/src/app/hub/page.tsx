@@ -7,7 +7,6 @@ import HubLayout from '@/components/hub/HubLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import LoadingPage from '@/components/ui/LoadingPage';
 import PageContainer from '@/components/ui/PageContainer';
 import { COLORS } from '@/lib/styling-constants';

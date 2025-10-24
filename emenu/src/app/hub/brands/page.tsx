@@ -7,25 +7,18 @@ import HubLayout from '@/components/hub/HubLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import {
   Building,
-  Plus,
-  Search,
-  Edit,
   Eye,
-  Settings,
   Utensils,
-  Store,
-  TrendingUp
+  MapPin,
+  Camera,
+  Upload
 } from 'lucide-react';
 
 export default function BrandManagementPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -45,6 +38,21 @@ export default function BrandManagementPage() {
     return null;
   }
 
+  const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
+
+  const handleLogoUpload = async (brandId: string) => {
+    // TODO: Implement logo upload via Directus API
+    console.log(`Upload logo for brand ${brandId}`);
+  };
+
+  const handleBrandMenu = (brandId: string) => {
+    router.push(`/hub/brands/menu?brand=${brandId}`);
+  };
+
+  const handleBrandBranches = (brandId: string) => {
+    router.push(`/hub/branches?brand=${brandId}`);
+  };
+
   // Mock data for brands
   const brands = [
     {
@@ -54,7 +62,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/miwaku-premium.png',
       branches: 3,
       menuItems: 89,
-      status: 'active',
       lastUpdated: '2 hours ago',
       color: '#D4AF37'
     },
@@ -65,7 +72,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/s79-teppanyaki.png',
       branches: 2,
       menuItems: 76,
-      status: 'active',
       lastUpdated: '1 day ago',
       color: '#DC143C'
     },
@@ -76,7 +82,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/kohaku-sashimi.png',
       branches: 2,
       menuItems: 112,
-      status: 'active',
       lastUpdated: '3 hours ago',
       color: '#8B4513'
     },
@@ -87,7 +92,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/kohaku-sushi.png',
       branches: 2,
       menuItems: 95,
-      status: 'active',
       lastUpdated: '1 week ago',
       color: '#000080'
     },
@@ -98,7 +102,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/kohaku-udon.png',
       branches: 2,
       menuItems: 68,
-      status: 'active',
       lastUpdated: '2 days ago',
       color: '#FF8C00'
     },
@@ -109,7 +112,6 @@ export default function BrandManagementPage() {
       logo: '/images/brands/date-nariya.png',
       branches: 2,
       menuItems: 54,
-      status: 'active',
       lastUpdated: '4 days ago',
       color: '#800020'
     },
@@ -120,26 +122,12 @@ export default function BrandManagementPage() {
       logo: '/images/brands/machida-shoten.png',
       branches: 1,
       menuItems: 42,
-      status: 'active',
       lastUpdated: '5 days ago',
       color: '#2F4F4F'
     }
   ];
 
-  const filteredBrands = brands.filter(brand =>
-    brand.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'inactive':
-        return <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
-    }
-  };
+  const filteredBrands = brands;
 
   return (
     <HubLayout
@@ -151,25 +139,9 @@ export default function BrandManagementPage() {
       }
       title="Brand Management"
       subtitle="Manage restaurant brands, their configurations, and master menus."
+      style={{color: '#9B1D20'}}
     >
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search and Actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search brands..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button style={{backgroundColor: '#9B1D20'}}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Brand
-          </Button>
-        </div>
-
         {/* Brands Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBrands.map((brand) => (
@@ -179,8 +151,11 @@ export default function BrandManagementPage() {
                   <div className="flex items-center space-x-4">
                     {/* Brand Logo */}
                     <div
-                      className="flex items-center justify-center w-12 h-12 rounded-full"
+                      className="relative flex items-center justify-center w-12 h-12 rounded-full cursor-pointer group"
                       style={{ backgroundColor: `${brand.color}20` }}
+                      onMouseEnter={() => setHoveredBrand(brand.id)}
+                      onMouseLeave={() => setHoveredBrand(null)}
+                      onClick={() => handleLogoUpload(brand.id)}
                     >
                       {brand.logo ? (
                         <img
@@ -191,18 +166,22 @@ export default function BrandManagementPage() {
                       ) : (
                         <Building className="h-6 w-6" style={{ color: brand.color }} />
                       )}
+
+                      {/* Upload overlay on hover */}
+                      {hoveredBrand === brand.id && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full group-hover:bg-opacity-70 transition-all duration-200">
+                          <Upload className="h-6 w-6 text-white" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Brand Info */}
                     <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
+                      <CardTitle className="text-lg flex items-center gap-2" style={{color: '#9B1D20'}}>
                         {brand.name}
                       </CardTitle>
                       <p className="text-sm text-gray-600 mt-1">{brand.description}</p>
                     </div>
-                  </div>
-                  <div className="ml-auto">
-                    {getStatusBadge(brand.status)}
                   </div>
                 </div>
               </CardHeader>
@@ -224,16 +203,11 @@ export default function BrandManagementPage() {
                   </div>
 
                   <div className="flex items-center space-x-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleBrandMenu(brand.id)} title="View Brand Menu">
+                      <Utensils className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleBrandBranches(brand.id)} title="View Brand Branches">
+                      <MapPin className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

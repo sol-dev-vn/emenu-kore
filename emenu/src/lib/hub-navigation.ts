@@ -53,10 +53,10 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
             description: 'Brand management and configuration'
           },
           {
-            title: 'Brand Menu',
+            title: 'Brand Menus',
             icon: Utensils,
-            href: '/hub/brands/menu',
-            description: 'Master menu management for brands'
+            href: '/hub/brand_menus',
+            description: 'Manage menus for all brands'
           }
         ]
       },
@@ -71,8 +71,7 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
             title: 'Locations',
             icon: MapPin,
             href: '/hub/branches',
-            description: 'Restaurant branch management',
-            badge: 'New'
+            description: 'Restaurant branch management'
           },
           {
             title: 'Restaurant Menu',

@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import {
   Utensils,
   Plus,
-  Search,
   Filter,
   Edit,
   Eye,
@@ -26,7 +25,6 @@ import {
 export default function MenuManagementPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
@@ -99,9 +97,8 @@ export default function MenuManagementPage() {
   ];
 
   const filteredItems = menuItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   const getStatusBadge = (status: string) => {

@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { MenuSynchronization } from './MenuSynchronization';
 import {
-  Search,
   Filter,
   Plus,
   Edit,
@@ -18,7 +16,7 @@ import {
   Package,
   Star,
   Clock,
-  Sync
+  RefreshCw as Sync
 } from 'lucide-react';
 
 interface MenuStats {
@@ -33,7 +31,6 @@ interface MenuManagementProps {
 }
 
 export function MenuManagement({ branchId, brandId, menuStats }: MenuManagementProps) {
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   // Mock menu categories
@@ -126,10 +123,8 @@ export function MenuManagement({ branchId, brandId, menuStats }: MenuManagementP
   ];
 
   const filteredItems = mockMenuItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   const handleToggleAvailability = (itemId: string) => {
@@ -219,17 +214,6 @@ export function MenuManagement({ branchId, brandId, menuStats }: MenuManagementP
           </TabsList>
 
           <div className="flex items-center space-x-4 ml-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search menu items..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-              />
-            </div>
-
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filter
@@ -347,7 +331,7 @@ export function MenuManagement({ branchId, brandId, menuStats }: MenuManagementP
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No menu items found</h3>
               <p className="text-gray-500">
-                {searchTerm ? `No items match "${searchTerm}"` : 'No items in this category.'}
+                No items in this category.
               </p>
             </div>
           )}

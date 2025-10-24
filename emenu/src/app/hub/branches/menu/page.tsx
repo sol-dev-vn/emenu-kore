@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import {
   Utensils,
   Plus,
-  Search,
   Edit,
   Eye,
   MapPin,
@@ -25,7 +24,6 @@ import {
 export default function BranchMenuPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedBranch, setSelectedBranch] = useState('all');
 
@@ -162,11 +160,9 @@ export default function BranchMenuPage() {
   ];
 
   const filteredMenus = branchMenus.filter(menu => {
-    const matchesSearch = menu.branchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         menu.brandName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBrand = selectedBrand === 'all' || menu.branchId.startsWith(selectedBrand);
     const matchesBranch = selectedBranch === 'all' || menu.branchId === selectedBranch;
-    return matchesSearch && matchesBrand && matchesBranch;
+    return matchesBrand && matchesBranch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -193,18 +189,9 @@ export default function BranchMenuPage() {
       subtitle="Configure branch-specific menus as subsets of brand menus. Each restaurant can select which items to offer from their brand's master menu."
     >
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search and Filters */}
+        {/* Filters */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex items-center space-x-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search restaurant menus..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}

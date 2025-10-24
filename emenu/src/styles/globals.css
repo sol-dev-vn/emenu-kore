@@ -4,7 +4,7 @@
 
 :root {
 	--background-color: #FFE4E1; /* Soft peach-red background */
-	--foreground-color: #333333; /* Dark gray text for readability */
+	--foreground-color: #9B1D20; /* Ruby red as main foreground color */
 	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 15%);
 	--accent-color: #9B1D20; /* Ruby red for accents and highlights */
 	--background-variant-color: #F5F5F5; /* Light gray-white for contrast */

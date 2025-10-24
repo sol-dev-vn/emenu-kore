@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import {
   Layout,
   Plus,
-  Search,
   Edit,
   Eye,
   Grid3X3,
@@ -28,7 +27,6 @@ import {
 export default function TableLayoutsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('all');
 
   useEffect(() => {
@@ -141,10 +139,8 @@ export default function TableLayoutsPage() {
   ];
 
   const filteredLayouts = layouts.filter(layout => {
-    const matchesSearch = layout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         layout.branch.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBranch = selectedBranch === 'all' || layout.branchId === selectedBranch;
-    return matchesSearch && matchesBranch;
+    return matchesBranch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -195,15 +191,6 @@ export default function TableLayoutsPage() {
             </TabsList>
 
             <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search layouts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
 
               <select
                 value={selectedBranch}
