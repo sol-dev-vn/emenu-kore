@@ -5,3 +5,6 @@ export async function createDirectusClient() {
 
   return directus;
 }
+
+// Alias for backward compatibility
+export const getDirectusClient = createDirectusClient;

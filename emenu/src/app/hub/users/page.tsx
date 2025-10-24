@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUsers } from '@/hooks/use-users';
 import {
   Users,
   Plus,
-  Search,
   Edit,
   Trash2,
   Shield,
@@ -26,12 +26,13 @@ import {
   Phone,
   Calendar,
   MapPin,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function UsersPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { users, loading, error, refetch } = useUsers();
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
@@ -53,116 +54,40 @@ export default function UsersPage() {
     return null;
   }
 
-  // Mock data for users
-  const users = [
-    {
-      id: '1',
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john.smith@example.com',
-      phone: '+1 234-567-8901',
-      role: 'Administrator',
-      status: 'active',
-      avatar: null,
-      branch: 'All Branches',
-      lastLogin: '2 hours ago',
-      createdAt: '2024-01-15',
-      permissions: ['full_access', 'user_management', 'system_settings']
-    },
-    {
-      id: '2',
-      firstName: 'Emily',
-      lastName: 'Davis',
-      email: 'emily.davis@example.com',
-      phone: '+1 234-567-8902',
-      role: 'Manager',
-      status: 'active',
-      avatar: null,
-      branch: 'Miwaku Premium Landmark 81',
-      lastLogin: '1 day ago',
-      createdAt: '2024-02-01',
-      permissions: ['branch_management', 'staff_management', 'menu_management']
-    },
-    {
-      id: '3',
-      firstName: 'Michael',
-      lastName: 'Chen',
-      email: 'michael.chen@example.com',
-      phone: '+1 234-567-8903',
-      role: 'Manager',
-      status: 'active',
-      avatar: null,
-      branch: 'S79 Teppanyaki District 1',
-      lastLogin: '3 hours ago',
-      createdAt: '2024-02-15',
-      permissions: ['branch_management', 'staff_management', 'menu_management']
-    },
-    {
-      id: '4',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      email: 'sarah.johnson@example.com',
-      phone: '+1 234-567-8904',
-      role: 'Staff',
-      status: 'active',
-      avatar: null,
-      branch: 'Kohaku Sushi District 1',
-      lastLogin: '30 minutes ago',
-      createdAt: '2024-03-01',
-      permissions: ['order_management', 'table_management']
-    },
-    {
-      id: '5',
-      firstName: 'David',
-      lastName: 'Lee',
-      email: 'david.lee@example.com',
-      phone: '+1 234-567-8905',
-      role: 'Staff',
-      status: 'inactive',
-      avatar: null,
-      branch: 'Kohaku Sushi Phu My Hung',
-      lastLogin: '2 weeks ago',
-      createdAt: '2024-03-10',
-      permissions: ['order_management']
-    },
-    {
-      id: '6',
-      firstName: 'Lisa',
-      lastName: 'Wang',
-      email: 'lisa.wang@example.com',
-      phone: '+1 234-567-8906',
-      role: 'Staff',
-      status: 'active',
-      avatar: null,
-      branch: 'Kohaku Udon District 1',
-      lastLogin: '1 day ago',
-      createdAt: '2024-03-15',
-      permissions: ['order_management', 'table_management']
-    }
-  ];
+  // Filter users based on role and status
+  const filteredUsers = users.filter(user => {
+    const matchesRole = selectedRole === 'all' || user.role.name === selectedRole;
+    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
+    return matchesRole && matchesStatus;
+  });
 
+  // Calculate role counts
   const roles = [
     { id: 'all', name: 'All Roles', count: users.length },
-    { id: 'Administrator', name: 'Administrators', count: users.filter(u => u.role === 'Administrator').length },
-    { id: 'Manager', name: 'Managers', count: users.filter(u => u.role === 'Manager').length },
-    { id: 'Staff', name: 'Staff', count: users.filter(u => u.role === 'Staff').length }
+    { id: 'Administrator', name: 'Administrators', count: users.filter(u => u.role.name === 'Administrator').length },
+    { id: 'Manager', name: 'Managers', count: users.filter(u => u.role.name === 'Manager').length },
+    { id: 'Staff', name: 'Staff', count: users.filter(u => u.role.name === 'Staff').length }
   ];
 
+  // Calculate status counts
   const statuses = [
     { id: 'all', name: 'All Status', count: users.length },
     { id: 'active', name: 'Active', count: users.filter(u => u.status === 'active').length },
     { id: 'inactive', name: 'Inactive', count: users.filter(u => u.status === 'inactive').length }
   ];
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.branch.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Format last access date
+  const formatLastAccess = (lastAccess?: string) => {
+    if (!lastAccess) return 'Never';
+    const date = new Date(lastAccess);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} days ago`;
+    return date.toLocaleDateString();
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -181,8 +106,8 @@ export default function UsersPage() {
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
+  const getRoleBadge = (role: { name: string }) => {
+    switch (role.name) {
       case 'Administrator':
         return <Badge className="bg-purple-100 text-purple-800">Administrator</Badge>;
       case 'Manager':
@@ -190,7 +115,7 @@ export default function UsersPage() {
       case 'Staff':
         return <Badge className="bg-green-100 text-green-800">Staff</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">{role}</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{role.name}</Badge>;
     }
   };
 
@@ -207,24 +132,28 @@ export default function UsersPage() {
       subtitle="Manage restaurant staff and user permissions."
     >
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        {/* Filters and Search */}
+        {/* Header with error and loading states */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-red-600">{error}</p>
+              <Button variant="outline" size="sm" onClick={refetch}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Filters */}
         <div className="mb-6 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                disabled={loading}
               >
                 {roles.map((role) => (
                   <option key={role.id} value={role.id}>
@@ -237,6 +166,7 @@ export default function UsersPage() {
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                disabled={loading}
               >
                 {statuses.map((status) => (
                   <option key={status.id} value={status.id}>
@@ -244,6 +174,11 @@ export default function UsersPage() {
                   </option>
                 ))}
               </select>
+
+              <Button variant="outline" size="sm" onClick={refetch} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
             </div>
 
             <Button style={{backgroundColor: '#9B1D20'}}>
@@ -331,62 +266,81 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50" style={{borderColor: '#FFE4E1'}}>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center">
-                          <Avatar className="h-10 w-10 mr-3">
-                            <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
-                            <AvatarFallback>
-                              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{user.firstName} {user.lastName}</p>
-                            <p className="text-sm text-gray-500 flex items-center">
-                              <Mail className="h-3 w-3 mr-1" />
-                              {user.email}
-                            </p>
-                            <p className="text-sm text-gray-500 flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {user.phone}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {getRoleBadge(user.role)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center text-sm">
-                          <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                          {user.branch}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {getStatusBadge(user.status)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {user.lastLogin}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center">
+                        <div className="flex flex-col items-center">
+                          <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mb-2" />
+                          <p className="text-gray-500">Loading users...</p>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center">
+                        <p className="text-gray-500">No users found matching the current filters.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <tr key={user.id} className="border-b hover:bg-gray-50" style={{borderColor: '#FFE4E1'}}>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <Avatar className="h-10 w-10 mr-3">
+                              <AvatarImage src={user.avatar} alt={`${user.first_name} ${user.last_name}`} />
+                              <AvatarFallback>
+                                {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{user.first_name} {user.last_name}</p>
+                              <p className="text-sm text-gray-500 flex items-center">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {user.email}
+                              </p>
+                              {user.phone_number && (
+                                <p className="text-sm text-gray-500 flex items-center">
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  {user.phone_number}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {getRoleBadge(user.role)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center text-sm">
+                            <MapPin className="h-3 w-3 mr-1 text-gray-400" />
+                            {user.branch || 'Not assigned'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {getStatusBadge(user.status)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-sm text-gray-500 flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {formatLastAccess(user.last_access)}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
