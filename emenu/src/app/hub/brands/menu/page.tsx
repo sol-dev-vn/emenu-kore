@@ -8,8 +8,7 @@ import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Plus, Search, Filter, Edit, Image as ImageIcon } from 'lucide-react';
-import { useBrandMenus } from '@/hooks/use-brand-menus';
-import { useMenuItems } from '@/hooks/use-menu-items';
+import { useDirectusBrandMenus, useDirectusMenuItems } from '@/hooks/use-directus-data';
 import { CategoryList } from '@/components/hub/CategoryList';
 import { SearchBar } from '@/components/hub/SearchBar';
 
@@ -24,11 +23,10 @@ export default function BrandMenuPage() {
 
   const {
     brandMenus,
-    brands,
     loading: menusLoading,
     error: menusError,
     refetch: refetchBrandMenus
-  } = useBrandMenus();
+  } = useDirectusBrandMenus();
 
   // Get menu items for the selected brand
   const {
@@ -39,16 +37,16 @@ export default function BrandMenuPage() {
     refetch: refetchItems,
     searchItems,
     getItemsByCategory
-  } = useMenuItems(selectedBrandId);
+  } = useDirectusMenuItems(selectedBrandId);
 
   // State for search and filtering
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  // Find the selected brand
-  const selectedBrand = brandMenus.find(menu => menu.brand === selectedBrandId);
+  // Find the selected brand menu
+  const selectedBrandMenu = brandMenus.find(menu => menu.id === selectedBrandId);
 
-  const selectedBrandName = selectedBrand?.brandName || 'Unknown Brand';
+  const selectedBrandName = selectedBrandMenu?.brandName || 'Unknown Brand';
 
   return (
     <HubLayout
@@ -73,14 +71,14 @@ export default function BrandMenuPage() {
                   <h2 className="text-xl font-semibold text-gray-900">{selectedBrandName} Menu</h2>
                   <div className="text-sm text-gray-700 mt-1">
                     Managing menu items for <strong>{selectedBrandName}</strong>
-                    {selectedBrand?.tax_rate && (
+                    {selectedBrandMenu?.tax_rate && (
                       <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">
-                        Tax: {selectedBrand.tax_rate}%
+                        Tax: {selectedBrandMenu.tax_rate}%
                       </span>
                     )}
-                    {selectedBrand?.service_rate && (
+                    {selectedBrandMenu?.service_rate && (
                       <span className="ml-1 text-xs bg-gray-100 px-2 py-1 rounded">
-                        Service: {selectedBrand.service_rate}%
+                        Service: {selectedBrandMenu.service_rate}%
                       </span>
                     )}
                   </div>
@@ -220,7 +218,7 @@ export default function BrandMenuPage() {
                                 <div className="text-lg font-bold" style={{color: '#9B1D20'}}>
                                   {new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
-                                    currency: selectedBrand?.default_currency || 'VND'
+                                    currency: selectedBrandMenu?.default_currency || 'VND'
                                   }).format(item.price || 0)}
                                 </div>
                                 <div className="text-xs text-gray-500">

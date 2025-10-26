@@ -15,10 +15,24 @@ import {
   Camera,
   Upload
 } from 'lucide-react';
+import { useDirectusBrands, useDirectusBrandMenus } from '@/hooks/use-directus-data';
 
 export default function BrandManagementPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+
+  // Use Directus hooks to get real data
+  const {
+    brands,
+    loading: brandsLoading,
+    error: brandsError
+  } = useDirectusBrands();
+
+  const {
+    brandMenus,
+    loading: menusLoading,
+    error: menusError
+  } = useDirectusBrandMenus();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -26,7 +40,7 @@ export default function BrandManagementPage() {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  if (isLoading || brandsLoading || menusLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#FFE4E1'}}>
         <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: '#9B1D20'}}></div>
@@ -53,81 +67,47 @@ export default function BrandManagementPage() {
     router.push(`/hub/branches?brand=${brandId}`);
   };
 
-  // Mock data for brands
-  const brands = [
-    {
-      id: '1',
-      name: 'Miwaku Premium',
-      description: 'Premium Japanese dining experience',
-      logo: '/images/brands/miwaku-premium.png',
-      branches: 3,
-      menuItems: 89,
-      lastUpdated: '2 hours ago',
-      color: '#D4AF37'
-    },
-    {
-      id: '2',
-      name: 'S79 Japanese Teppanyaki',
-      description: 'Authentic Japanese teppanyaki restaurant',
-      logo: '/images/brands/s79-teppanyaki.png',
-      branches: 2,
-      menuItems: 76,
-      lastUpdated: '1 day ago',
-      color: '#DC143C'
-    },
-    {
-      id: '3',
-      name: 'Kohaku Sashimi & Yakiniku',
-      description: 'Japanese sashimi and BBQ restaurant',
-      logo: '/images/brands/kohaku-sashimi.png',
-      branches: 2,
-      menuItems: 112,
-      lastUpdated: '3 hours ago',
-      color: '#8B4513'
-    },
-    {
-      id: '4',
-      name: 'Kohaku Sushi',
-      description: 'Traditional Japanese sushi restaurant',
-      logo: '/images/brands/kohaku-sushi.png',
-      branches: 2,
-      menuItems: 95,
-      lastUpdated: '1 week ago',
-      color: '#000080'
-    },
-    {
-      id: '5',
-      name: 'Kohaku Udon & Ramen',
-      description: 'Japanese noodle house',
-      logo: '/images/brands/kohaku-udon.png',
-      branches: 2,
-      menuItems: 68,
-      lastUpdated: '2 days ago',
-      color: '#FF8C00'
-    },
-    {
-      id: '6',
-      name: 'Date Nariya',
-      description: 'Japanese Gyutan steak restaurant',
-      logo: '/images/brands/date-nariya.png',
-      branches: 2,
-      menuItems: 54,
-      lastUpdated: '4 days ago',
-      color: '#800020'
-    },
-    {
-      id: '7',
-      name: 'Machida Shoten',
-      description: 'Traditional Japanese izakaya',
-      logo: '/images/brands/machida-shoten.png',
-      branches: 1,
-      menuItems: 42,
-      lastUpdated: '5 days ago',
-      color: '#2F4F4F'
-    }
-  ];
+  // Error state
+  if (brandsError || menusError) {
+    return (
+      <HubLayout
+        breadcrumb={
+          <Breadcrumb items={[
+            {label: 'Overview', href: '/hub'},
+            {label: 'Brand Management', active: true}
+          ]} />
+        }
+        title="Brand Management"
+        subtitle="Error loading brand data"
+        style={{color: '#9B1D20'}}
+      >
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">Error loading brand data</p>
+            <p className="text-gray-600">{brandsError || menusError}</p>
+          </div>
+        </div>
+      </HubLayout>
+    );
+  }
 
-  const filteredBrands = brands;
+  // Transform brand menus for display with real brand data
+  const displayBrands = brandMenus.map(menu => {
+    const brand = brands.find(b => b.id === menu.brand);
+    return {
+      id: menu.brand,
+      name: brand?.name || menu.brandName || 'Unknown Brand',
+      description: brand?.description || `${menu.name} management`,
+      logo: brand?.logo || null,
+      branches: 1, // TODO: Get actual branch count from branches collection
+      menuItems: menu.items || 0,
+      lastUpdated: menu.lastUpdated || 'Unknown',
+      color: brand?.brand_color || '#9B1D20',
+      brandMenuId: menu.id // Store the brand menu ID for navigation
+    };
+  });
+
+  const filteredBrands = displayBrands;
 
   return (
     <HubLayout
@@ -203,7 +183,7 @@ export default function BrandManagementPage() {
                   </div>
 
                   <div className="flex items-center space-x-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleBrandMenu(brand.id)} title="View Brand Menu">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleBrandMenu(brand.brandMenuId)} title="View Brand Menu">
                       <Utensils className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1" onClick={() => handleBrandBranches(brand.id)} title="View Brand Branches">

@@ -6,8 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import HubLayout from '@/components/hub/HubLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { MenuItemForm } from '@/components/hub/MenuItemForm';
-import { MenuItem } from '@/hooks/use-brand-menus';
-import { useMenuItems } from '@/hooks/use-menu-items';
+import { MenuItem } from '@/hooks/use-directus-data';
+import { useDirectusMenuItems } from '@/hooks/use-directus-data';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NewMenuItemPage() {
@@ -16,7 +16,7 @@ export default function NewMenuItemPage() {
   const searchParams = useSearchParams();
   const brandMenuId = searchParams.get('brand') || '';
 
-  const { createMenuItem } = useMenuItems(brandMenuId);
+  const { createMenuItem } = useDirectusMenuItems(brandMenuId);
   const [saving, setSaving] = useState<boolean>(false);
   const { toast } = useToast();
 

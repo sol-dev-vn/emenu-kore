@@ -6,8 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import HubLayout from '@/components/hub/HubLayout';
 import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { MenuItemForm } from '@/components/hub/MenuItemForm';
-import { MenuItem } from '@/hooks/use-brand-menus';
-import { useMenuItems } from '@/hooks/use-menu-items';
+import { MenuItem } from '@/hooks/use-directus-data';
+import { useDirectusMenuItems } from '@/hooks/use-directus-data';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export default function EditMenuItemPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { updateMenuItem } = useMenuItems(brandMenuId);
+  const { updateMenuItem } = useDirectusMenuItems(brandMenuId);
   const [saving, setSaving] = useState<boolean>(false);
 
   useEffect(() => {

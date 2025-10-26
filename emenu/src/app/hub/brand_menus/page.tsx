@@ -7,8 +7,7 @@ import { Breadcrumb } from '@/components/hub/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Plus, Search, Filter, Edit } from 'lucide-react';
-import { useBrandMenus } from '@/hooks/use-brand-menus';
-import { useMenuItems } from '@/hooks/use-menu-items';
+import { useDirectusBrandMenus, useDirectusMenuItems } from '@/hooks/use-directus-data';
 
 export default function BrandMenusPage() {
   const { user, isLoading } = useAuth();
@@ -19,7 +18,7 @@ export default function BrandMenusPage() {
     loading: brandsLoading,
     error: brandsError,
     refetch: refetchBrands
-  } = useBrandMenus();
+  } = useDirectusBrandMenus();
 
   if (isLoading) {
     return (
