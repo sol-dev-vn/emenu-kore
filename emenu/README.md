@@ -1,29 +1,60 @@
 # SOL eMenu - Digital Restaurant Menu System
 
-SOL eMenu is a **Next.js-based digital menu system** that is fully integrated with [Directus](https://directus.io/), offering
+SOL eMenu is a **Next.js 15-based digital menu system** that is fully integrated with [Directus](https://directus.io/), offering
 a complete restaurant management solution for digital menus and QR code ordering. The system leverages modern technologies like the
-**Next.js App Router**, **Tailwind CSS**, and **Shadcn components**, providing a comprehensive platform for
+**Next.js App Router with Turbopack**, **React 19**, **TypeScript 5.8**, **Tailwind CSS 3.4**, and **Shadcn components**, providing a comprehensive platform for
 modern restaurant operations.
 
 ## **Features**
 
-- **Next.js App Router**: Uses the latest Next.js routing architecture for layouts and dynamic routes.
-- **Full Directus Integration**: Directus API integration for fetching and managing relational data.
-- **Tailwind CSS**: Fully integrated for rapid UI styling.
-- **TypeScript**: Ensures type safety and reliable code quality.
-- **Shadcn Components**: Pre-built, customizable UI components for modern design systems.
-- **ESLint & Prettier**: Enforces consistent code quality and formatting.
-- **Dynamic Page Builder**: A page builder interface for creating and customizing CMS-driven pages.
-- **Preview Mode**: Built-in draft/live preview for editing unpublished content.
-- **Optimized Dependency Management**: Project is set up with **pnpm** for faster and more efficient package management.
+- **Next.js 15 with Turbopack**: Latest Next.js with ultra-fast development server and optimized builds.
+- **React 19**: Newest React version with latest features and performance improvements.
+- **Full Directus SDK Integration**: Directus SDK v19.1.0 with TypeScript support for fetching and managing relational data.
+- **Tailwind CSS 3.4**: Latest version with enhanced features for rapid UI styling.
+- **TypeScript 5.8**: Strict typing for reliable code quality and better developer experience.
+- **Shadcn Components**: Modern, accessible UI components built on Radix UI primitives.
+- **React Hook Form 7.55**: Advanced form handling with Zod 3.24 validation.
+- **ESLint 9.24 & Prettier**: Modern code quality tools with latest configurations.
+- **Directus Visual Editing**: Integrated visual editing capabilities for content management.
+- **AI Development Tools**: MCP server integration with Directus and shadcn components.
+- **PM2 Process Management**: Production-ready process management with ecosystem configuration.
+- **Cloudflare Tunnel**: Secure external access for development and staging.
+- **MCP Integration**: Directus MCP server for AI IDE integration.
 
 ---
 
-## **Why pnpm?**
+## **Package Management**
 
-This project uses `pnpm` for managing dependencies due to its speed and efficiency. If you’re familiar with `npm`,
-you’ll find `pnpm` very similar in usage. You can still use `npm` if you prefer by replacing `pnpm` commands with their
-`npm` equivalents.
+This project uses **npm** for managing dependencies. The project supports both **npm** and **bun** for enhanced performance. If you prefer faster installation times, you can use `bun` which is already included in devDependencies.
+
+### Development Commands
+
+```bash
+# Install dependencies
+npm install                    # or bun install
+
+# Development server
+npm run dev                    # Uses Next.js with Turbopack
+
+# Build for production
+npm run build
+
+# Start production server
+npm run start
+
+# Generate Directus TypeScript types
+npm run generate:types
+
+# Code quality
+npm run lint                   # ESLint checking
+npm run lint:fix              # Auto-fix ESLint issues
+npm run format                # Prettier formatting
+
+# Testing
+npm run test                   # Jest testing
+npm run test:watch           # Jest in watch mode
+npm run test:coverage        # Jest with coverage report
+```
 
 ---
 
@@ -50,11 +81,13 @@ Directus Draft Mode out of the box, enabling live previews of unpublished or dra
 
 ### Prerequisites
 
-To set up this template, ensure you have the following:
+To set up this project, ensure you have the following:
 
-- **Node.js** (16.x or newer)
-- **npm** or **pnpm**
+- **Node.js** (18.x or newer) - Recommended for Next.js 15 compatibility
+- **npm** or **bun** - bun is included for enhanced performance
 - Access to a **Directus** instance ([cloud or self-hosted](../../README.md))
+- **PM2** - For production process management
+- **Docker** - For Directus container deployment (if self-hosting)
 
 ## ⚠️ Directus Setup Instructions
 
@@ -100,31 +133,56 @@ To get started, you need to configure environment variables. Follow these steps:
 1. Install dependencies:
 
    ```bash
-   pnpm install
+   npm install
+   # Or for faster installation: bun install
    ```
-
-   _(You can also use `npm install` if you prefer.)_
 
 2. Start the development server:
 
    ```bash
-   pnpm run dev
+   npm run dev
    ```
 
 3. Visit [http://localhost:3000](http://localhost:3000).
 
+### Production Deployment
+
+For production deployment using PM2:
+
+1. Build the application:
+
+   ```bash
+   npm run build
+   ```
+
+2. Start with PM2:
+
+   ```bash
+   pm2 start ecosystem.config.js
+   ```
+
+3. View logs:
+
+   ```bash
+   pm2 logs sol-emenu
+   ```
+
+The application runs on port 3000 and is accessible via Cloudflare Tunnel at https://sol-menu.alphabits.team
+
 ## Generate Directus Types
 
-This repository includes a [utility](https://www.npmjs.com/package/directus-sdk-typegen) to generate TypeScript types
-for your Directus schema.
+This repository includes [directus-sdk-typegen v0.2.0](https://www.npmjs.com/package/directus-sdk-typegen) to generate TypeScript types
+for your Directus schema automatically.
 
 #### Usage
 
 1. Ensure your `.env` file is configured as described above.
 2. Run the following command:
    ```bash
-   pnpm run generate:types
+   npm run generate:types
    ```
+
+This will generate TypeScript types in `src/types/directus-schema.ts` based on your Directus collections and fields.
 
 ## Folder Structure
 

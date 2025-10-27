@@ -10,7 +10,7 @@ Development Services Mapping
 - sol-dashboard.alphabits.team → http://localhost:1887
 - sol-wp.alphabits.team → http://localhost:8081
 - sol-stats.alphabits.team → http://localhost:19999
-- sol-menu.alphabits.team → http://localhost:3520
+- sol-menu.alphabits.team → http://localhost:3000
 - sol-komm.alphabits.team → http://localhost:7111
 - sol-ide.alphabits.team → http://localhost:8443
 

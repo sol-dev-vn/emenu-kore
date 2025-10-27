@@ -408,32 +408,46 @@ const LandingPage = () => {
 ## 🛠️ Technical Stack
 
 ### Frontend Development ✅ **IMPLEMENTED**
-- **Framework**: Next.js 15 with React 19 and TypeScript
-- **UI Components**: shadcn/ui with Radix UI primitives
-- **Styling**: Tailwind CSS v4 with custom design system
-- **QR Code Scanning**: @yudiel/react-qr-scanner for mobile camera access
+- **Framework**: Next.js 15.2.4 with React 18.3.1 and TypeScript 5.8
+- **Development Server**: Turbopack enabled for ultra-fast builds
+- **UI Components**: shadcn/ui 3.5.0 with Radix UI primitives
+- **Styling**: Tailwind CSS 3.4.17 with custom design system and animations
+- **Form Handling**: React Hook Form 7.55.0 with Zod 3.24.2 validation
+- **Directus Integration**: Directus SDK 19.1.0 with TypeScript support
+- **Visual Editing**: Directus Visual Editing 1.1.0 integration
 - **State Management**: React hooks and context API
-- **Notifications**: Sonner for toast notifications
-- **Form Handling**: React Hook Form with Zod validation
-- **Icons**: Lucide React for consistent iconography
-- **Animations**: Tailwind CSS transitions and custom animations
+- **Notifications**: React Hot Toast 2.6.0 for user feedback
+- **Icons**: Lucide React 0.487.0 for consistent iconography
+- **Authentication**: Jose 5.9.6 for JWT token handling
+- **Theme Support**: next-themes 0.4.6 for dark/light mode
+- **Command Palette**: cmdk 1.1.1 for fast navigation
+- **Class Management**: clsx 2.1.1 and tailwind-merge 2.6.0 for dynamic styling
+- **QR Code Scanning**: @yudiel/react-qr-scanner for mobile camera access
 - **Multi-language Support**: Vietnamese, English, Japanese, Korean, Mandarin, Russian
 - **Mobile Optimization**: Full-screen QR scanner interface for mobile devices
 
 ### Backend Infrastructure
-- **Headless CMS**: Directus with PostgreSQL database
-  - Docker configuration: `docker/sol-kore-api-database.yaml`
+- **Headless CMS**: Directus with SQLite database
+  - Database location: `/Users/dev/casa/DATA/AppData/kore/database/data.db`
+  - Docker configuration for containerized deployment
+  - MCP server integration for AI IDE support
 - **AI Development**: Claude Code CLI with GLM 4.6 LLM model
-  - Configuration: [Lite Coding Plan](https://docs.z.ai/devpack/overview)
-  - Documentation: [z.ai Claude Integration](https://docs.z.ai/scenario-example/develop-tools/claude)
-- **System Monitoring**: `btop` for real-time performance tracking
+  - MCP servers: Directus, shadcn, memory, time, sequential thinking
+  - OpenSpec system for structured change proposals
+- **Process Management**: PM2 with ecosystem configuration
+- **Network Access**: Cloudflare Tunnel for secure external access
+- **System Monitoring**: Performance tracking and log management
 
 ### Development Environment
-- **Containerization**: Docker & Docker Compose
-- **Process Management**: PM2 for production deployments
-- **Network Tunneling**: Cloudflare Tunnel for secure external access
-- **Package Management**: npm with workspaces for monorepo structure
-- **Code Quality**: ESLint, Prettier, and TypeScript strict mode
+- **Package Management**: npm with bun 1.3.1 support for enhanced performance
+- **Type Generation**: directus-sdk-typegen 0.2.0 for automatic TypeScript types
+- **Code Quality**:
+  - ESLint 9.24.0 with Next.js, React, and Tailwind plugins
+  - Prettier 3.5.3 with import sorting and Tailwind formatting
+  - TypeScript 5.8.3 strict mode
+- **Testing**: Jest framework with coverage support
+- **Build Tools**: Next.js 15.2.4 with bundle analyzer
+- **Containerization**: Docker & Docker Compose for backend services
 
 ## 🎨 UI/UX Design System
 
