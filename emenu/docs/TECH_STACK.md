@@ -193,7 +193,7 @@ NODE_ENV=development
 
 ### **Production Environment**
 - **Process Manager**: PM2 with ecosystem configuration
-- **Directus Production**: https://kore.sol.com.vn (pending setup)
+- **Directus Production**: https://sol-kore.alphabits.team (pending setup)
 - **Database**: SQLite with persistent storage
 - **Containerization**: Docker for Directus backend
 

@@ -131,7 +131,7 @@ NODE_ENV=development
 
 **API Configuration:**
 - Development: https://sol-kore.alphabits.team (Directus Admin)
-- Production: https://kore.sol.com.vn (pending setup)
+- Production: https://sol-kore.alphabits.team (pending setup)
 - eMenu App: https://sol-menu.alphabits.team (Cloudflare Tunnel)
 
 **MCP Server Configuration:**

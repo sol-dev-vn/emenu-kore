@@ -19,7 +19,7 @@ The SOL eMenu platform is a comprehensive digital menu system designed for SOL.c
 - **QR Management**: `/qr-codes` - Comprehensive QR code management interface
 
 ### Core API Backend & Admin Portal
-- **Production**: https://kore.sol.com.vn *(pending domain setup)*
+- **Production**: https://sol-kore.alphabits.team *(pending domain setup)*
 - **Development**: https://sol-kore.alphabits.team → `http://localhost:11111`
 
 ## 🚀 Core Features

@@ -19,7 +19,7 @@ Development Services Mapping
 - DEV: https://sol-emenu.alphabits.team
 
 ## Core API Backend + Admin Portal (Directus)
-- Production https://kore.sol.com.vn
+- Production https://sol-kore.alphabits.team
 - DEV: https://sol-id.alphabits.team
 
 # 🛠️ Deployments
