@@ -84,31 +84,14 @@ class BranchService {
     }
 
     try {
-      // Mock data - replace with actual API call
-      const brands = [
-        {
-          id: '1',
-          name: 'SOL Pizza',
-          description: 'Authentic Italian pizza restaurant chain',
-          logo: '/images/brands/sol-pizza.png',
-          branches_count: 12,
-        },
-        {
-          id: '2',
-          name: 'SOL Burger',
-          description: 'Gourmet burger restaurant with premium ingredients',
-          logo: '/images/brands/sol-burger.png',
-          branches_count: 8,
-        },
-        {
-          id: '3',
-          name: 'SOL Cafe',
-          description: 'Cozy coffee shop with light meals and desserts',
-          logo: '/images/brands/sol-cafe.png',
-          branches_count: 6,
-        }
-      ];
+      console.log('🏪 [SERVER] Fetching brands from Directus API...');
+      // Use Directus API instead of mock data
+      const { DirectusService } = await import('./directusService');
 
+      const brands = await DirectusService.getBrands();
+
+      console.log('🏪 [SERVER] Brands fetched from Directus:', brands.length, 'brands');
+      console.log('🏪 [SERVER] Brands data:', brands);
       this.setCache(cacheKey, brands);
       return brands;
     } catch (error) {
@@ -127,46 +110,19 @@ class BranchService {
     }
 
     try {
-      // Mock data - replace with actual API call
-      const branches = [
-        {
-          id: '1-1',
-          name: 'SOL Pizza - District 1',
-          address: '123 Nguyễn Huệ Street, District 1, Ho Chi Minh City',
-          phone: '+84 28 3821 1234',
-          status: 'active',
-          tables_count: 24,
-          opening_hours: '10:00 - 22:00',
-          brand_id: '1',
-          manager: {
-            name: 'John Smith',
-            email: 'john.smith@solpizza.com'
-          },
-          created_at: '2023-01-15'
-        },
-        {
-          id: '2-1',
-          name: 'SOL Burger - Vincom Center',
-          address: '72 Lê Thánh Tôn Street, District 1, Ho Chi Minh City',
-          phone: '+84 28 3821 3456',
-          status: 'active',
-          tables_count: 16,
-          opening_hours: '10:30 - 22:30',
-          brand_id: '2',
-          manager: {
-            name: 'Emily Davis',
-            email: 'emily.d@solburger.com'
-          },
-          created_at: '2023-02-28'
-        }
-      ];
+      console.log('🏢 [SERVER] Fetching branches from Directus API...', brandId ? `for brand: ${brandId}` : 'for all brands');
+      // Use Directus API instead of mock data
+      const { DirectusService } = await import('./directusService');
 
-      const filteredBranches = brandId
-        ? branches.filter(b => b.brand_id === brandId)
-        : branches;
+      const branches = await DirectusService.getBranches(brandId);
 
-      this.setCache(cacheKey, filteredBranches);
-      return filteredBranches;
+      console.log('🏢 [SERVER] Branches fetched from Directus:', branches.length, 'branches');
+      console.log('🏢 [SERVER] Branches data:', branches);
+      if (brandId) {
+        console.log('🏢 [SERVER] Branches for brand', brandId, ':', branches.length, 'branches');
+      }
+      this.setCache(cacheKey, branches);
+      return branches;
     } catch (error) {
       console.error('Failed to fetch branches:', error);
       throw error;

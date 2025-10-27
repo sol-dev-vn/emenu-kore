@@ -1,3 +1,7 @@
+/* Import Google Fonts - Gothic A1 */
+@import url('https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700;900&display=swap');
+
+/* Fallback fonts */
 @font-face {
 	font-family: 'Inter';
 	font-weight: 100 900;
@@ -22,5 +26,5 @@
 }
 
 html {
-	font-family: 'Inter', sans-serif;
+	font-family: 'Gothic A1', 'Inter', sans-serif;
 }

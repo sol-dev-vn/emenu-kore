@@ -12,6 +12,7 @@ import {
   QrCode,
   Store
 } from 'lucide-react';
+import { BRAND_COLORS } from '@/lib/styling-constants';
 
 interface Branch {
   id: string;
@@ -180,7 +181,7 @@ export function BranchHeader({ branch }: BranchHeaderProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-                <p className="text-2xl font-bold" style={{color: '#9B1D20'}}>
+                <p className="text-2xl font-bold text-brand-primary">
                   ₱45,678
                 </p>
                 <p className="text-xs text-green-600">+12% from yesterday</p>
@@ -197,7 +198,7 @@ export function BranchHeader({ branch }: BranchHeaderProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                <p className="text-2xl font-bold" style={{color: '#9B1D20'}}>
+                <p className="text-2xl font-bold text-brand-primary">
                   {Math.floor(branch.tables_count * 0.7)}
                 </p>
                 <p className="text-xs text-gray-500">of {branch.tables_count} tables</p>
@@ -214,7 +215,7 @@ export function BranchHeader({ branch }: BranchHeaderProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Wait Time</p>
-                <p className="text-2xl font-bold" style={{color: '#9B1D20'}}>
+                <p className="text-2xl font-bold text-brand-primary">
                   15 min
                 </p>
                 <p className="text-xs text-orange-600">Above average</p>
@@ -231,7 +232,7 @@ export function BranchHeader({ branch }: BranchHeaderProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Staff on Duty</p>
-                <p className="text-2xl font-bold" style={{color: '#9B1D20'}}>
+                <p className="text-2xl font-bold text-brand-primary">
                   12
                 </p>
                 <p className="text-xs text-gray-500">8 waiters, 4 kitchen</p>

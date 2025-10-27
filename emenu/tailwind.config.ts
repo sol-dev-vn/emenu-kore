@@ -224,7 +224,38 @@ const config: Config = {
 		},
 	},
 	plugins: [tailwindcssAnimate, typography],
-	safelist: ['grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3'],
+	safelist: [
+		'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3',
+		// Brand colors safelist
+		'text-brand-primary',
+		'bg-brand-primary',
+		'border-brand-primary',
+		'ring-brand-primary',
+		'text-brand-background',
+		'bg-brand-background',
+		'text-brand-text',
+		'bg-brand-text',
+		'text-brand-nav',
+		'bg-brand-nav',
+		// Accent colors
+		'text-accent',
+		'bg-accent',
+		'border-accent',
+		'ring-accent',
+		// Common combinations
+		'bg-brand-primary/10',
+		'bg-brand-primary/20',
+		'bg-brand-primary/90',
+		'bg-brand-primary/95',
+		'border-brand-primary/20',
+		'border-brand-primary/30',
+		'text-brand-primary/70',
+		'text-brand-primary/50',
+		'hover:bg-brand-primary/10',
+		'hover:text-brand-primary',
+		'focus:ring-brand-primary',
+		'focus:border-brand-primary',
+	],
 };
 
 export default config;

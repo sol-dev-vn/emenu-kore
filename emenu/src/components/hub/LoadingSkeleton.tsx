@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function LoadingSkeleton() {
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#FFE4E1'}}>
+    <div className="min-h-screen bg-brand-background">
       {/* Header Skeleton */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,7 +47,7 @@ export function LoadingSkeleton() {
                   <Skeleton className="h-8 w-16 mb-1" />
                   <Skeleton className="h-4 w-32" />
                 </div>
-                <Skeleton className="h-8 w-8 rounded-full" style={{backgroundColor: '#FFE4E1'}} />
+                <Skeleton className="h-8 w-8 rounded-full bg-brand-primary/20" />
               </div>
             </div>
           ))}

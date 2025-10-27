@@ -4,10 +4,11 @@ import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import PublicLayout from './PublicLayout';
+import HubLayout from '@/components/hub/HubLayout';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { I18nProvider } from '@/contexts/I18nContext';
-import { isPublicLayout } from '@/lib/layout-utils';
+import { getLayoutType } from '@/lib/layout-utils';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -26,15 +27,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || '/';
 
-  const usePublicLayout = isPublicLayout(pathname);
+  const layoutType = getLayoutType(pathname);
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased font-sans min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100">
+      <body className="antialiased min-h-screen bg-white text-gray-900">
         <ThemeProvider>
           <AuthProvider>
             <I18nProvider>
-              {usePublicLayout ? (
+              {layoutType === 'public' ? (
                 <PublicLayout>
                   {children}
                 </PublicLayout>

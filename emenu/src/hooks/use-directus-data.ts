@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useDirectus } from '@/lib/directus/directus';
+import { createDirectus, rest, authentication, readItems } from '@directus/sdk';
+import type { Schema } from '@/types/directus-schema';
 
 // Directus data interfaces
 export interface Brand {
@@ -69,16 +70,21 @@ export function useDirectusBrands() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { directus, readItems, createItem, updateItem, deleteItem } = useDirectus();
 
   useEffect(() => {
     const fetchBrands = async () => {
-      if (!directus) return;
-
       setLoading(true);
       setError(null);
 
       try {
+        const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://sol-kore.alphabits.team';
+        const publicToken = process.env.DIRECTUS_PUBLIC_TOKEN;
+
+        // Create public client for fetching public data
+        const directus = createDirectus<Schema>(directusUrl)
+          .with(rest())
+          .with(authentication('static', { accessToken: publicToken }));
+
         const response = await directus.request(
           readItems('brands', {
             fields: ['id', 'name', 'slug', 'description', 'logo', 'brand_color', 'is_active', 'sort'],
@@ -91,15 +97,30 @@ export function useDirectusBrands() {
 
         setBrands(response || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load brands');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load brands';
+        setError(errorMessage);
         console.error('Error fetching brands:', err);
+        console.error('Directus URL:', process.env.NEXT_PUBLIC_DIRECTUS_URL);
+
+        // Try to provide more helpful error messages
+        if (err instanceof Error) {
+          if (err.message.includes('fetch')) {
+            setError('Network error - unable to connect to Directus backend');
+          } else if (err.message.includes('401') || err.message.includes('403')) {
+            setError('Authentication error - please check your credentials');
+          } else if (err.message.includes('404')) {
+            setError('Brands collection not found - please check Directus schema');
+          } else {
+            setError(`Directus error: ${err.message}`);
+          }
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchBrands();
-  }, [directus]);
+  }, []);
 
   const refetch = () => {
     fetchBrands();
@@ -117,16 +138,21 @@ export function useDirectusBrandMenus() {
   const [brandMenus, setBrandMenus] = useState<BrandMenu[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { directus, readItems, createItem, updateItem, deleteItem } = useDirectus();
 
   useEffect(() => {
     const fetchBrandMenus = async () => {
-      if (!directus) return;
-
       setLoading(true);
       setError(null);
 
       try {
+        const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://sol-kore.alphabits.team';
+        const publicToken = process.env.DIRECTUS_PUBLIC_TOKEN;
+
+        // Create public client for fetching public data
+        const directus = createDirectus<Schema>(directusUrl)
+          .with(rest())
+          .with(authentication('static', { accessToken: publicToken }));
+
         const response = await directus.request(
           readItems('brand_menus', {
             fields: [
@@ -181,7 +207,7 @@ export function useDirectusBrandMenus() {
     };
 
     fetchBrandMenus();
-  }, [directus]);
+  }, []);
 
   const refetch = () => {
     fetchBrandMenus();
@@ -189,6 +215,120 @@ export function useDirectusBrandMenus() {
 
   return {
     brandMenus,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+// Hook for getting dashboard statistics
+export function useDashboardStats() {
+  const [branchCount, setBranchCount] = useState<number>(0);
+  const [tableCount, setTableCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // For now, use the mock data from branch service
+        // In the future, this should fetch from Directus API
+        const { branchService } = await import('@/services/branchService');
+
+        const branches = await branchService.getBranches();
+        const tableLayouts = await Promise.all(
+          branches.map(branch => branchService.getTableLayouts(branch.id))
+        );
+
+        const totalTables = tableLayouts.reduce((total, layouts) => {
+          return total + layouts.reduce((layoutTotal, layout) => {
+            return layoutTotal + (layout.tables_count || 0);
+          }, 0);
+        }, 0);
+
+        setBranchCount(branches.length);
+        setTableCount(totalTables);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard stats';
+        setError(errorMessage);
+        console.error('Error fetching dashboard stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const refetch = () => {
+    fetchStats();
+  };
+
+  return {
+    branchCount,
+    tableCount,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+// Hook for getting brands and branches data
+export function useBrandsAndBranches() {
+  const [brands, setBrands] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { branchService } = await import('@/services/branchService');
+
+        const [brandsData, branchesData] = await Promise.all([
+          branchService.getBrands(),
+          branchService.getBranches()
+        ]);
+
+        console.log('🏪 [CLIENT] Brands from Directus:', brandsData);
+        console.log('🏢 [CLIENT] Branches from Directus:', branchesData);
+        console.log('📊 [CLIENT] Summary:', {
+          totalBrands: brandsData.length,
+          totalBranches: branchesData.length,
+          brands: brandsData.map(b => ({ id: b.id, name: b.name, branches: branchesData.filter(br => br.brand_id === b.id).length }))
+        });
+
+        // Server-side logging (will appear in server terminal)
+        console.log('🏪 [SERVER HOOK] Brands loaded:', brandsData.length);
+        console.log('🏢 [SERVER HOOK] Branches loaded:', branchesData.length);
+
+        setBrands(brandsData);
+        setBranches(branchesData);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load brands and branches';
+        setError(errorMessage);
+        console.error('Error fetching brands and branches:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const refetch = () => {
+    fetchData();
+  };
+
+  return {
+    brands,
+    branches,
     loading,
     error,
     refetch,

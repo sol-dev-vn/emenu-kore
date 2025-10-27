@@ -9,7 +9,7 @@ export type LayoutType = 'public' | 'hub' | 'default';
  */
 export function getLayoutType(pathname: string): LayoutType {
   // Public pages that use the centered public layout
-  if (pathname === '/' || pathname === '/login') {
+  if (pathname === '/' || pathname === '/login' || pathname.startsWith('/qr')) {
     return 'public';
   }
 

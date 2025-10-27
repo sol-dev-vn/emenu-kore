@@ -19,30 +19,30 @@ export function ErrorBoundaryWithI18n({ children, fallback }: ErrorBoundaryWithI
     }
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#FFE4E1'}}>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-brand-background">
         <div className="w-full max-w-md bg-white rounded-lg shadow-sm p-6">
           <div className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="mx-auto w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center mb-4">
+              <svg className="h-6 w-6 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h2 className="text-xl text-red-800 mb-4">
+            <h2 className="text-xl text-brand-primary mb-4">
               {t('common.error')}
             </h2>
           </div>
 
           <div className="space-y-4">
-            <p className="text-center text-gray-600">
+            <p className="text-center text-brand-text/70">
               {t('errors.pageNotFound')}
             </p>
 
             {process.env.NODE_ENV === 'development' && error && (
               <div className="bg-gray-100 p-3 rounded text-xs">
-                <p className="font-mono text-red-600 mb-2">
+                <p className="font-mono text-brand-primary mb-2">
                   Error: {error.message}
                 </p>
-                <p className="font-mono text-gray-600">
+                <p className="font-mono text-brand-text/50">
                   {error.stack}
                 </p>
               </div>
@@ -51,7 +51,7 @@ export function ErrorBoundaryWithI18n({ children, fallback }: ErrorBoundaryWithI
             <div className="flex flex-col space-y-2">
               <button
                 onClick={reset}
-                className="w-full bg-red-800 text-white py-2 px-4 rounded-md hover:bg-red-900 transition-colors flex items-center justify-center"
+                className="w-full bg-brand-primary text-white py-2 px-4 rounded-md hover:bg-brand-primary/90 transition-colors flex items-center justify-center"
               >
                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -70,7 +70,7 @@ export function ErrorBoundaryWithI18n({ children, fallback }: ErrorBoundaryWithI
               </button>
             </div>
 
-            <div className="text-center text-xs text-gray-500">
+            <div className="text-center text-xs text-brand-text/50">
               Error ID: {Date.now().toString(36)}
             </div>
           </div>

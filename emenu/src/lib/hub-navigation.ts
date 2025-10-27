@@ -10,6 +10,7 @@ import {
   MapPin,
   Package,
   Users,
+  TrendingUp,
 } from 'lucide-react';
 
 export interface SidebarItem {
@@ -33,117 +34,15 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
       href: '/hub',
       description: 'Dashboard and system overview'
     },
+    {
+      title: 'Live Dashboard',
+      icon: TrendingUp,
+      href: '/hub/live',
+      description: 'Real-time branch monitoring'
+    },
   ];
 
-  const roleBasedItems: SidebarItem[] = [];
-
-  if (userRole === 'Administrator' || userRole === 'Manager') {
-    roleBasedItems.push(
-      {
-        title: 'Brands',
-        icon: Building,
-        href: '#brands',
-        description: 'Manage brands and their menus',
-        isSectionHeader: true,
-        children: [
-          {
-            title: 'Brands',
-            icon: Building,
-            href: '/hub/brands',
-            description: 'Brand management and configuration'
-          },
-          {
-            title: 'Brand Menus',
-            icon: Utensils,
-            href: '/hub/brand_menus',
-            description: 'Manage menus for all brands'
-          }
-        ]
-      },
-      {
-        title: 'Restaurants',
-        icon: Store,
-        href: '#restaurants',
-        description: 'Manage restaurant locations and operations',
-        isSectionHeader: true,
-        children: [
-          {
-            title: 'Locations',
-            icon: MapPin,
-            href: '/hub/branches',
-            description: 'Restaurant branch management'
-          },
-          {
-            title: 'Restaurant Menu',
-            icon: Utensils,
-            href: '/hub/branches/menu',
-            description: 'Branch-specific menu configuration'
-          },
-          {
-            title: 'Table Layout',
-            icon: Layout,
-            href: '/hub/tables',
-            description: 'Table layout and arrangement'
-          },
-          {
-            title: 'Table QR Codes',
-            icon: QrCode,
-            href: '/hub/tables/qr',
-            description: 'Generate and manage QR codes'
-          },
-          {
-            title: 'Manager & Staff',
-            icon: Users,
-            href: '/hub/users',
-            description: 'User management and permissions'
-          }
-        ]
-      }
-    );
-  }
-
-  if (userRole === 'Administrator') {
-    roleBasedItems.push(
-      {
-        title: 'System',
-        icon: Settings,
-        href: '#system',
-        description: 'System configuration and settings',
-        isSectionHeader: true,
-        children: [
-          {
-            title: 'General',
-            icon: Settings,
-            href: '/hub/settings',
-            description: 'General system settings'
-          }
-        ]
-      }
-    );
-  }
-
-  // Staff-specific items
-  if (userRole === 'Staff') {
-    roleBasedItems.push(
-      {
-        title: 'Restaurant Management',
-        icon: Store,
-        href: '#restaurant-management',
-        description: 'Manage restaurant operations',
-        isSectionHeader: true,
-        children: [
-          {
-            title: 'My Restaurant',
-            icon: Store,
-            href: `/hub/restaurant/user`, // This would need to be dynamic based on user ID
-            description: 'Manage your assigned restaurant'
-          }
-        ]
-      }
-    );
-  }
-
-  return [...baseItems, ...roleBasedItems];
+  return baseItems;
 }
 
 /**
@@ -152,7 +51,7 @@ export function getNavigationItems(userRole: string, t: (key: string) => string)
 export function getRoleBadgeColor(roleName: string): string {
   switch (roleName) {
     case 'Administrator':
-      return 'bg-red-600 text-white';
+      return 'bg-brand-primary text-white';
     case 'Manager':
       return 'bg-blue-600 text-white';
     case 'Staff':

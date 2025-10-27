@@ -3,22 +3,51 @@
 @tailwind utilities;
 
 :root {
-	--background-color: #FFE4E1; /* Soft peach-red background */
-	--foreground-color: #9B1D20; /* Ruby red as main foreground color */
-	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 15%);
+	--background-color: #FFFFFF; /* Clean white background for better contrast */
+	--foreground-color: #1F2937; /* Dark gray for better readability */
+	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 8%);
 	--accent-color: #9B1D20; /* Ruby red for accents and highlights */
-	--background-variant-color: #F5F5F5; /* Light gray-white for contrast */
+	--background-variant-color: #F9FAFB; /* Light gray for subtle contrast */
 	--accent-color-dark: color-mix(in srgb, var(--accent-color), black 30%);
 	--accent-color-soft: color-mix(in srgb, var(--accent-color), white 85%);
 	--accent-color-light: color-mix(in srgb, var(--accent-color), white 95%);
-	--input-color: color-mix(in srgb, var(--background-color), var(--foreground-color) 25%);
+	--input-color: color-mix(in srgb, var(--background-color), var(--foreground-color) 12%);
+
+	/* Extended brand color palette */
+	--brand-primary: #9B1D20;
+	--brand-primary-light: #FEF2F2; /* Very light red tint */
+	--brand-primary-soft: #FEE2E2; /* Soft red background */
+	--brand-primary-medium: #DC2626; /* Medium red for better visibility */
+	--brand-primary-dark: #7F1D1D; /* Dark red for strong contrast */
+	--brand-primary-darker: #450A0A; /* Darkest red for high contrast */
+	--brand-background: #FFFFFF; /* Clean white background */
+	--brand-text: #1F2937; /* Dark gray for readability */
+	--brand-nav: #F9FAFB; /* Light gray for navigation */
+
+	/* State colors */
+	--success-color: #059669;
+	--success-bg: #D1FAE5;
+	--success-border: #10B981;
+	--warning-color: #D97706;
+	--warning-bg: #FEF3C7;
+	--warning-border: #F59E0B;
+	--error-color: var(--brand-primary);
+	--error-bg: var(--brand-primary-soft); /* Use soft red instead of light pink */
+	--error-border: var(--brand-primary);
+
+	/* Interactive states */
+	--hover-bg: color-mix(in srgb, var(--accent-color), white 90%);
+	--active-bg: color-mix(in srgb, var(--accent-color), white 80%);
+	--focus-ring: var(--accent-color);
+	--disabled-bg: color-mix(in srgb, var(--background-color), var(--foreground-color) 10%);
+	--disabled-text: color-mix(in srgb, var(--foreground-color), var(--background-color) 50%);
 }
 
 .dark {
-	--background-color: #2C1810; /* Dark version of brand background */
+	--background-color: #1F2937; /* Dark gray for better contrast */
 	--background-color-muted: color-mix(in srgb, var(--background-color), var(--foreground-color) 15%);
-	--background-variant-color: #1a0f08; /* Dark variant for navigation */
-	--foreground-color: #FFE4E1; /* Light version of brand text for dark mode */
+	--background-variant-color: #111827; /* Darker variant for navigation */
+	--foreground-color: #F9FAFB; /* Light gray for dark mode text */
 }
 
 @layer base {
@@ -53,7 +82,7 @@
 		@apply text-[var(--foreground-color)];
 	}
 
-	/* Override any default pink/rose colors with brand ruby red */
+	/* Override any default pink/rose colors with brand colors */
 	.text-pink-500,
 	.text-pink-600,
 	.text-pink-700,
@@ -69,19 +98,25 @@
 	.bg-pink-50,
 	.bg-rose-50,
 	.bg-fuchsia-50 {
-		@apply !bg-[var(--accent-color-light)];
+		@apply !bg-[var(--brand-primary-light)];
 	}
 
 	.bg-pink-100,
 	.bg-rose-100,
 	.bg-fuchsia-100 {
-		@apply !bg-[var(--accent-color-soft)];
+		@apply !bg-[var(--brand-primary-soft)];
+	}
+
+	.bg-pink-200,
+	.bg-rose-200,
+	.bg-fuchsia-200 {
+		@apply !bg-[var(--brand-primary-soft)];
 	}
 
 	.border-pink-200,
 	.border-rose-200,
 	.border-fuchsia-200 {
-		@apply !border-[var(--accent-color-soft)];
+		@apply !border-[var(--brand-primary-soft)];
 	}
 }
 

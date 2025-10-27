@@ -2,7 +2,12 @@
 import { createDirectus, rest, readItems, createItem, updateItem, deleteItem } from '@directus/sdk';
 
 // Initialize Directus client
-const directus = createDirectus('https://your-directus-instance.com');
+const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://sol-kore.alphabits.team';
+const publicToken = process.env.DIRECTUS_PUBLIC_TOKEN;
+
+const directus = createDirectus(directusUrl)
+  .with(rest())
+  .with(authentication('static', { accessToken: publicToken }));
 
 // Types
 export interface Brand {
